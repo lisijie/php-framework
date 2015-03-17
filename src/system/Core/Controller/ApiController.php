@@ -41,7 +41,7 @@ class ApiController extends Controller
     protected function encode($data)
     {
         $result = json_encode($data);
-        $result = preg_replace_callback('#\\\u([0-9a-f]{4})#i', function($arr) {
+        $result = preg_replace_callback('#\\\u([0-9a-f]{4})#i', function ($arr) {
             return iconv('UCS-2BE', 'UTF-8', pack('H4', $arr[1]));
         }, $result);
         $jsonpCallback = $this->get($this->jsonpCallback);

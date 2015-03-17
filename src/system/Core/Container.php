@@ -9,44 +9,44 @@ namespace Core;
  */
 class Container
 {
-	protected $definitions = array();
+    protected $definitions = array();
 
-	protected $singletons = array();
+    protected $singletons = array();
 
-	public function set($name, $definition, $singleton = false)
-	{
-		$this->definitions[$name] = $definition;
-		if ($singleton || is_object($definition)) {
-			$this->singletons[$name] = null;
-		} else {
-			unset($this->singletons[$name]);
-		}
-		return $this;
-	}
+    public function set($name, $definition, $singleton = false)
+    {
+        $this->definitions[$name] = $definition;
+        if ($singleton || is_object($definition)) {
+            $this->singletons[$name] = null;
+        } else {
+            unset($this->singletons[$name]);
+        }
+        return $this;
+    }
 
-	public function setSingleton($name, $definition)
-	{
-		return $this->set($name, $definition, true);
-	}
+    public function setSingleton($name, $definition)
+    {
+        return $this->set($name, $definition, true);
+    }
 
-	public function get($name)
-	{
-		if (!isset($this->definitions[$name])) {
-			throw new \InvalidArgumentException("对象名称未注册: {$name}");
-		}
+    public function get($name)
+    {
+        if (!isset($this->definitions[$name])) {
+            throw new \InvalidArgumentException("对象名称未注册: {$name}");
+        }
         $params = func_get_args();
         array_shift($params);
-		if (isset($this->singletons[$name])) {
-			if (is_null($this->singletons[$name])) {
-				$definition = $this->definitions[$name];
+        if (isset($this->singletons[$name])) {
+            if (is_null($this->singletons[$name])) {
+                $definition = $this->definitions[$name];
                 $this->singletons[$name] = (is_callable($definition) ? call_user_func_array($definition, $params) : $definition);
-			}
+            }
             return $this->singletons[$name];
-		} else {
+        } else {
             $definition = $this->definitions[$name];
             return (is_callable($definition) ? call_user_func_array($definition, $params) : $definition);
         }
-	}
+    }
 
     public function has($name)
     {

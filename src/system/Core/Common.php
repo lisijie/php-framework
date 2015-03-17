@@ -4,8 +4,7 @@
  *
  * @author lisijie <lsj86@qq.com>
  * @package core
-*/
-
+ */
 
 
 /**
@@ -17,7 +16,7 @@
  */
 function URL($uri = '', $params = array())
 {
-	return App::getRouter()->makeUrl($uri, $params);
+    return App::getRouter()->makeUrl($uri, $params);
 }
 
 /**
@@ -25,5 +24,5 @@ function URL($uri = '', $params = array())
  */
 function L($lang, $params = array())
 {
-	return App::lang($lang, $params);
+    return App::lang($lang, $params);
 }

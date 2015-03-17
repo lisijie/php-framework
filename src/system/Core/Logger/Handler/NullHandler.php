@@ -17,10 +17,10 @@ class NullHandler extends AbstractHandler
 
     }
 
-	public function getDefaultFormatter()
-	{
+    public function getDefaultFormatter()
+    {
 
-	}
+    }
 
     public function handle(array $record)
     {

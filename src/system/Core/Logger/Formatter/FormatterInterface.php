@@ -10,5 +10,5 @@ namespace Core\Logger\Formatter;
  */
 interface FormatterInterface
 {
-	public function format(array $record);
+    public function format(array $record);
 }

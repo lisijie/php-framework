@@ -21,27 +21,27 @@ interface HandlerInterface
     public function __construct(array $config = array());
 
 
-	/**
-	 * 获取默认格式器
-	 *
-	 * @return FormatterInterface;
-	 */
-	public function getDefaultFormatter();
+    /**
+     * 获取默认格式器
+     *
+     * @return FormatterInterface;
+     */
+    public function getDefaultFormatter();
 
-	/**
-	 * 获取格式器
-	 *
-	 * @return FormatterInterface;
-	 */
-	public function getFormatter();
+    /**
+     * 获取格式器
+     *
+     * @return FormatterInterface;
+     */
+    public function getFormatter();
 
-	/**
-	 * 设置格式器
-	 *
-	 * @param FormatterInterface $formatter
-	 * @return mixed
-	 */
-	public function setFormatter(FormatterInterface $formatter);
+    /**
+     * 设置格式器
+     *
+     * @param FormatterInterface $formatter
+     * @return mixed
+     */
+    public function setFormatter(FormatterInterface $formatter);
 
     /**
      * 日志处理方法

@@ -10,12 +10,12 @@ namespace Core\Http;
  */
 class Request
 {
-	//参数过滤器
-	protected $filters = array();
+    //参数过滤器
+    protected $filters = array();
     //http头
     protected $header;
-	//cookies
-	protected $cookies;
+    //cookies
+    protected $cookies;
 
     public function __construct(Header $header = null, Cookies $cookie = null)
     {
@@ -23,79 +23,79 @@ class Request
         $this->cookies = is_null($cookie) ? new Cookies() : $cookie;
     }
 
-	/**
-	 * 获取HTTP请求方法
-	 *
-	 * @return string
-	 */
-	public function getMethod()
-	{
-		return $this->getServer('REQUEST_METHOD');
-	}
+    /**
+     * 获取HTTP请求方法
+     *
+     * @return string
+     */
+    public function getMethod()
+    {
+        return $this->getServer('REQUEST_METHOD');
+    }
 
-	/**
-	 * 检查请求方法
-	 *
-	 * @param $method
-	 * @return bool
-	 */
-	public function isMethod($method)
-	{
-		return strtoupper($method) === $this->getMethod();
-	}
+    /**
+     * 检查请求方法
+     *
+     * @param $method
+     * @return bool
+     */
+    public function isMethod($method)
+    {
+        return strtoupper($method) === $this->getMethod();
+    }
 
-	/**
-	 * 获取HTTP请求协议
-	 *
-	 * @return string
-	 */
-	public function getScheme()
-	{
+    /**
+     * 获取HTTP请求协议
+     *
+     * @return string
+     */
+    public function getScheme()
+    {
         if ($this->getServer('SERVER_PORT') == 443) {
             return 'https';
         }
         return 'http';
-	}
+    }
 
-	/**
-	 * 获取请求的端口
-	 *
-	 * @return string
-	 */
-	public function getPort()
-	{
+    /**
+     * 获取请求的端口
+     *
+     * @return string
+     */
+    public function getPort()
+    {
         return $this->getServer('SERVER_PORT');
-	}
+    }
 
-	/**
-	 * 获取查询字符串
-	 *
-	 * @return string
-	 */
-	public function getQueryString()
-	{
+    /**
+     * 获取查询字符串
+     *
+     * @return string
+     */
+    public function getQueryString()
+    {
         return $this->getServer('QUERY_STRING');
-	}
+    }
 
-	/**
-	 * 获取原始请求体
-	 *
-	 * @return string
-	 */
-	public function getContent()
-	{
-		return file_get_contents("php://input");
-	}
+    /**
+     * 获取原始请求体
+     *
+     * @return string
+     */
+    public function getContent()
+    {
+        return file_get_contents("php://input");
+    }
 
-	/**
-	 * 获取查询参数
-	 *
-	 * @param $name
+    /**
+     * 获取查询参数
+     *
+     * @param $name
      * @param $default
-	 * @return mixed
-	 */
-	public function getQuery($name = null, $default = null)
-	{
+     * @return mixed
+     */
+    public function getQuery($name = null, $default = null)
+    {
         if (null === $name) {
             return $this->applyFilter($_GET);
         }
@@ -103,17 +103,17 @@ class Request
             return $this->applyFilter($_GET[$name]);
         }
         return $default;
-	}
+    }
 
-	/**
-	 * 获取POST参数
-	 *
-	 * @param $name
+    /**
+     * 获取POST参数
+     *
+     * @param $name
      * @param $default
-	 * @return mixed
-	 */
-	public function getPost($name = null, $default = null)
-	{
+     * @return mixed
+     */
+    public function getPost($name = null, $default = null)
+    {
         if (null === $name) {
             return $this->applyFilter($_POST);
         }
@@ -121,7 +121,7 @@ class Request
             return $this->applyFilter($_POST[$name]);
         }
         return $default;
-	}
+    }
 
     /**
      * 获取上传的文件
@@ -132,23 +132,23 @@ class Request
     {
 
     }
-	
-	/**
-	 * 获取GET|POST值
+
+    /**
+     * 获取GET|POST值
      *
      * 优先从GET取，取不到从POST取
      *
-	 * @param string $name 键名
+     * @param string $name 键名
      * @param mixed $default 默认值
-	 * @return mixed 值
-	 */
-	public function get($name, $default = null)
-	{
-		if (null === ($value = $this->getQuery($name))) {
+     * @return mixed 值
+     */
+    public function get($name, $default = null)
+    {
+        if (null === ($value = $this->getQuery($name))) {
             $value = $this->getPost($name, $default);
         }
-		return $value;
-	}
+        return $value;
+    }
 
     /**
      * 增加过滤器
@@ -157,54 +157,54 @@ class Request
      * @throws \InvalidArgumentException
      */
     public function addFilter($callback)
-	{
-		if (!is_callable($callback)) {
-			throw new \InvalidArgumentException('回调函数不可用');
-		}
-		$this->filters[] = $callback;
-	}
-	
-	/**
-	 * 应用过滤器
-	 * @param mixed $value 要过滤的值
-	 * @return mixed 过滤后的值
-	 */
-	protected function applyFilter($value)
-	{
-		if (count($this->filters)) {
-			foreach ($this->filters as $filter) {
-				if (is_array($value)) {
-					foreach ($value as $k => $v) {
-						$value[$k] = $this->applyFilter($v);
-					} 
-				} else {
-					$value = call_user_func($filter, $value);
-				}
-			}
-		}
-		return $value;
-	}
-	
-	/**
-	 * 获取$_SERVER环境变量值
-	 * @param string $name 键名
-	 * @param mixed $default 默认值
-	 * @return mixed 值`
-	 */
-	public function getServer($name, $default = NULL)
-	{
-		$value = isset($_SERVER[$name]) ? $_SERVER[$name] : $default;
-		$value = $this->applyFilter($value);
-		return $value;
-	}
-	
-	/**
-	 * 获取客户端IP地址
-	 * 
-	 * @return string IP地址
-	 */
-	public function getClientIp()
-	{
+    {
+        if (!is_callable($callback)) {
+            throw new \InvalidArgumentException('回调函数不可用');
+        }
+        $this->filters[] = $callback;
+    }
+
+    /**
+     * 应用过滤器
+     * @param mixed $value 要过滤的值
+     * @return mixed 过滤后的值
+     */
+    protected function applyFilter($value)
+    {
+        if (count($this->filters)) {
+            foreach ($this->filters as $filter) {
+                if (is_array($value)) {
+                    foreach ($value as $k => $v) {
+                        $value[$k] = $this->applyFilter($v);
+                    }
+                } else {
+                    $value = call_user_func($filter, $value);
+                }
+            }
+        }
+        return $value;
+    }
+
+    /**
+     * 获取$_SERVER环境变量值
+     * @param string $name 键名
+     * @param mixed $default 默认值
+     * @return mixed 值`
+     */
+    public function getServer($name, $default = NULL)
+    {
+        $value = isset($_SERVER[$name]) ? $_SERVER[$name] : $default;
+        $value = $this->applyFilter($value);
+        return $value;
+    }
+
+    /**
+     * 获取客户端IP地址
+     *
+     * @return string IP地址
+     */
+    public function getClientIp()
+    {
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
             $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
         } elseif (isset($_SERVER['HTTP_CLIENT_IP']) && $_SERVER['HTTP_CLIENT_IP']) {
@@ -213,7 +213,7 @@ class Request
             $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
         }
         return preg_match('/^([0-9]{1,3}\.){3}[0-9]{1,3}$/', $ip) ? $ip : 'unknown';
-	}
+    }
 
     /**
      * 获取cookie
@@ -222,12 +222,12 @@ class Request
      * @return bool|string
      */
     public function getCookie($name = null)
-	{
-		if (is_null($name)) {
-			return $this->cookies;
-		}
+    {
+        if (is_null($name)) {
+            return $this->cookies;
+        }
         return $this->cookies->get($name);
-	}
+    }
 
     /**
      * 获取当前脚本名称
@@ -235,9 +235,9 @@ class Request
      * @return mixed
      */
     public function getScriptName()
-	{
+    {
         return $this->getServer('SCRIPT_NAME', $this->getServer('ORIG_SCRIPT_NAME', ''));
-	}
+    }
 
     /**
      * 获取访问主机地址
@@ -245,103 +245,102 @@ class Request
      * @return string
      */
     public function getHost()
-	{
+    {
         if (!($host = $this->getServer('HTTP_HOST'))) {
             if (!($host = $this->getServer('SERVER_NAME'))) {
                 $host = $this->getServer('SERVER_ADDR');
             }
         }
         return $host;
-	}
+    }
 
-	/**
-	 * 获取主机URL
-	 *
-	 * @return string
-	 */
-	public function getHostUrl()
-	{
-		$isHttps = $this->isHttps();
-		$port = $this->getServer('SERVER_PORT');
-		return ($isHttps ? 'https://' : 'http://') . $this->getHost() . ((($isHttps && $port != 443) || (!$isHttps && $port != 80)) ? ':' . $port : '');
-	}
+    /**
+     * 获取主机URL
+     *
+     * @return string
+     */
+    public function getHostUrl()
+    {
+        $isHttps = $this->isHttps();
+        $port = $this->getServer('SERVER_PORT');
+        return ($isHttps ? 'https://' : 'http://') . $this->getHost() . ((($isHttps && $port != 443) || (!$isHttps && $port != 80)) ? ':' . $port : '');
+    }
 
-	/**
-	 * 获取基础URL
-	 *
-	 * @return string
-	 */
-	public function getBaseUrl()
-	{
-		$filename = basename($this->getServer('SCRIPT_FILENAME'));
+    /**
+     * 获取基础URL
+     *
+     * @return string
+     */
+    public function getBaseUrl()
+    {
+        $filename = basename($this->getServer('SCRIPT_FILENAME'));
 
-		if (basename($this->getServer('SCRIPT_NAME')) === $filename) {
-			$baseUrl = $this->getServer('SCRIPT_NAME');
-		} elseif (basename($this->getServer('PHP_SELF')) === $filename) {
-			$baseUrl = $this->getServer('PHP_SELF');
-		} elseif (basename($this->getServer('ORIG_SCRIPT_NAME')) === $filename) {
-			$baseUrl = $this->getServer('ORIG_SCRIPT_NAME');
-		} else {
-			$baseUrl = '';
-		}
+        if (basename($this->getServer('SCRIPT_NAME')) === $filename) {
+            $baseUrl = $this->getServer('SCRIPT_NAME');
+        } elseif (basename($this->getServer('PHP_SELF')) === $filename) {
+            $baseUrl = $this->getServer('PHP_SELF');
+        } elseif (basename($this->getServer('ORIG_SCRIPT_NAME')) === $filename) {
+            $baseUrl = $this->getServer('ORIG_SCRIPT_NAME');
+        } else {
+            $baseUrl = '';
+        }
 
-		return rtrim($baseUrl, '/');
-	}
+        return rtrim($baseUrl, '/');
+    }
 
 
+    /**
+     * 获取项目基础路径
+     *
+     * @return string
+     */
+    public function getBasePath()
+    {
+        $path = dirname($this->getBaseUrl());
+        if ('\\' == DIRECTORY_SEPARATOR) {
+            $path = strtr($path, '\\', '/');
+        }
 
-	/**
-	 * 获取项目基础路径
-	 *
-	 * @return string
-	 */
-	public function getBasePath()
-	{
-		$path = dirname($this->getBaseUrl());
-		if ('\\' == DIRECTORY_SEPARATOR) {
-			$path = strtr($path, '\\', '/');
-		}
+        return rtrim($path, '/');
+    }
 
-		return rtrim($path, '/');
-	}
+    /**
+     * 获取PATHINFO
+     *
+     * @return mixed
+     */
+    public function getPathInfo()
+    {
+        return $this->getServer('PATH_INFO');
+    }
 
-	/**
-	 * 获取PATHINFO
-	 *
-	 * @return mixed
-	 */
-	public function getPathInfo()
-	{
-		return $this->getServer('PATH_INFO');
-	}
+    //返回是否HTTPS连接
+    public function isHttps()
+    {
+        return isset($_SERVER['HTTPS']) && (strcasecmp($_SERVER['HTTPS'], 'on') === 0 || $_SERVER['HTTPS'] == 1)
+        || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strcasecmp($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') === 0;
+    }
 
-	//返回是否HTTPS连接
-	public function isHttps()
-	{
-		return isset($_SERVER['HTTPS']) && (strcasecmp($_SERVER['HTTPS'], 'on') === 0 || $_SERVER['HTTPS'] == 1)
-		|| isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strcasecmp($_SERVER['HTTP_X_FORWARDED_PROTO'], 'https') === 0;
-	}
-	
-	/**
-	 * 是否AJAX请求
-	 *
-	 * @return bool
-	 */
-	public function isAjax()
-	{
-		if(isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 'xmlhttprequest' == strtolower($_SERVER['HTTP_X_REQUESTED_WITH'])) {
-			return true;
+    /**
+     * 是否AJAX请求
+     *
+     * @return bool
+     */
+    public function isAjax()
+    {
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 'xmlhttprequest' == strtolower($_SERVER['HTTP_X_REQUESTED_WITH'])) {
+            return true;
         }
         return false;
-	}
+    }
 
-	/**
-	 * 获取http原始请求内容
-	 */
-	public function getRawBody()
-	{
-		return file_get_contents('php://input');
-	}
+    /**
+     * 获取http原始请求内容
+     */
+    public function getRawBody()
+    {
+        return file_get_contents('php://input');
+    }
 
     /**
      * 返回键是否在GET/POST中

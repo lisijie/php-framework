@@ -12,17 +12,17 @@ namespace Core\Router;
 class Pathinfo extends Router
 {
 
-	public function parse()
-	{
-		if (null !== ($pathInfo = $this->request->getPathInfo())) {
+    public function parse()
+    {
+        if (null !== ($pathInfo = $this->request->getPathInfo())) {
             $this->parseUrl($pathInfo);
-		}
-	}
+        }
+    }
 
-	public function makeUrl($route, $params = array())
-	{
+    public function makeUrl($route, $params = array())
+    {
         $result = $this->makeUrlPath($route, $params);
-		return $this->request->getBaseUrl() . '/' . $result['path'] . (empty($result['params']) ? '' : '&' . http_build_query($result['params']));
-	}
+        return $this->request->getBaseUrl() . '/' . $result['path'] . (empty($result['params']) ? '' : '&' . http_build_query($result['params']));
+    }
 
 }

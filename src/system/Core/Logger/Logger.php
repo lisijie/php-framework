@@ -14,13 +14,13 @@ use Core\Logger\Handler\NullHandler;
 class Logger implements LoggerInterface
 {
     const EMERGENCY = 8;
-    const ALERT     = 7;
-    const CRITICAL  = 6;
-    const ERROR     = 5;
-    const WARNING   = 4;
-    const NOTICE    = 3;
-    const INFO      = 2;
-    const DEBUG     = 1;
+    const ALERT = 7;
+    const CRITICAL = 6;
+    const ERROR = 5;
+    const WARNING = 4;
+    const NOTICE = 3;
+    const INFO = 2;
+    const DEBUG = 1;
 
     /**
      * 日志等级对应名称映射
@@ -29,15 +29,15 @@ class Logger implements LoggerInterface
      */
     protected $levels = array(
         self::EMERGENCY => 'EMERGENCY',
-        self::ALERT     => 'ALERT',
-        self::CRITICAL  => 'CRITICAL',
-        self::ERROR     => 'ERROR',
-        self::WARNING   => 'WARNING',
-        self::NOTICE    => 'NOTICE',
-        self::INFO      => 'INFO',
-        self::DEBUG     => 'DEBUG',
+        self::ALERT => 'ALERT',
+        self::CRITICAL => 'CRITICAL',
+        self::ERROR => 'ERROR',
+        self::WARNING => 'WARNING',
+        self::NOTICE => 'NOTICE',
+        self::INFO => 'INFO',
+        self::DEBUG => 'DEBUG',
     );
-   
+
     /**
      * 日志记录级别 1-8
      * @var string
@@ -50,12 +50,12 @@ class Logger implements LoggerInterface
      */
     protected $name;
 
-	/**
-	 * 时区
-	 * @var \DateTimeZone
-	 */
-	protected $timeZone;
-    
+    /**
+     * 时区
+     * @var \DateTimeZone
+     */
+    protected $timeZone;
+
     /**
      * 日志处理器
      * @var object
@@ -67,15 +67,15 @@ class Logger implements LoggerInterface
         $this->name = $name;
     }
 
-	/**
-	 * 获取名称
-	 *
-	 * @return string
-	 */
-	public function getName()
-	{
-		return $this->name;
-	}
+    /**
+     * 获取名称
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
 
     /**
      * 设置日志处理器
@@ -93,15 +93,15 @@ class Logger implements LoggerInterface
         ksort($this->handlers);
     }
 
-	/**
-	 * 设置时区
-	 *
-	 * @param \DateTimeZone $timeZone
-	 */
-	public function setTimeZone(\DateTimeZone $timeZone)
-	{
-		$this->timeZone = $timeZone;
-	}
+    /**
+     * 设置时区
+     *
+     * @param \DateTimeZone $timeZone
+     */
+    public function setTimeZone(\DateTimeZone $timeZone)
+    {
+        $this->timeZone = $timeZone;
+    }
 
     /**
      * 系统不可用
@@ -230,23 +230,23 @@ class Logger implements LoggerInterface
             $this->setHandler(new NullHandler(), self::DEBUG);
         }
 
-	    if (!$this->timeZone) {
-		    $this->timeZone = new \DateTimeZone(date_default_timezone_get() ?: 'UTC');
-	    }
+        if (!$this->timeZone) {
+            $this->timeZone = new \DateTimeZone(date_default_timezone_get() ? : 'UTC');
+        }
 
-	    $record = array(
-		    'message' => (string) $message,
-		    'context' => $context,
-		    'level' => $level,
-		    'level_name' => $this->levels[$level],
-		    'channel' => $this->name,
-		    'datetime' => \DateTime::createFromFormat('U.u', sprintf('%.6F', microtime(true)), $this->timeZone)->setTimezone($this->timeZone),
-		    'extra' => array(),
-	    );
+        $record = array(
+            'message' => (string)$message,
+            'context' => $context,
+            'level' => $level,
+            'level_name' => $this->levels[$level],
+            'channel' => $this->name,
+            'datetime' => \DateTime::createFromFormat('U.u', sprintf('%.6F', microtime(true)), $this->timeZone)->setTimezone($this->timeZone),
+            'extra' => array(),
+        );
 
         foreach ($this->handlers as $lv => $handler) {
             if ($lv <= $level) {
-	            $handler->handle($record);
+                $handler->handle($record);
             }
         }
     }

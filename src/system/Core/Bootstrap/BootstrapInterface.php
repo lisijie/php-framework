@@ -8,5 +8,5 @@ namespace Core\Bootstrap;
  */
 interface BootstrapInterface
 {
-	public function startup();
+    public function startup();
 }

@@ -43,9 +43,9 @@ class Session
      */
     public function setHandler($handler)
     {
-	    if ($handler instanceof \SessionHandlerInterface && $handler instanceof HandlerInterface) {
-		    throw new \InvalidArgumentException('session处理器必须实现SessionHandlerInterface或Core\\Session\\Handler\\HandlerInterface接口');
-	    }
+        if ($handler instanceof \SessionHandlerInterface && $handler instanceof HandlerInterface) {
+            throw new \InvalidArgumentException('session处理器必须实现SessionHandlerInterface或Core\\Session\\Handler\\HandlerInterface接口');
+        }
         $this->handler = $handler;
     }
 
@@ -75,25 +75,25 @@ class Session
         return session_save_path();
     }
 
-	/**
-	 * 设置cookie参数
-	 *
-	 * @param array $params
-	 */
-	public function setCookieParams(array $params)
-	{
-		$this->cookieParams = $params;
-	}
+    /**
+     * 设置cookie参数
+     *
+     * @param array $params
+     */
+    public function setCookieParams(array $params)
+    {
+        $this->cookieParams = $params;
+    }
 
-	/**
-	 * 获取cookie参数
-	 *
-	 * @return array
-	 */
-	public function getCookieParams()
-	{
-		return $this->cookieParams;
-	}
+    /**
+     * 获取cookie参数
+     *
+     * @return array
+     */
+    public function getCookieParams()
+    {
+        return $this->cookieParams;
+    }
 
     /**
      * 开启session
@@ -177,10 +177,10 @@ class Session
      * @return null
      */
     public function get($name, $default = null)
-	{
+    {
         $this->start();
-		return isset($_SESSION[$name]) ? $_SESSION[$name] : $default;
-	}
+        return isset($_SESSION[$name]) ? $_SESSION[$name] : $default;
+    }
 
     /**
      * 设置session
@@ -189,10 +189,10 @@ class Session
      * @param mixed $value
      */
     public function set($name, $value)
-	{
+    {
         $this->start();
-		$_SESSION[$name] = $value;
-	}
+        $_SESSION[$name] = $value;
+    }
 
     /**
      * 删除session
@@ -201,7 +201,7 @@ class Session
      * @return null 返回被删除的值
      */
     public function remove($name)
-	{
+    {
         $this->start();
         if (isset($_SESSION)) {
             $value = $_SESSION[$name];
@@ -209,7 +209,7 @@ class Session
             return $value;
         }
         return null;
-	}
+    }
 
     /**
      * 删除所有session数据
@@ -228,9 +228,9 @@ class Session
      * @return bool
      */
     public function has($name)
-	{
-		return isset($_SESSION[$name]);
-	}
+    {
+        return isset($_SESSION[$name]);
+    }
 
     /**
      * 设置flash数据
@@ -330,7 +330,7 @@ class Session
         if (is_array($counters)) {
             foreach ($counters as $name => $count) {
                 if ($count == 0) {
-                    $counters[$name] ++;
+                    $counters[$name]++;
                 } elseif ($count > 0) {
                     unset($counters[$name], $_SESSION[$name]);
                 }

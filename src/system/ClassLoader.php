@@ -1,4 +1,5 @@
 <?php
+
 /**
  * 类自动加载器
  *
@@ -9,7 +10,8 @@
  *
  * @author lisijie <lsj86@qq.com>
  */
-class ClassLoader {
+class ClassLoader
+{
 
     protected $namespaces = array();
     protected $classes = array();
@@ -40,7 +42,7 @@ class ClassLoader {
     public function registerNamespace($namespace, $paths)
     {
         $this->namespaces[$namespace] = (array)$paths;
-	    return $this;
+        return $this;
     }
 
     /**
@@ -53,7 +55,7 @@ class ClassLoader {
     public function registerClass($className, $path)
     {
         $this->classes[$className] = (string)$path;
-	    return $this;
+        return $this;
     }
 
     /**
@@ -63,13 +65,14 @@ class ClassLoader {
      * @param array|string $paths 目录列表
      * @return ClassLoader
      */
-    public function registerPath($prefix, $paths) {
+    public function registerPath($prefix, $paths)
+    {
         if (!isset($this->paths[$prefix])) {
-            $this->paths[$prefix] = (array) $paths;
+            $this->paths[$prefix] = (array)$paths;
         } else {
             $this->paths[$prefix] = array_merge($this->paths[$prefix], (array)$paths);
         }
-	    return $this;
+        return $this;
     }
 
     /**
@@ -110,9 +113,9 @@ class ClassLoader {
      */
     protected function findFile($class)
     {
-	    if ($class[0] == '\\') {
-		    $class = substr($class, 1);
-	    }
+        if ($class[0] == '\\') {
+            $class = substr($class, 1);
+        }
         if (isset($this->classes[$class]) && is_file($this->classes[$class])) {
             return $this->classes[$class];
         }

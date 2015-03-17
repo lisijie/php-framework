@@ -13,12 +13,12 @@ class Response
 {
     //头信息
     protected $header;
-	//cookies
-	protected $cookies;
-	//内容
-	protected $body = '';
-	//状态码
-	protected $status = 200;
+    //cookies
+    protected $cookies;
+    //内容
+    protected $body = '';
+    //状态码
+    protected $status = 200;
     //协议
     protected $protocol = 'HTTP/1.1';
     //字符集
@@ -76,11 +76,11 @@ class Response
         505 => '505 HTTP Version Not Supported'
     );
 
-	public function __construct(Header $header = null, Cookies $cookie = null)
-	{
-		$this->header = is_null($header) ? new Header() : $header;
-		$this->cookies = is_null($cookie) ? new Cookies() : $cookie;
-	}
+    public function __construct(Header $header = null, Cookies $cookie = null)
+    {
+        $this->header = is_null($header) ? new Header() : $header;
+        $this->cookies = is_null($cookie) ? new Cookies() : $cookie;
+    }
 
     /**
      * 设置HTTP头
@@ -94,62 +94,62 @@ class Response
         $this->header->set($name, $value);
     }
 
-	/**
-	 * 批量设置http头
-	 *
-	 * @param array $headers
-	 */
-	public function setHeaders(array $headers)
-	{
-		foreach ($headers as $key => $value) {
-			$this->header->set($key, $value);
-		}
-	}
+    /**
+     * 批量设置http头
+     *
+     * @param array $headers
+     */
+    public function setHeaders(array $headers)
+    {
+        foreach ($headers as $key => $value) {
+            $this->header->set($key, $value);
+        }
+    }
 
-	/**
-	 * 设置单个cookie
-	 *
-	 * @param $name
-	 * @param $value
-	 * @throws \UnexpectedValueException
-	 */
-	public function setCookie($name, $value)
-	{
-		$this->cookies->set($name, $value);
-	}
+    /**
+     * 设置单个cookie
+     *
+     * @param $name
+     * @param $value
+     * @throws \UnexpectedValueException
+     */
+    public function setCookie($name, $value)
+    {
+        $this->cookies->set($name, $value);
+    }
 
-	/**
-	 * 批量设置cookie
-	 *
-	 * @param array $cookies
-	 */
-	public function setCookies(array $cookies)
-	{
-		foreach ($cookies as $key => $value) {
-			$this->cookies->set($key, $value);
-		}
-	}
+    /**
+     * 批量设置cookie
+     *
+     * @param array $cookies
+     */
+    public function setCookies(array $cookies)
+    {
+        foreach ($cookies as $key => $value) {
+            $this->cookies->set($key, $value);
+        }
+    }
 
-	/**
-	 * 移除cookie
-	 *
-	 * @param $name
-	 */
-	public function removeCookie($name)
-	{
-		$this->cookies->remove($name);
-	}
+    /**
+     * 移除cookie
+     *
+     * @param $name
+     */
+    public function removeCookie($name)
+    {
+        $this->cookies->remove($name);
+    }
 
-	/**
-	 * URL重定向
-	 *
-	 * @param string $url
-	 */
-	public function redirect($url)
-	{
-		$this->setStatus(302);
-		$this->setHeader('Location', $url);
-	}
+    /**
+     * URL重定向
+     *
+     * @param string $url
+     */
+    public function redirect($url)
+    {
+        $this->setStatus(302);
+        $this->setHeader('Location', $url);
+    }
 
     /**
      * 设置HTTP状态码
@@ -157,30 +157,30 @@ class Response
      * @param int $status
      */
     public function setStatus($status)
-	{
-		$this->status = $status;
-	}
+    {
+        $this->status = $status;
+    }
 
-	/**
-	 * 获取HTTP状态码
-	 *
-	 * @return int
-	 */
-	public function getStatus()
-	{
-		return $this->status;
-	}
+    /**
+     * 获取HTTP状态码
+     *
+     * @return int
+     */
+    public function getStatus()
+    {
+        return $this->status;
+    }
 
-	/**
-	 * 获取状态码对应信息
-	 *
-	 * @param int $status
-	 * @return string
-	 */
-	public function getStatusMessage($status)
-	{
-		return isset(static::$httpCodes[$status]) ? static::$httpCodes[$status] : '';
-	}
+    /**
+     * 获取状态码对应信息
+     *
+     * @param int $status
+     * @return string
+     */
+    public function getStatusMessage($status)
+    {
+        return isset(static::$httpCodes[$status]) ? static::$httpCodes[$status] : '';
+    }
 
     /**
      * 设置输出内容
@@ -188,9 +188,9 @@ class Response
      * @param string $body
      */
     public function setBody($body)
-	{
-		$this->body = $body;
-	}
+    {
+        $this->body = $body;
+    }
 
     /**
      * 追加输出内容
@@ -198,9 +198,9 @@ class Response
      * @param string $body
      */
     public function appendBody($body)
-	{
-		$this->body .= $body;
-	}
+    {
+        $this->body .= $body;
+    }
 
     /**
      * 获取输出内容
@@ -218,35 +218,35 @@ class Response
      * @return int
      */
     public function getBodyLength()
-	{
-		return strlen($this->body);
-	}
+    {
+        return strlen($this->body);
+    }
 
-	/**
-	 * 输出数据
-	 *
-	 * @throws \RuntimeException
-	 */
-	public function send()
-	{
-		if (!headers_sent($filename, $line)) {
+    /**
+     * 输出数据
+     *
+     * @throws \RuntimeException
+     */
+    public function send()
+    {
+        if (!headers_sent($filename, $line)) {
             if ($this->status != 200 && isset(self::$httpCodes[$this->status])) {
                 header(sprintf("%s %s", $this->protocol, self::$httpCodes[$this->status]));
             }
-			if (!$this->header->has('content-type')) {
-				$this->header->set('content-type', 'text/html; charset=utf-8');
-			}
-			foreach ($this->header as $key => $value) {
-				header("{$key}: $value", true);
-			}
-			foreach ($this->cookies as $key => $value) {
-				$str = $this->cookies->parseValue($key, $value);
-				header("Set-Cookie: $str", true);
-			}
-		} else {
-			throw new \RuntimeException("Headers already sent in $filename on line $line");
-		}
+            if (!$this->header->has('content-type')) {
+                $this->header->set('content-type', 'text/html; charset=utf-8');
+            }
+            foreach ($this->header as $key => $value) {
+                header("{$key}: $value", true);
+            }
+            foreach ($this->cookies as $key => $value) {
+                $str = $this->cookies->parseValue($key, $value);
+                header("Set-Cookie: $str", true);
+            }
+        } else {
+            throw new \RuntimeException("Headers already sent in $filename on line $line");
+        }
 
-		echo $this->body;
-	}
+        echo $this->body;
+    }
 }

@@ -12,34 +12,34 @@ require SYS_PATH . 'Vendor/Smarty/Smarty.class.php';
  */
 class Smarty extends ViewAbstract
 {
-	private $smarty;
+    private $smarty;
 
-	public function __construct(array $options)
-	{
+    public function __construct(array $options)
+    {
         if (!isset($options['ext'])) {
             $options['ext'] = '.html';
         }
         $this->options = $options;
         $defaults = array(
             'template_dir' => VIEW_PATH,
-            'config_dir'   => VIEW_PATH . 'config' . DIRECTORY_SEPARATOR,
-            'compile_dir'  => DATA_PATH . 'cache/smarty_complied',
-            'cache_dir'    => DATA_PATH . 'cache/smarty_cache',
+            'config_dir' => VIEW_PATH . 'config' . DIRECTORY_SEPARATOR,
+            'compile_dir' => DATA_PATH . 'cache/smarty_complied',
+            'cache_dir' => DATA_PATH . 'cache/smarty_cache',
         );
-		$this->smarty = new \Smarty();
-		foreach ($defaults as $key => $value) {
+        $this->smarty = new \Smarty();
+        foreach ($defaults as $key => $value) {
             $this->smarty->{$key} = isset($options[$key]) ? $options[$key] : $value;
-		}
-	}
+        }
+    }
 
     public function render($filename, $data = array())
     {
         $filename = $filename . $this->getOption('ext');
-	    if (!empty($data)) {
-		    $this->assign($data);
-	    }
-	    $this->smarty->assign($this->data);
-		return $this->smarty->fetch($filename);
+        if (!empty($data)) {
+            $this->assign($data);
+        }
+        $this->smarty->assign($this->data);
+        return $this->smarty->fetch($filename);
     }
 
     public function __call($method, $args)

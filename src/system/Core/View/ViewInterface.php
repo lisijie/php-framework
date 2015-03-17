@@ -11,7 +11,7 @@ namespace Core\View;
 interface ViewInterface
 {
 
-	public function getOption($name);
+    public function getOption($name);
 
     /**
      * 渲染模板

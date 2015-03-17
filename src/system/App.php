@@ -3,26 +3,26 @@
  * 框架引导程序
  *
  * @author lisijie <lsj86@qq.com>
-*/
+ */
 
-foreach (array('APP_PATH','DATA_PATH') as $name) {
-	if (!defined($name)) {
-		header('Content-Type:text/html; charset=UTF-8;');
-		die("常量 [{$name}] 未定义！");
-	}
+foreach (array('APP_PATH', 'DATA_PATH') as $name) {
+    if (!defined($name)) {
+        header('Content-Type:text/html; charset=UTF-8;');
+        die("常量 [{$name}] 未定义！");
+    }
 }
 
 //检查PHP版本，必须5.3以上
 if (version_compare(PHP_VERSION, '5.3.0', '<')) {
-	die('require PHP > 5.3.0 !');
+    die('require PHP > 5.3.0 !');
 }
 
 //系统常量定义
-require __DIR__.'/Const.php';
+require __DIR__ . '/Const.php';
 //自动加载类
-require __DIR__.'/ClassLoader.php';
+require __DIR__ . '/ClassLoader.php';
 //加载公共函数库
-require __DIR__.'/Core/Common.php';
+require __DIR__ . '/Core/Common.php';
 //注册自动加载
 $loader = ClassLoader::getInstance();
 $loader->registerNamespace('Core', __DIR__ . '/Core');
@@ -39,37 +39,37 @@ class App
      */
     protected static $container;
 
-	/**
-	 * 开始路由分发
-	 */
-	public static function run(\Core\Bootstrap\BootstrapInterface $bootstrap = null)
-	{
+    /**
+     * 开始路由分发
+     */
+    public static function run(\Core\Bootstrap\BootstrapInterface $bootstrap = null)
+    {
         static::$container = new \Core\Container();
-		if (!is_object($bootstrap)) {
+        if (!is_object($bootstrap)) {
             $bootstrap = new \Core\Bootstrap\Bootstrap();
         }
         static::bootstrap($bootstrap);
 
-		$router = static::get('router');
-		$router->parse();
-		$_GET = array_merge($_GET, $router->getParams());
+        $router = static::get('router');
+        $router->parse();
+        $_GET = array_merge($_GET, $router->getParams());
         $routeName = $router->getRoute();
-		//当前路由地址
-		define('CUR_ROUTE', $routeName);
+        //当前路由地址
+        define('CUR_ROUTE', $routeName);
 
-		if (!preg_match('#^[a-z][a-z0-9/]+$#i', $routeName)) {
-			throw new \Core\Exception\HttpNotFoundException('invalid request.');
-		}
+        if (!preg_match('#^[a-z][a-z0-9/]+$#i', $routeName)) {
+            throw new \Core\Exception\HttpNotFoundException('invalid request.');
+        }
 
         $pos = strrpos($routeName, '/');
         $controllerName = str_replace('/', ' ', substr($routeName, 0, $pos));
         $controllerName = str_replace(' ', '\\', ucwords($controllerName));
         $actionName = substr($routeName, $pos + 1) . 'Action';
-		$className = "\\App\\Controller\\{$controllerName}Controller";
+        $className = "\\App\\Controller\\{$controllerName}Controller";
 
-		if (!class_exists($className)) {
-			throw new \Core\Exception\HttpNotFoundException("controller not found: {$className}");
-		}
+        if (!class_exists($className)) {
+            throw new \Core\Exception\HttpNotFoundException("controller not found: {$className}");
+        }
 
         $class = new ReflectionClass($className);
         $request = static::get('request');
@@ -83,7 +83,7 @@ class App
                         $default = $p->isOptional() ? $p->getDefaultValue() : null;
                         $value = $request->get($p->getName(), $default);
                         if (null === $value) {
-                            throw new \RuntimeException('缺少参数:'.$p->getName());
+                            throw new \RuntimeException('缺少参数:' . $p->getName());
                         }
                         $args[] = $value;
                     }
@@ -96,7 +96,7 @@ class App
             }
         }
         throw new \Core\Exception\HttpNotFoundException();
-	}
+    }
 
     /**
      * 终止
@@ -139,11 +139,11 @@ class App
      * @param boolean $reload
      * @return bool|mixed|string
      */
-	public static function conf($file, $key = '', $default = '', $reload = false)
-	{
-		static $allConfig = array();
-		if ($reload || !isset($allConfig[$file])) {
-			if (!preg_match('/^[a-z0-9\_]+$/i', $file)) return false;
+    public static function conf($file, $key = '', $default = '', $reload = false)
+    {
+        static $allConfig = array();
+        if ($reload || !isset($allConfig[$file])) {
+            if (!preg_match('/^[a-z0-9\_]+$/i', $file)) return false;
             $fileName = CONFIG_PATH . $file . '.php';
             $diffName = CONFIG_PATH . RUN_MODE . '/' . $file . '.php';
             if (!is_file($diffName) && !is_file($fileName)) {
@@ -158,13 +158,13 @@ class App
                     $allConfig[$file] = array_merge($allConfig[$file], $diff);
                 }
             }
-		}
-		if (empty($key)) {
-			return $allConfig[$file];
-		} else {
-			return isset($allConfig[$file][$key]) ? $allConfig[$file][$key] : $default;
-		}
-	}
+        }
+        if (empty($key)) {
+            return $allConfig[$file];
+        } else {
+            return isset($allConfig[$file][$key]) ? $allConfig[$file][$key] : $default;
+        }
+    }
 
     /**
      * 语言包解析
@@ -177,43 +177,43 @@ class App
      * @throws InvalidArgumentException
      * @return string
      */
-	public static function lang($langId, $params = array())
-	{
-		static $cache = array();
-		if (false === strpos($langId, '.')) {
-			if (!isset($cache['common'])) {
-				$filename = App::conf('app','lang','zh_CN') . "/language.php";
-				if (is_file($filename)) {
-					$lang = array();
-					include LANG_PATH . $filename;
+    public static function lang($langId, $params = array())
+    {
+        static $cache = array();
+        if (false === strpos($langId, '.')) {
+            if (!isset($cache['common'])) {
+                $filename = App::conf('app', 'lang', 'zh_CN') . "/language.php";
+                if (is_file($filename)) {
+                    $lang = array();
+                    include LANG_PATH . $filename;
                     $cache['common'] = $lang;
-				}
-			}
-			if (isset($cache['common'][$langId])) {
-				$file = 'common';
-				$idx = $langId;
-			} else {
-				return $langId;
-			}
-		} else {
-			list($file, $idx) = explode('.', $langId);
-			if ($file && !isset($cache[$file])) {
-				$lang = array();
-				$filename = App::conf('app','lang','zh_CN') . "/{$file}.php";
-				if (!is_file(LANG_PATH . $filename)) {
+                }
+            }
+            if (isset($cache['common'][$langId])) {
+                $file = 'common';
+                $idx = $langId;
+            } else {
+                return $langId;
+            }
+        } else {
+            list($file, $idx) = explode('.', $langId);
+            if ($file && !isset($cache[$file])) {
+                $lang = array();
+                $filename = App::conf('app', 'lang', 'zh_CN') . "/{$file}.php";
+                if (!is_file(LANG_PATH . $filename)) {
                     throw new InvalidArgumentException("lang file {$filename} not exists.");
                 }
-				include LANG_PATH . $filename;
+                include LANG_PATH . $filename;
                 $cache[$file] = $lang;
-			}
-			if (!isset($cache[$file][$idx])) {
-				throw new InvalidArgumentException("lang {$langId} not exists.");
-			}
-		}
-        return preg_replace_callback('/{\$(\d+)}/', function ($m) use(&$params) {
+            }
+            if (!isset($cache[$file][$idx])) {
+                throw new InvalidArgumentException("lang {$langId} not exists.");
+            }
+        }
+        return preg_replace_callback('/{\$(\d+)}/', function ($m) use (&$params) {
             return $params[$m[1] - 1];
         }, $cache[$file][$idx]);
-	}
+    }
 
     /**
      * 抛出一个HTTP异常
@@ -223,9 +223,9 @@ class App
      * @throws Core\Exception\HttpException
      */
     public static function abort($code, $message = '')
-	{
-		throw new \Core\Exception\HttpException($message, $code);
-	}
+    {
+        throw new \Core\Exception\HttpException($message, $code);
+    }
 
 
     /**
@@ -279,6 +279,6 @@ class App
                 return call_user_func_array(array(static::$container, 'get'), $params);
             }
         }
-        throw new InvalidArgumentException("方法不存在: ".__CLASS__."::{$method}");
+        throw new InvalidArgumentException("方法不存在: " . __CLASS__ . "::{$method}");
     }
 }

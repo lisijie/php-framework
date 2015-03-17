@@ -23,16 +23,16 @@ class Native extends ViewAbstract
         $this->funcMap[$name] = $func;
     }
 
-	public function render($filename, $data = array())
-	{
+    public function render($filename, $data = array())
+    {
         ob_start();
         $data = array_merge($this->data, $data);
-		$tplFile = $this->getViewFile($filename);
+        $tplFile = $this->getViewFile($filename);
         @extract($data, EXTR_OVERWRITE);
         include $tplFile;
         $content = ob_get_clean();
         return $content;
-	}
+    }
 
     protected function layout($filename)
     {
@@ -49,6 +49,6 @@ class Native extends ViewAbstract
         if (isset($this->funcMap[$method])) {
             return call_user_func_array($this->funcMap[$method], $args);
         }
-        throw new ViewException( __CLASS__ . '::' . $method . ' 方法不存在!');
+        throw new ViewException(__CLASS__ . '::' . $method . ' 方法不存在!');
     }
 }
