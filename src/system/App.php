@@ -5,11 +5,6 @@
  * @author lisijie <lsj86@qq.com>
  */
 
-//设置错误报告级别, 使用最严格的标准
-error_reporting(E_ALL | E_STRICT);
-//关闭显示错误消息, 所有错误已经转换成异常, 并注册了默认异常处理器
-ini_set('display_errors', DEBUG);
-
 //检查PHP版本，必须5.3以上
 if (version_compare(PHP_VERSION, '5.3.0', '<')) {
     die('require PHP > 5.3.0 !');
@@ -26,12 +21,18 @@ foreach (array('APP_PATH', 'DATA_PATH') as $name) {
     }
 }
 
+//设置错误报告级别, 使用最严格的标准
+error_reporting(E_ALL | E_STRICT);
+
 //系统常量定义
 require __DIR__ . '/Const.php';
 //自动加载类
 require __DIR__ . '/ClassLoader.php';
 //加载公共函数库
 require __DIR__ . '/Core/Common.php';
+
+//关闭显示错误消息, 所有错误已经转换成异常, 并注册了默认异常处理器
+ini_set('display_errors', DEBUG);
 
 //注册自动加载
 $loader = ClassLoader::getInstance();
