@@ -5,16 +5,25 @@
  * @author lisijie <lsj86@qq.com>
  */
 
+//设置错误报告级别, 使用最严格的标准
+error_reporting(E_ALL | E_STRICT);
+//关闭显示错误消息, 所有错误已经转换成异常, 并注册了默认异常处理器
+ini_set('display_errors', DEBUG);
+
+//检查PHP版本，必须5.3以上
+if (version_compare(PHP_VERSION, '5.3.0', '<')) {
+    die('require PHP > 5.3.0 !');
+}
+//不使用魔术引用, php 5.4之后已废弃魔术引用
+if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
+    die('当前应用不允许运行在 magic_quotes_gpc = on 的环境下，请到 php.ini 关闭。');
+}
+//检查目录常量
 foreach (array('APP_PATH', 'DATA_PATH') as $name) {
     if (!defined($name)) {
         header('Content-Type:text/html; charset=UTF-8;');
         die("常量 [{$name}] 未定义！");
     }
-}
-
-//检查PHP版本，必须5.3以上
-if (version_compare(PHP_VERSION, '5.3.0', '<')) {
-    die('require PHP > 5.3.0 !');
 }
 
 //系统常量定义
@@ -23,6 +32,7 @@ require __DIR__ . '/Const.php';
 require __DIR__ . '/ClassLoader.php';
 //加载公共函数库
 require __DIR__ . '/Core/Common.php';
+
 //注册自动加载
 $loader = ClassLoader::getInstance();
 $loader->registerNamespace('Core', __DIR__ . '/Core');
@@ -42,14 +52,8 @@ class App
     /**
      * 开始路由分发
      */
-    public static function run(\Core\Bootstrap\BootstrapInterface $bootstrap = null)
+    public static function run()
     {
-        static::$container = new \Core\Container();
-        if (!is_object($bootstrap)) {
-            $bootstrap = new \Core\Bootstrap\Bootstrap();
-        }
-        static::bootstrap($bootstrap);
-
         $router = static::get('router');
         $router->parse();
         $_GET = array_merge($_GET, $router->getParams());
@@ -112,12 +116,17 @@ class App
     /**
      * 执行引导程序
      *
-     * 先调用所有set开头的方法进行依赖注入，最后调用init方法初始化
+     * 先调用所有init开头的方法，最后调用startup方法初始化
      *
      * @param \Core\Bootstrap\BootstrapInterface $bootstrap
      */
-    protected static function bootstrap(\Core\Bootstrap\BootstrapInterface $bootstrap)
+    public static function bootstrap(\Core\Bootstrap\BootstrapInterface $bootstrap = null)
     {
+        static::$container = new \Core\Container();
+        if (!is_object($bootstrap)) {
+            $bootstrap = new \Core\Bootstrap\Bootstrap();
+        }
+
         $class = new ReflectionClass($bootstrap);
         $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method) {

@@ -18,24 +18,18 @@ class Bootstrap implements BootstrapInterface
 
 	public function startup()
 	{
-		//设置错误报告级别, 使用最严格的标准
-		@error_reporting(E_ALL | E_STRICT);
-		//关闭显示错误消息, 所有错误已经转换成异常, 并注册了默认异常处理器
-		@ini_set('display_errors', DEBUG);
-        //不使用魔术引用, php 5.4之后已废弃魔术引用
-        if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
-            die('当前应用不允许运行在 magic_quotes_gpc = on 的环境下，请到 php.ini 关闭。');
-        }
+        //注册错误处理函数
+        set_error_handler(function ($code, $str, $file, $line) {
+            throw new \ErrorException($str, $code, 0, $file, $line);
+        });
+
         //设置时区
         if (App::conf('app', 'timezone')) {
             date_default_timezone_set(App::conf('app', 'timezone'));
         } elseif (ini_get('date.timezone') == '') {
             date_default_timezone_set('Asia/Shanghai'); //设置默认时区为中国时区
         }
-		//注册错误处理函数
-		set_error_handler(function ($code, $str, $file, $line) {
-			throw new \ErrorException($str, $code, 0, $file, $line);
-		});
+
 		//注册shutdown函数
 		register_shutdown_function(function() {
 			$error = error_get_last();
@@ -47,6 +41,7 @@ class Bootstrap implements BootstrapInterface
 				}
 			}
 		});
+
         //注册异常处理器
         if (class_exists('\\App\\Exception\\Handler')) {
             \App\Exception\Handler::factory(App::getLogger(), DEBUG)->register();
