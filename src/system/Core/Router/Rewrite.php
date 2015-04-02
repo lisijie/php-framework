@@ -12,8 +12,8 @@
  *    </IfModule>
  *
  * Nginx 服务器在 server {} 内加入：
- *  if (!-e $request_filename) {
- *      rewrite ^(.*)$ /index.php?$1 last;
+ *  location / {
+ *      try_files $uri $uri/ /index.php?$args;
  *  }
  *
  * @author lisijie <lsj86@qq.com>
@@ -48,7 +48,7 @@ class Rewrite extends Router
     public function makeUrl($route, $params = array())
     {
         $result = $this->makeUrlPath($route, $params);
-        return $this->request->getBasePath() . '/' . $result['path'] . (empty($result['params']) ? '' : '?' . http_build_query($result['params']));
+        return $this->request->getBasePath() . '/' . ltrim($result['path'], '/') . (empty($result['params']) ? '' : '?' . http_build_query($result['params']));
     }
 
 }
