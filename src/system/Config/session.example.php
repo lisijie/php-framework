@@ -2,7 +2,7 @@
 
 return array(
 
-	'default' => 'file',
+	'type' => 'file',
 
 	'file' => array(
 		'save_path' => '',
