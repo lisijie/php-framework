@@ -12,8 +12,9 @@ class Model
 {
 
     /**
-     * DB 对象
-     * @var object
+     * DB对象
+     *
+     * @var \Core\Db
      */
     protected $db;
 
