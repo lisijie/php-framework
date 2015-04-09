@@ -154,8 +154,9 @@ class Db
     public function query($sql, $data = array(), $mode = 'auto')
     {
         $st = microtime(true);
+        $sql = $this->sql($sql);
         $conn = $mode == 'auto' ? $this->autoConn($sql) : $this->getConnect($mode);
-        $stm = $conn->prepare($this->sql($sql));
+        $stm = $conn->prepare($sql);
         $this->bindValue($stm, $data);
         $stm->execute();
         if ($this->debug && $this->logger) {
@@ -174,7 +175,8 @@ class Db
     {
         $st = microtime(true);
         $conn = $this->getConnect();
-        $ret = $conn->exec($this->sql($sql));
+        $sql = $this->sql($sql);
+        $ret = $conn->exec($sql);
         if ($this->debug && $this->logger) {
             $this->logger->info("sql:{$sql}, ret:{$ret}, time:" . round(microtime(true) - $st, 4));
         }
