@@ -11,6 +11,7 @@ use Core\Logger\Logger;
 use Core\Db;
 use Core\Session\Session;
 use Core\Session\Handler\Memcached;
+use Core\View\ViewFactory;
 
 
 class Bootstrap implements BootstrapInterface
@@ -150,4 +151,13 @@ class Bootstrap implements BootstrapInterface
             return $instances[$name];
         }, false);
 	}
+
+    //初始化视图模板对象
+    public function initView()
+    {
+        App::set('view', function () {
+            $viewConf = App::conf('app', 'view');
+            return ViewFactory::create($viewConf['engine'], $viewConf['options']);
+        });
+    }
 }

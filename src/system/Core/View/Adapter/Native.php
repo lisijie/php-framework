@@ -1,6 +1,8 @@
 <?php
 
-namespace Core\View;
+namespace Core\View\Adapter;
+
+use Core\View\ViewAbstract;
 
 /**
  * 原生PHP模板

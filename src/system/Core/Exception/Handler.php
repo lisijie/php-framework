@@ -134,7 +134,7 @@ class Handler
     {
         $response = new Response();
         $response->setStatus($e->getCode());
-        $response->setBody($response->getStatusMessage($e->getCode()));
+        $response->setBody($e->getMessage());
         $response->send();
     }
 

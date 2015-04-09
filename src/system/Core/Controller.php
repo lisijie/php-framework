@@ -48,11 +48,10 @@ class Controller
      */
     public function __construct()
     {
-        $viewConf = App::conf('app', 'view');
-        $this->request = App::getRequest();
-        $this->response = App::getResponse();
-        $this->logger = App::getLogger();
-        $this->view = ViewAbstract::factory($viewConf['engine'], $viewConf['options']);
+        $this->request  = App::get('request');
+        $this->response = App::get('response');
+        $this->logger   = App::get('logger');
+        $this->view     = App::get('view');
     }
 
     /**

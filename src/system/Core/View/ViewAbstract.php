@@ -7,23 +7,6 @@ abstract class ViewAbstract implements ViewInterface
     protected $data = array();
     protected $options = array();
 
-    /**
-     * 工厂方法
-     *
-     * @param $engine
-     * @param array $options
-     * @return \Core\View\ViewInterface
-     * @throws \Core\View\ViewException
-     */
-    public static function factory($engine, $options = array())
-    {
-        $className = '\\Core\\View\\' . ucfirst($engine);
-        if (!class_exists($className)) {
-            throw new ViewException('不支持该视图类型: ' . $engine);
-        }
-        return new $className($options);
-    }
-
     public function __construct(array $options)
     {
         $this->options = $options;
