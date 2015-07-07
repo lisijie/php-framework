@@ -55,7 +55,7 @@ class App
      */
     public static function run()
     {
-        $router = static::get('router');
+        $router = static::router();
         $router->parse();
         $_GET = array_merge($_GET, $router->getParams());
         $routeName = $router->getRoute();
@@ -77,7 +77,7 @@ class App
         }
 
         $class = new ReflectionClass($className);
-        $request = static::get('request');
+        $request = static::request();
         if ($class->hasMethod($actionName)) {
             $method = new ReflectionMethod($className, $actionName);
             if ($method->isPublic()) {
@@ -110,7 +110,7 @@ class App
     {
         $controller = static::get('controller');
         $controller->after();
-        static::get('response')->send();
+        static::response()->send();
         exit(0);
     }
 

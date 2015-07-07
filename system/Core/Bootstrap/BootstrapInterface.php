@@ -10,11 +10,11 @@ interface BootstrapInterface
 {
 	public function startup();
 
-	public function initDb($name = 'default');
+	public function initDb($name);
 
-	public function initCache($name = 'default');
+	public function initCache($name);
 
-	public function initLogger($name = 'default');
+	public function initLogger($name);
 
 	public function initRequest();
 

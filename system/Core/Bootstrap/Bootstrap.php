@@ -38,29 +38,29 @@ class Bootstrap implements BootstrapInterface
 				$errTypes = array(E_ERROR => 'E_ERROR', E_PARSE => 'E_PARSE', E_USER_ERROR => 'E_USER_ERROR');
 				if (isset($errTypes[$error['type']])) {
 					$info = $errTypes[$error['type']].": {$error['message']} in {$error['file']} on line {$error['line']}";
-					App::getLogger()->error($info);
+					App::logger()->error($info);
 				}
 			}
 		});
 
         //注册异常处理器
         if (class_exists('\\App\\Exception\\Handler')) {
-            \App\Exception\Handler::factory(App::getLogger(), DEBUG)->register();
+            \App\Exception\Handler::factory(App::logger(), DEBUG)->register();
         } else {
-            \Core\Exception\Handler::factory(App::getLogger(), DEBUG)->register();
+            \Core\Exception\Handler::factory(App::logger(), DEBUG)->register();
         }
 
 	}
 
     //注册DB初始化方法
-	public function initDb($name = 'default')
+	public function initDb($name)
 	{
         $config = App::conf('app', 'database');
         if (!isset($config[$name])) {
             throw new \InvalidArgumentException("数据配置不存在: {$name}");
         }
         $db = new Db($config[$name]);
-        $db->setLogger(App::get('logger'));
+        $db->setLogger(App::logger());
         return $db;
 	}
 
@@ -84,7 +84,7 @@ class Bootstrap implements BootstrapInterface
 		return $session;
 	}
 
-	public function initCache($name = 'default')
+	public function initCache($name)
 	{
         $config = App::conf('app','cache');
         if ($name == 'default') {
@@ -116,7 +116,7 @@ class Bootstrap implements BootstrapInterface
 	}
 
     //注册日志记录器
-	public function initLogger($name = 'default')
+	public function initLogger($name)
 	{
         $config = App::conf('app', 'logger', array());
         $logger = new Logger($name);

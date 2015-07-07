@@ -17,7 +17,7 @@ class Container
     {
         $this->definitions[$name] = $definition;
         if ($singleton || is_object($definition)) {
-            $this->singletons[$name] = null;
+            $this->singletons[$name] = array();
         } else {
             unset($this->singletons[$name]);
         }
@@ -36,9 +36,9 @@ class Container
         }
         $params = func_get_args();
         array_shift($params);
-        if (isset($this->singletons[$name])) {
+        if (array_key_exists($name, $this->singletons)) {
             $tag = json_encode($params);
-            if (is_null($this->singletons[$name][$tag])) {
+            if (!array_key_exists($tag, $this->singletons[$name])) {
                 $definition = $this->definitions[$name];
                 $this->singletons[$name][$tag] = (is_callable($definition) ? call_user_func_array($definition, $params) : $definition);
             }
