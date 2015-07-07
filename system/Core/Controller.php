@@ -48,10 +48,10 @@ class Controller
      */
     public function __construct()
     {
-        $this->request  = App::get('request');
-        $this->response = App::get('response');
-        $this->logger   = App::get('logger');
-        $this->view     = App::get('view');
+        $this->request  = App::request();
+        $this->response = App::response();
+        $this->logger   = App::logger();
+        $this->view     = App::view();
     }
 
     /**
@@ -165,6 +165,7 @@ class Controller
         if (empty($filename)) {
             $filename = CUR_ROUTE;
         }
+        
         $this->response->setBody($this->view->render($filename));
     }
 }

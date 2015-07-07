@@ -131,8 +131,9 @@ class App
         $class = new ReflectionClass($bootstrap);
         $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method) {
-            if (substr($method->getName(), 0, 4) == 'init') {
-                $method->invoke($bootstrap);
+            $methodName = $method->getName();
+            if (substr($methodName, 0, 4) == 'init') {
+                static::$container->set(lcfirst(substr($methodName, 4)), array($bootstrap, $methodName), true);
             }
         }
         $bootstrap->startup();
@@ -225,6 +226,7 @@ class App
         }, $cache[$file][$idx]);
     }
 
+
     /**
      * 抛出一个HTTP异常
      *
@@ -237,6 +239,86 @@ class App
         throw new \Core\Exception\HttpException($message, $code);
     }
 
+    /**
+     * 获取DB实例
+     *
+     * @param string $name
+     * @return Core\Db
+     */
+    public static function db($name = 'default')
+    {
+        return self::get('db', $name);
+    }
+
+    /**
+     * 返回Request对象
+     *
+     * @return Core\Http\Request
+     */
+    public static function request()
+    {
+        return self::get('request');
+    }
+
+    /**
+     * 返回Response对象
+     *
+     * @return Core\Http\Response
+     */
+    public static function response()
+    {
+        return self::get('response');
+    }
+
+    /**
+     * 返回路由对象
+     *
+     * @return Core\Router\Router
+     */
+    public static function router()
+    {
+        return self::get('router');
+    }
+
+    /**
+     * 返回Session对象
+     *
+     * @return Core\Session\Session
+     */
+    public static function session()
+    {
+        return self::get('session');
+    }
+
+    /**
+     * 返回缓存对象
+     *
+     * @return Core\Cache\CacheInterface
+     */
+    public static function cache($name = 'default')
+    {
+        return self::get('cache', $name);
+    }
+
+    /**
+     * 返回日志对象
+     *
+     * @return Core\Logger\LoggerInterface
+     */
+    public static function logger($name = 'default')
+    {
+        return self::get('logger', $name);
+    }
+
+    /**
+     * 返回视图对象
+     *
+     * @return Core\View\ViewInterface
+     */
+    public static function view()
+    {
+        return self::get('view');
+    }
 
     /**
      * 注入对象

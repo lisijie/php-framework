@@ -53,111 +53,87 @@ class Bootstrap implements BootstrapInterface
 	}
 
     //注册DB初始化方法
-	public function initDb()
+	public function initDb($name = 'default')
 	{
-        App::set('db', function($name = 'default') {
-            static $instance = array();
-            if (!isset($instance[$name])) {
-                $config = App::conf('app', 'database');
-                if (!isset($config[$name])) {
-                    throw new \InvalidArgumentException("数据配置不存在: {$name}");
-                }
-                $db = new Db($config[$name]);
-                $db->setLogger(App::get('logger'));
-                $instance[$name] = $db;
-            }
-            return $instance[$name];
-        }, false);
+        $config = App::conf('app', 'database');
+        if (!isset($config[$name])) {
+            throw new \InvalidArgumentException("数据配置不存在: {$name}");
+        }
+        $db = new Db($config[$name]);
+        $db->setLogger(App::get('logger'));
+        return $db;
 	}
 
 	public function initSession()
 	{
-		App::set('session', function() {
-			$config = App::conf('app', 'session', array());
-			$session = new Session();
-            if (isset($config['type'])) {
-                switch ($config['type']) {
-                    case 'file':
-                        if (!empty($config['file']['save_path'])) {
-                            $session->setSavePath($config['file']['save_path']);
-                        }
-                        break;
-                    case 'memcached':
-                        $session->setHandler(new Memcached($config['memcached']['servers']));
-                        break;
-                }
+		$config = App::conf('app', 'session', array());
+		$session = new Session();
+        if (isset($config['type'])) {
+            switch ($config['type']) {
+                case 'file':
+                    if (!empty($config['file']['save_path'])) {
+                        $session->setSavePath($config['file']['save_path']);
+                    }
+                    break;
+                case 'memcached':
+                    $session->setHandler(new Memcached($config['memcached']['servers']));
+                    break;
             }
-			$session->start();
-			return $session;
-		}, true);
+        }
+		$session->start();
+		return $session;
 	}
 
-	public function initCache()
+	public function initCache($name = 'default')
 	{
-        App::set('cache', function($name = 'default') {
-            static $instances = array();
-            if (!isset($instances[$name])) {
-                $config = App::conf('app','cache');
-                if ($name == 'default') {
-                    $name = $config['default'];
-                }
-                $instances[$name] = \Core\Cache\Cache::factory($name, $config[$name]);
-            }
-            return $instances[$name];
-        }, false);
+        $config = App::conf('app','cache');
+        if ($name == 'default') {
+            $name = $config['default'];
+        }
+        return \Core\Cache\Cache::factory($name, $config[$name]);
 	}
 
     //注册路由
 	public function initRouter()
 	{
-        App::set('router', function () {
-            $options = App::conf('app', 'router');
-            $router = Router::factory($options);
-            $router->setConfig(App::conf('route'));
-            $router->setRequest(App::getRequest());
-            return $router;
-        }, true);
+        $options = App::conf('app', 'router');
+        $router = Router::factory($options);
+        $router->setConfig(App::conf('route'));
+        $router->setRequest(App::getRequest());
+        return $router;
 	}
 
     //注册输出对象
 	public function initResponse()
 	{
-        App::set('response', new Response(), true);
+        return new Response();
 	}
 
     //注册请求对象
 	public function initRequest()
 	{
-		App::set('request', new Request(Header::createFrom($_SERVER), new Cookies($_COOKIE)), true);
+		return new Request(Header::createFrom($_SERVER), new Cookies($_COOKIE));
 	}
 
     //注册日志记录器
-	public function initLogger()
+	public function initLogger($name = 'default')
 	{
-        App::set('logger', function ($name = 'default') {
-            static $instances = array();
-            if (!isset($instances[$name])) {
-                $config = App::conf('app', 'logger', array());
-                $logger = new Logger($name);
-                $logger->setTimeZone(new \DateTimeZone('PRC'));
-                if (isset($config[$name])) {
-                    foreach ($config[$name] as $conf) {
-                        $class = '\\Core\\Logger\\Handler\\' . $conf['handler'];
-                        $logger->setHandler(new $class($conf['config']), $conf['level']);
-                    }
-                }
-                $instances[$name] = $logger;
+        $config = App::conf('app', 'logger', array());
+        $logger = new Logger($name);
+        $logger->setTimeZone(new \DateTimeZone('PRC'));
+        if (isset($config[$name])) {
+            foreach ($config[$name] as $conf) {
+                $class = '\\Core\\Logger\\Handler\\' . $conf['handler'];
+                $logger->setHandler(new $class($conf['config']), $conf['level']);
             }
-            return $instances[$name];
-        }, false);
+        }
+        return $logger;
 	}
 
     //初始化视图模板对象
     public function initView()
     {
-        App::set('view', function () {
-            $viewConf = App::conf('app', 'view');
-            return ViewFactory::create($viewConf['engine'], $viewConf['options']);
-        });
+        $viewConf = App::conf('app', 'view');
+        return ViewFactory::create($viewConf['engine'], $viewConf['options']);
     }
 }

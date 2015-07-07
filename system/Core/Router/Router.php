@@ -180,10 +180,20 @@ abstract class Router
         return $this->routeName ? : $this->getDefaultRoute();
     }
 
-
+    /**
+     * 获取路由参数列表
+     */
     public function getParams()
     {
         return $this->params;
+    }
+
+    /**
+     * 获取请求的主机名
+     */
+    public function getHost()
+    {
+        return $this->request->getHost();
     }
 
     /**

@@ -37,11 +37,12 @@ class Container
         $params = func_get_args();
         array_shift($params);
         if (isset($this->singletons[$name])) {
-            if (is_null($this->singletons[$name])) {
+            $tag = json_encode($params);
+            if (is_null($this->singletons[$name][$tag])) {
                 $definition = $this->definitions[$name];
-                $this->singletons[$name] = (is_callable($definition) ? call_user_func_array($definition, $params) : $definition);
+                $this->singletons[$name][$tag] = (is_callable($definition) ? call_user_func_array($definition, $params) : $definition);
             }
-            return $this->singletons[$name];
+            return $this->singletons[$name][$tag];
         } else {
             $definition = $this->definitions[$name];
             return (is_callable($definition) ? call_user_func_array($definition, $params) : $definition);

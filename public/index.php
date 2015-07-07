@@ -10,4 +10,5 @@ define('RUN_MODE', 'dev');
 
 require dirname(__DIR__) .'/system/App.php';
 
+App::bootstrap();
 App::run();
