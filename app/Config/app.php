@@ -27,16 +27,16 @@ return array(
 			'charset' => 'utf8',
 			//写库
 			'write' => array(
-				'dsn' => "mysql:host=42.96.188.27;port=3306;dbname=lampnotes;charset=utf8",
-				'username' => 'phpkit',
-				'password' => 'phpkit',
+				'dsn' => "mysql:host=localhost;port=3306;dbname=test;charset=utf8",
+				'username' => 'root',
+				'password' => '',
 				'pconnect' => false,
 			),
 			//读库，只允许配一个地址，如果是一主多从的话，建议使用haproxy或其他中间件做转发
 			'read' => array(
-                'dsn' => "mysql:host=42.96.188.27;port=3306;dbname=lampnotes;charset=utf8",
-                'username' => 'phpkit',
-                'password' => 'phpkit',
+                'dsn' => "mysql:host=localhost;port=3306;dbname=test;charset=utf8",
+                'username' => 'root',
+                'password' => '',
                 'pconnect' => false,
 			)
 		)
