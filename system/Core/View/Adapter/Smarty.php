@@ -4,8 +4,6 @@ namespace Core\View\Adapter;
 
 use Core\View\ViewAbstract;
 
-require SYS_PATH . 'Vendor/Smarty/Smarty.class.php';
-
 /**
  * Smarty模版引擎
  *

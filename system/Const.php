@@ -19,6 +19,8 @@ define('START_TIME', microtime(TRUE));
 define('START_MEMORY_USAGE', memory_get_usage());
 
 /************* 应用目录 ***************/
+//composer vendor目录
+defined('VENDOR_PATH') or define('VENDOR_PATH', dirname(__DIR__) . DS . 'vendor' . DS);
 //配置文件目录
 defined('CONFIG_PATH') or define('CONFIG_PATH', APP_PATH . 'Config' . DS);
 //语言包目录

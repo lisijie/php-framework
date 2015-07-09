@@ -30,6 +30,10 @@ require __DIR__ . '/Const.php';
 require __DIR__ . '/ClassLoader.php';
 //加载公共函数库
 require __DIR__ . '/Core/Common.php';
+//加载composer自动加载类
+if (is_file(VENDOR_PATH . 'autoload.php')) {
+    require VENDOR_PATH . 'autoload.php';
+}
 
 //关闭显示错误消息, 所有错误已经转换成异常, 并注册了默认异常处理器
 ini_set('display_errors', DEBUG);
