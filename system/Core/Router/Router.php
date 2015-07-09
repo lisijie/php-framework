@@ -179,7 +179,6 @@ abstract class Router
      */
     protected function makeUrlPath($route, $params)
     {
-        $route = strtolower($route);
         $path = '';
         if (isset($this->actionMap[$route])) {
             $map = array();
@@ -209,7 +208,14 @@ abstract class Router
                 return isset($vars["\${$count}"]) ? $vars['$' . $count++] : '';
             }, $map['url']);
         }
-        if (!$path) $path = $route;
+        if (!$path) {
+            $path = $route;
+            //URL全部转成小写，每个单词用"-"分隔
+            $path = preg_replace_callback('#[A-Z]#', function($m) {
+                return '-' . strtolower($m[0]);
+            }, $path);
+            $path = ltrim(strtr($path, array('/-' => '/')), '-');
+        }
 
         return array('path' => $path, 'params' => $params);
     }
@@ -234,7 +240,7 @@ abstract class Router
             $value = str_replace('/', ' ', substr($route, 0, strrpos($route, '/')));
             $value = str_replace(' ', '\\', ucwords($value));
             if (strpos($value, '-') !== false && strpos($value, '--') === false) {
-                $value = ucwords(strtr($value, '-', ' '));
+                $value = str_replace(' ', '', ucwords(str_replace('-', ' ', $value)));
             }
             $this->controllerName = "\\App\\Controller\\{$value}Controller";
         }

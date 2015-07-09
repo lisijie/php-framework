@@ -10,13 +10,13 @@
 /**
  * 生成URL
  *
- * @param string $uri
+ * @param string $route
  * @param array $params 参数
  * @return string
  */
-function URL($uri = '', $params = array())
+function URL($route = '', $params = array())
 {
-    return App::getRouter()->makeUrl($uri, $params);
+    return App::router()->makeUrl($route, $params);
 }
 
 /**
