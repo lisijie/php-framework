@@ -7,7 +7,7 @@ class ViewFactory
     /**
      * 工厂方法
      *
-     * @param $type 类型: Native|Smarty
+     * @param string $type 类型: Native|Smarty
      * @param array $options
      * @return \Core\View\ViewInterface
      * @throws \Core\View\ViewException

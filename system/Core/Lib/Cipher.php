@@ -1,6 +1,6 @@
 <?php
 
-namespace Core;
+namespace Core\Lib;
 
 /**
  * 加密/解密

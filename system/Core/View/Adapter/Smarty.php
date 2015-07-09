@@ -3,6 +3,7 @@
 namespace Core\View\Adapter;
 
 use Core\View\ViewAbstract;
+use Core\View\ViewException;
 
 /**
  * Smarty模版引擎
@@ -26,6 +27,9 @@ class Smarty extends ViewAbstract
             'compile_dir' => DATA_PATH . 'cache/smarty_complied',
             'cache_dir' => DATA_PATH . 'cache/smarty_cache',
         );
+        if (!class_exists('\Smarty')) {
+            throw new ViewException('Smarty 类不存在，请使用composer安装');
+        }
         $this->smarty = new \Smarty();
         foreach ($defaults as $key => $value) {
             $this->smarty->{$key} = isset($options[$key]) ? $options[$key] : $value;

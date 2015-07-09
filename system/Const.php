@@ -6,7 +6,7 @@ define('RELEASE', '');
 //用于访问检查
 define('IN_APP', TRUE);
 //运行模式: dev:开发环境, pro:生产环境, test:测试环境
-defined('RUN_MODE') or define('RUN_MODE', 'dev');
+defined('RUN_MODE') or define('RUN_MODE', 'pro');
 //默认关闭Debug模式
 defined('DEBUG') or define('DEBUG', FALSE);
 //目录分隔符
