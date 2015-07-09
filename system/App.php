@@ -66,15 +66,12 @@ class App
         //当前路由地址
         define('CUR_ROUTE', $routeName);
 
-        if (!preg_match('#^[a-z][a-z0-9/]+$#i', $routeName)) {
+        if (!preg_match('#^[a-z][a-z0-9/\-]+$#i', $routeName)) {
             throw new \Core\Exception\HttpNotFoundException('invalid request.');
         }
 
-        $pos = strrpos($routeName, '/');
-        $controllerName = str_replace('/', ' ', substr($routeName, 0, $pos));
-        $controllerName = str_replace(' ', '\\', ucwords($controllerName));
-        $actionName = substr($routeName, $pos + 1) . 'Action';
-        $className = "\\App\\Controller\\{$controllerName}Controller";
+        $className = $router->getControllerName();
+        $actionName = $router->getActionName();
 
         if (!class_exists($className)) {
             throw new \Core\Exception\HttpNotFoundException("controller not found: {$className}");

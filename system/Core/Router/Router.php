@@ -13,29 +13,71 @@ use Core\Http\Request;
 abstract class Router
 {
     protected $config = array();
+
     //保存每个URL规则对应的路由信息
     protected $routeMap = array();
+
     //保存每个路由地址对应的URL信息
     protected $actionMap = array();
-    //变量对应正则
+
+    /**
+     * 变量对应正则
+     *
+     * @var array
+     */
     protected $vars = array(
         ':id' => '(\d+)',
         ':int' => '(\d+)',
         ':string' => '([^/\#]*)?',
     );
-    //当前路由参数
+
+    /**
+     * 当前路由参数
+     *
+     * @var array
+     */
     protected $params = array();
-    //当前路由地址
+
+    /**
+     * 当前路由地址
+     *
+     * @var string
+     */
     protected $routeName;
-    //默认路由
+
+    /**
+     * 当前请求的控制器名
+     *
+     * @var string
+     */
+    protected $controllerName;
+
+    /**
+     * 当前请求的方法名
+     *
+     * @var string
+     */
+    protected $actionName;
+
+    /**
+     * 默认路由
+     *
+     * @var string
+     */
     protected $defaultRoute = '';
+
     /**
      * 请求对象
      *
      * @var \Core\Http\Request
      */
     protected $request;
-    //路由变量
+
+    /**
+     * 路由变量
+     *
+     * @var string
+     */
     protected $routeVar = 'r';
 
     public function __construct($options = array())
@@ -178,6 +220,45 @@ abstract class Router
     public function getRoute()
     {
         return $this->routeName ? : $this->getDefaultRoute();
+    }
+
+    /**
+     * 获取当前请求的控制器名
+     *
+     * @return string
+     */
+    public function getControllerName()
+    {
+        if (!$this->controllerName) {
+            $route = $this->getRoute();
+            $value = str_replace('/', ' ', substr($route, 0, strrpos($route, '/')));
+            $value = str_replace(' ', '\\', ucwords($value));
+            if (strpos($value, '-') !== false && strpos($value, '--') === false) {
+                $value = ucwords(strtr($value, '-', ' '));
+            }
+            $this->controllerName = "\\App\\Controller\\{$value}Controller";
+        }
+
+        return $this->controllerName;
+    }
+
+    /**
+     * 获取当前请求的方法名
+     *
+     * @return string
+     */
+    public function getActionName()
+    {
+        if (!$this->actionName) {
+            $route = $this->getRoute();
+            $action = substr($route, strrpos($route, '/') + 1);
+            if (strpos($action, '-') !== false && strpos($action, '--') === false) {
+                $action = lcfirst(ucwords(strtr($action, '-', ' ')));
+            }
+            $this->actionName = $action . 'Action';
+        }
+
+        return $this->actionName;
     }
 
     /**

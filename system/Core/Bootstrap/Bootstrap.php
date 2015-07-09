@@ -13,7 +13,13 @@ use Core\Session\Session;
 use Core\Session\Handler\Memcached;
 use Core\View\ViewFactory;
 
-
+/**
+ * 默认引导程序
+ *
+ * 执行应用的初始化工作，注册核心对象的初始化方法，使用者可自由定制引导程序，注册新的全局对象或者改变框架的默认行为。
+ *
+ * @package Core\Bootstrap
+ */
 class Bootstrap implements BootstrapInterface
 {
 
