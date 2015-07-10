@@ -2,41 +2,38 @@
 
 namespace Core\Lib;
 
-class File
+class FileHelper
 {
 
     /**
      * 创建目录
      *
-     * 支持创建多级目录，目录权限为777，并在目录下生成名为index.html的空文件
      * @param string $path 路径
-     * @return boolean 成功返回true,目录已存在或不合法返回false
+     * @param int $mode 模式
+     * @param bool $recursive 是否递归创建
+     * @return bool 成功返回true,目录已存在或不合法返回false
      */
-    public static function makeDir($path)
+    public static function makeDir($path, $mode = 0755, $recursive = true)
     {
-        if (is_dir($path) || strpos($path, '..') !== false) return false;
-        $path = str_replace('\\', '/', $path);
-        $dirs = explode('/', $path);
-        $path = '';
-        foreach ($dirs as $dir) {
-            $path .= $dir;
-            if (!is_dir($path)) {
-                @mkdir($path);
-                @fopen($path . '/index.html', 'wb');
-                @chmod($path, 0777);
-            }
-            $path .= DS;
+        if (is_dir($path)) {
+            return true;
         }
-        return true;
+        if (!is_dir(dirname($path)) && $recursive) {
+            static::makeDir(dirname($path), $mode, true);
+        }
+        $result = mkdir($path, $mode);
+        chmod($path, $mode);
+
+        return $result;
     }
 
     /**
-     * 递归删除整个目录
+     * 删除目录及其目录下的所有文件和子目录
      *
      * @param string $path 要删除的目录
      * @return void
      */
-    public static function removeDir($path)
+    public static function removeDir($path, $recursive = true)
     {
         $path = rtrim($path, '/');
         if (($handle = opendir($path)) !== false) {

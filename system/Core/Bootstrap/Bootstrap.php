@@ -92,9 +92,12 @@ class Bootstrap implements BootstrapInterface
 
 	public function initCache($name)
 	{
-        $config = App::conf('app','cache');
-        if ($name == 'default') {
+        $config = App::conf('app','cache', array());
+        if ($name == 'default' && isset($config['default'])) {
             $name = $config['default'];
+        }
+        if (!isset($config[$name])) {
+            throw new \InvalidArgumentException("缓存配置不存在: {$name}");
         }
         return \Core\Cache\Cache::factory($name, $config[$name]);
 	}
@@ -102,7 +105,7 @@ class Bootstrap implements BootstrapInterface
     //注册路由
 	public function initRouter()
 	{
-        $options = App::conf('app', 'router');
+        $options = App::conf('app', 'router', array());
         $router = Router::factory($options);
         $router->setConfig(App::conf('route'));
         $router->setRequest(App::getRequest());
