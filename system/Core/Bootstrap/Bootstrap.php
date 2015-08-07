@@ -2,10 +2,6 @@
 namespace Core\Bootstrap;
 
 use App;
-use Core\Http\Request;
-use Core\Http\Response;
-use Core\Http\Header;
-use Core\Http\Cookies;
 use Core\Router\Router;
 use Core\Logger\Logger;
 use Core\Db;
@@ -108,20 +104,7 @@ class Bootstrap implements BootstrapInterface
         $options = App::conf('app', 'router', array());
         $router = Router::factory($options);
         $router->setConfig(App::conf('route'));
-        $router->setRequest(App::getRequest());
         return $router;
-	}
-
-    //注册输出对象
-	public function initResponse()
-	{
-        return new Response();
-	}
-
-    //注册请求对象
-	public function initRequest()
-	{
-		return new Request(Header::createFrom($_SERVER), new Cookies($_COOKIE));
 	}
 
     //注册日志记录器

@@ -1,8 +1,7 @@
 <?php
 
-namespace Core\Controller;
+namespace Core;
 
-use Core\Controller;
 use Core\Lib\Amf;
 use \App;
 
@@ -24,7 +23,7 @@ class AmfController extends Controller
         );
         if ($redirect) $data['redirect'] = $redirect;
         $this->response->setBody(Amf::encode($data));
-        App::terminate();
+        return $this->response;
     }
 
     protected function display($filename = '')

@@ -16,8 +16,10 @@ class Container
     public function set($name, $definition, $singleton = false)
     {
         $this->definitions[$name] = $definition;
-        if ($singleton || is_object($definition)) {
+        if ($singleton) {
             $this->singletons[$name] = array();
+        } elseif (is_object($definition)) {
+            $this->singletons[$name] = true;
         } else {
             unset($this->singletons[$name]);
         }
@@ -38,7 +40,9 @@ class Container
         array_shift($params);
         if (array_key_exists($name, $this->singletons)) {
             $tag = json_encode($params);
-            if (!array_key_exists($tag, $this->singletons[$name])) {
+            if (true === $this->singletons[$name]) {
+                return $this->singletons[$name];
+            } elseif (!array_key_exists($tag, $this->singletons[$name])) {
                 $definition = $this->definitions[$name];
                 $this->singletons[$name][$tag] = (is_callable($definition) ? call_user_func_array($definition, $params) : $definition);
             }

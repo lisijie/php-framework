@@ -16,10 +16,6 @@ interface BootstrapInterface
 
 	public function initLogger($name);
 
-	public function initRequest();
-
-	public function initResponse();
-
 	public function initSession();
 
 	public function initRouter();

@@ -44,6 +44,12 @@ $loader->registerNamespace('Core', __DIR__ . '/Core');
 $loader->registerNamespace('App', rtrim(APP_PATH, DIRECTORY_SEPARATOR));
 $loader->register();
 
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Http\Header;
+use Core\Http\Cookies;
+use Core\Exception\HttpNotFoundException;
+
 class App
 {
 
@@ -55,64 +61,89 @@ class App
     protected static $container;
 
     /**
-     * 开始路由分发
+     * 运行应用并输出结果
      */
     public static function run()
     {
-        $router = static::router();
-        $router->parse();
-        $_GET = array_merge($_GET, $router->getParams());
-        $routeName = $router->getRoute();
-        //当前路由地址
-        define('CUR_ROUTE', $routeName);
+        $request = new Request(Header::createFrom($_SERVER), new Cookies($_COOKIE));
 
-        if (!preg_match('#^[a-z][a-z0-9/\-]+$#i', $routeName)) {
-            throw new \Core\Exception\HttpNotFoundException('invalid request.');
-        }
-
-        $className = $router->getControllerName();
-        $actionName = $router->getActionName();
-
-        if (!class_exists($className)) {
-            throw new \Core\Exception\HttpNotFoundException("controller not found: {$className}");
-        }
-
-        $class = new ReflectionClass($className);
-        $request = static::request();
-        if ($class->hasMethod($actionName)) {
-            $method = new ReflectionMethod($className, $actionName);
-            if ($method->isPublic()) {
-                $args = array();
-                $params = $method->getParameters();
-                if (!empty($params)) {
-                    foreach ($params as $p) {
-                        $default = $p->isOptional() ? $p->getDefaultValue() : null;
-                        $value = $request->get($p->getName(), $default);
-                        if (null === $value) {
-                            throw new \RuntimeException('缺少参数:' . $p->getName());
-                        }
-                        $args[] = $value;
-                    }
-                }
-                $controller = new $className();
-                static::set('controller', $controller);
-                $controller->init();
-                $method->invokeArgs($controller, $args);
-                static::terminate();
-            }
-        }
-        throw new \Core\Exception\HttpNotFoundException();
+        $response = self::handleRequest($request);
+        $response->send();
     }
 
     /**
-     * 终止
+     * 处理请求
+     * 
+     * @param  \Core\Http\Request $request
+     * @return \Core\Http\Response 返回response对象
      */
-    public static function terminate()
+    public static function handleRequest(Request $request)
     {
-        $controller = static::get('controller');
-        $controller->after();
-        static::response()->send();
-        exit(0);
+        $router = self::router();
+        $router->resolve($request);
+        //当前路由地址
+        define('CUR_ROUTE', $router->getRoute());
+        $request->addParams($router->getParams());
+        self::set('request', $request);
+
+        return self::runRoute(CUR_ROUTE, $router->getParams());
+    }
+
+    /**
+     * 执行路由
+     *
+     * @param string $route 路由地址
+     * @param array $params 路由参数
+     * @throws \Core\Exception\HttpNotFoundException
+     */
+    public static function runRoute($route, $params = array())
+    {
+        if (!preg_match('#^[a-z][a-z0-9/\-]+$#i', $route)) {
+            throw new HttpNotFoundException();
+        }
+
+        list($controllerName, $actionName) = self::parseRoute($route);
+
+        if (!class_exists($controllerName)) {
+            throw new HttpNotFoundException();
+        }
+
+        $response = new Response();
+        self::set('response', $response);
+
+        try {
+            $controller = new $controllerName(self::get('request'), $response);
+            $controller->init();
+            $response = $controller->runActionWithParams($actionName, $params);
+            return $response;
+        } catch (BadMethodCallException $e) {
+            throw new HttpNotFoundException();
+        }
+        
+    }
+
+    /**
+     * 解析路由地址返回控制器名和方法名
+     *
+     * @param string $route 路由地址
+     * @return array 返回 [控制器名称, 方法名]
+     */
+    public static function parseRoute($route)
+    {
+        $value = str_replace('/', ' ', substr($route, 0, strrpos($route, '/')));
+        $value = str_replace(' ', '\\', ucwords($value));
+        if (strpos($value, '-') !== false && strpos($value, '--') === false) {
+            $value = str_replace(' ', '', ucwords(str_replace('-', ' ', $value)));
+        }
+        $controllerName = "\\App\\Controller\\{$value}Controller";
+
+        $actionName = substr($route, strrpos($route, '/') + 1);
+        if (strpos($actionName, '-') !== false && strpos($actionName, '--') === false) {
+            $actionName = lcfirst(ucwords(strtr($actionName, '-', ' ')));
+        }
+        $actionName = $actionName . 'Action';
+
+        return array($controllerName, $actionName);
     }
 
     /**
@@ -124,7 +155,7 @@ class App
      */
     public static function bootstrap(\Core\Bootstrap\BootstrapInterface $bootstrap = null)
     {
-        static::$container = new \Core\Container();
+        self::$container = new \Core\Container();
         if (!is_object($bootstrap)) {
             $bootstrap = new \Core\Bootstrap\Bootstrap();
         }
@@ -134,7 +165,7 @@ class App
         foreach ($methods as $method) {
             $methodName = $method->getName();
             if (substr($methodName, 0, 4) == 'init') {
-                static::$container->set(lcfirst(substr($methodName, 4)), array($bootstrap, $methodName), true);
+                self::$container->set(lcfirst(substr($methodName, 4)), array($bootstrap, $methodName), true);
             }
         }
         $bootstrap->startup();
@@ -331,7 +362,7 @@ class App
      */
     public static function set($name, $definition, $singleton = true)
     {
-        return static::$container->set($name, $definition, $singleton);
+        return self::$container->set($name, $definition, $singleton);
     }
 
     /**
@@ -342,7 +373,7 @@ class App
      */
     public static function get($name)
     {
-        return call_user_func_array(array(static::$container, 'get'), func_get_args());
+        return call_user_func_array(array(self::$container, 'get'), func_get_args());
     }
 
     /**
@@ -352,7 +383,7 @@ class App
      */
     public static function container()
     {
-        return static::$container;
+        return self::$container;
     }
 
     /**
@@ -367,9 +398,9 @@ class App
     {
         if (substr($method, 0, 3) == 'get') {
             $name = strtolower(substr($method, 3));
-            if (static::$container->has($name)) {
+            if (self::$container->has($name)) {
                 array_unshift($params, $name);
-                return call_user_func_array(array(static::$container, 'get'), $params);
+                return call_user_func_array(array(self::$container, 'get'), $params);
             }
         }
         throw new InvalidArgumentException("方法不存在: " . __CLASS__ . "::{$method}");

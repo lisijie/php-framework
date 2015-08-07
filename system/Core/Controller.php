@@ -3,7 +3,9 @@
 namespace Core;
 
 use \App;
-use Core\View\ViewAbstract;
+use Core\Http\Request;
+use Core\Http\Response;
+use Core\Exception\AppException;
 
 /**
  * 控制器基类
@@ -28,13 +30,6 @@ class Controller
     protected $response;
 
     /**
-     * 日志对象
-     *
-     * @var \Core\Logger\LoggerInterface
-     */
-    protected $logger;
-
-    /**
      * 视图模板
      *
      * @var \Core\View\ViewInterface
@@ -46,11 +41,10 @@ class Controller
      *
      * 子类可通过重写init()方法完成初始化
      */
-    public function __construct()
+    public function __construct(Request $request, Response $response)
     {
-        $this->request  = App::request();
-        $this->response = App::response();
-        $this->logger   = App::logger();
+        $this->request  = $request;
+        $this->response = $response;
         $this->view     = App::view();
     }
 
@@ -131,6 +125,7 @@ class Controller
      * @param int $msgno 消息号
      * @param string $redirect 跳转地址
      * @param string $template 模板文件
+     * @return Response 输出对象
      */
     protected function message($message, $msgno = MSG_ERR, $redirect = NULL, $template = 'message')
     {
@@ -139,26 +134,27 @@ class Controller
             'msg' => $message,
             'redirect' => $redirect,
         );
-        $this->view->assign($data);
-        $this->response->setBody($this->view->render($template));
-        App::terminate();
+        $this->response->setBody($this->view->render($template, $data));
+        return $this->response;
     }
 
     /**
      * URL跳转
      *
      * @param string $url 目的地址
+     * @return Response 输出对象
      */
     protected function redirect($url)
     {
         $this->response->redirect($url);
-        App::terminate();
+        return $this->response;
     }
 
     /**
      * 输出结果
      *
      * @param string $filename
+     * @return Response 输出对象
      */
     protected function display($filename = '')
     {
@@ -167,5 +163,45 @@ class Controller
         }
         
         $this->response->setBody($this->view->render($filename));
+        return $this->response;
+    }
+
+    /**
+     * 执行当前控制器方法
+     * 
+     * @param string $actionName 方法名
+     * @param array $params 参数列表
+     * @return Response 输出对象
+     */
+    public function runActionWithParams($actionName, $params = array())
+    {
+        if (!method_exists($this, $actionName)) {
+            throw new \BadMethodCallException("方法不存在: {$actionName}");
+        }
+
+        $method = new \ReflectionMethod($this, $actionName);
+        if (!$method->isPublic()) {
+            throw new \BadMethodCallException("调用非公有方法: {$actionName}");
+        }
+
+        $args = array();
+        $params = $method->getParameters();
+        if (!empty($params)) {
+            foreach ($params as $p) {
+                $default = $p->isOptional() ? $p->getDefaultValue() : null;
+                $value = $this->request->get($p->getName(), $default);
+                if (null === $value) {
+                    throw new AppException('缺少请求参数:' . $p->getName());
+                }
+                $args[] = $value;
+            }
+        }
+        $result = $method->invokeArgs($this, $args);
+        if ($result instanceof Response) {
+            return $result;
+        } elseif (null !== $result) {
+            $this->response->setBody(strval($result));
+        }
+        return $this->response;
     }
 }

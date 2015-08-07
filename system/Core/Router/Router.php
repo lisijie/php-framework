@@ -46,20 +46,6 @@ abstract class Router
     protected $routeName;
 
     /**
-     * 当前请求的控制器名
-     *
-     * @var string
-     */
-    protected $controllerName;
-
-    /**
-     * 当前请求的方法名
-     *
-     * @var string
-     */
-    protected $actionName;
-
-    /**
      * 默认路由
      *
      * @var string
@@ -98,16 +84,6 @@ abstract class Router
     {
         $this->config = $config;
         $this->parseConfig();
-    }
-
-    /**
-     * 设置请求对象
-     *
-     * @param Request $request
-     */
-    public function setRequest(Request $request)
-    {
-        $this->request = $request;
     }
 
     /**
@@ -229,45 +205,6 @@ abstract class Router
     }
 
     /**
-     * 获取当前请求的控制器名
-     *
-     * @return string
-     */
-    public function getControllerName()
-    {
-        if (!$this->controllerName) {
-            $route = $this->getRoute();
-            $value = str_replace('/', ' ', substr($route, 0, strrpos($route, '/')));
-            $value = str_replace(' ', '\\', ucwords($value));
-            if (strpos($value, '-') !== false && strpos($value, '--') === false) {
-                $value = str_replace(' ', '', ucwords(str_replace('-', ' ', $value)));
-            }
-            $this->controllerName = "\\App\\Controller\\{$value}Controller";
-        }
-
-        return $this->controllerName;
-    }
-
-    /**
-     * 获取当前请求的方法名
-     *
-     * @return string
-     */
-    public function getActionName()
-    {
-        if (!$this->actionName) {
-            $route = $this->getRoute();
-            $action = substr($route, strrpos($route, '/') + 1);
-            if (strpos($action, '-') !== false && strpos($action, '--') === false) {
-                $action = lcfirst(ucwords(strtr($action, '-', ' ')));
-            }
-            $this->actionName = $action . 'Action';
-        }
-
-        return $this->actionName;
-    }
-
-    /**
      * 获取路由参数列表
      */
     public function getParams()
@@ -281,6 +218,12 @@ abstract class Router
     public function getHost()
     {
         return $this->request->getHost();
+    }
+
+    public function resolve(Request $request)
+    {
+        $this->request = $request;
+        $this->parse();
     }
 
     /**

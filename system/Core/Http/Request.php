@@ -10,17 +10,33 @@ namespace Core\Http;
  */
 class Request
 {
-    //参数过滤器
+    // 参数过滤器
     protected $filters = array();
-    //http头
+
+    // http头
     protected $header;
-    //cookies
+
+    // cookies
     protected $cookies;
+
+    // 请求参数
+    protected $params = array();
+
 
     public function __construct(Header $header = null, Cookies $cookie = null)
     {
         $this->header = is_null($header) ? new Header() : $header;
         $this->cookies = is_null($cookie) ? new Cookies() : $cookie;
+    }
+
+    /**
+     * 增加请求参数
+     * 
+     * @param array 参数列表
+     */
+    public function addParams(array $params)
+    {
+        $this->params = array_merge($this->params, $params);
     }
 
     /**
