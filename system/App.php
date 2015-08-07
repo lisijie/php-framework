@@ -49,6 +49,10 @@ use Core\Http\Response;
 use Core\Http\Header;
 use Core\Http\Cookies;
 use Core\Exception\HttpNotFoundException;
+use Core\Bootstrap\BootstrapInterface;
+use Core\Bootstrap\Bootstrap;
+use Core\Container;
+use Core\Exception\HttpException;
 
 class App
 {
@@ -56,7 +60,7 @@ class App
     /**
      * 容器
      *
-     * @var \Core\Container;
+     * @var Container;
      */
     protected static $container;
 
@@ -74,8 +78,8 @@ class App
     /**
      * 处理请求
      * 
-     * @param  \Core\Http\Request $request
-     * @return \Core\Http\Response 返回response对象
+     * @param  Request $request
+     * @return Response 返回response对象
      */
     public static function handleRequest(Request $request)
     {
@@ -94,7 +98,8 @@ class App
      *
      * @param string $route 路由地址
      * @param array $params 路由参数
-     * @throws \Core\Exception\HttpNotFoundException
+     * @throws HttpNotFoundException
+     * @return Response
      */
     public static function runRoute($route, $params = array())
     {
@@ -151,13 +156,13 @@ class App
      *
      * 先调用所有init开头的方法，最后调用startup方法初始化
      *
-     * @param \Core\Bootstrap\BootstrapInterface $bootstrap
+     * @param BootstrapInterface $bootstrap
      */
-    public static function bootstrap(\Core\Bootstrap\BootstrapInterface $bootstrap = null)
+    public static function bootstrap(BootstrapInterface $bootstrap = null)
     {
-        self::$container = new \Core\Container();
+        self::$container = new Container();
         if (!is_object($bootstrap)) {
-            $bootstrap = new \Core\Bootstrap\Bootstrap();
+            $bootstrap = new Bootstrap();
         }
 
         $class = new ReflectionClass($bootstrap);
@@ -264,11 +269,11 @@ class App
      *
      * @param $code
      * @param string $message
-     * @throws Core\Exception\HttpException
+     * @throws HttpException
      */
     public static function abort($code, $message = '')
     {
-        throw new \Core\Exception\HttpException($message, $code);
+        throw new HttpException($message, $code);
     }
 
     /**
