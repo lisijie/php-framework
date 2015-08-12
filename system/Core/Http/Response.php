@@ -7,7 +7,7 @@ namespace Core\Http;
  * Response 输出类
  *
  * @author lisijie <lsj86@qq.com>
- * @package Core
+ * @package Http
  */
 class Response
 {
@@ -84,9 +84,10 @@ class Response
         505 => '505 HTTP Version Not Supported'
     );
 
-    public function __construct($content = '')
+    public function __construct($content = '', $charset = CHARSET)
     {
         $this->body = $content;
+        $this->charset = $charset;
     }
 
     /**
@@ -126,6 +127,18 @@ class Response
     {
         $this->setStatus($status);
         $this->headers()->set('Location', $url);
+        return $this;
+    }
+
+    /**
+     * 设置字符集
+     *
+     * @param string $charset
+     * @return $this
+     */
+    public function setCharset($charset)
+    {
+        $this->charset = $charset;
         return $this;
     }
 
@@ -236,7 +249,7 @@ class Response
             header(sprintf("%s %s", $this->protocol, self::$httpCodes[$this->status]));
         }
         if (!$this->headers->has('content-type')) {
-            $this->headers->set('content-type', 'text/html; charset=utf-8');
+            $this->headers->set('content-type', 'text/html; charset='.$this->charset);
         }
         foreach ($this->headers as $key => $value) {
             header("{$key}: $value", true);
