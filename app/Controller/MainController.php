@@ -13,7 +13,7 @@ class MainController extends Controller
 
     public function indexAction()
     {
-    	
+
         $this->assign('');
 
         $this->display();

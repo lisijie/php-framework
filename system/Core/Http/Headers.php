@@ -1,7 +1,7 @@
 <?php
 namespace Core\Http;
 
-class Header implements \IteratorAggregate, \Countable
+class Headers implements \IteratorAggregate, \Countable
 {
     protected $headers = array();
     protected static $special = array(
@@ -18,10 +18,10 @@ class Header implements \IteratorAggregate, \Countable
         $this->headers = $headers;
     }
 
-    public static function createFrom($data)
+    public static function createFromEnv()
     {
         $header = new self();
-        foreach ($data as $key => $value) {
+        foreach ($_SERVER as $key => $value) {
             if (strpos($key, 'X_') === 0 || strpos($key, 'HTTP_') === 0 || in_array($key, self::$special)) {
                 $header->set($key, $value);
             }

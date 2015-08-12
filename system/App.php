@@ -69,8 +69,7 @@ class App
      */
     public static function run()
     {
-        $request = new Request(Header::createFrom($_SERVER), new Cookies($_COOKIE));
-
+        $request = new Request();
         $response = self::handleRequest($request);
         $response->send();
     }

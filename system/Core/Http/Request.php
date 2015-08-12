@@ -14,7 +14,7 @@ class Request
     protected $filters = array();
 
     // http头
-    protected $header;
+    protected $headers;
 
     // cookies
     protected $cookies;
@@ -23,9 +23,9 @@ class Request
     protected $params = array();
 
 
-    public function __construct(Header $header = null, Cookies $cookie = null)
+    public function __construct(Headers $header = null, Cookies $cookie = null)
     {
-        $this->header = is_null($header) ? new Header() : $header;
+        $this->header = is_null($header) ? Headers::createFromEnv() : $header;
         $this->cookies = is_null($cookie) ? new Cookies() : $cookie;
     }
 
