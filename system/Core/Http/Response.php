@@ -22,13 +22,13 @@ class Response
      */
     protected $cookies = null;
     //内容
-    protected $body = '';
+    protected $content = '';
     //状态码
     protected $status = 200;
     //状态文本
     protected $statusText = '';
     //协议
-    protected $protocol = 'HTTP/1.1';
+    protected $protocol;
     //字符集
     protected $charset;
     //http状态码
@@ -86,8 +86,9 @@ class Response
 
     public function __construct($content = '', $charset = CHARSET)
     {
-        $this->body = $content;
+        $this->content = $content;
         $this->charset = $charset;
+        $this->protocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
     }
 
     /**
@@ -183,24 +184,24 @@ class Response
     /**
      * 设置输出内容
      *
-     * @param string $body
+     * @param string $content
      * @return $this
      */
-    public function setBody($body)
+    public function setContent($content)
     {
-        $this->body = $body;
+        $this->content = $content;
         return $this;
     }
 
     /**
      * 追加输出内容
      *
-     * @param string $body
+     * @param string $content
      * @return $this
      */
-    public function appendBody($body)
+    public function appendContent($content)
     {
-        $this->body .= $body;
+        $this->content .= $content;
         return $this;
     }
 
@@ -209,9 +210,9 @@ class Response
      *
      * @return string
      */
-    public function getBody()
+    public function getContent()
     {
-        return $this->body;
+        return $this->content;
     }
 
     /**
@@ -219,9 +220,9 @@ class Response
      *
      * @return int
      */
-    public function getBodyLength()
+    public function getContentLength()
     {
-        return strlen($this->body);
+        return strlen($this->content);
     }
 
     /**
@@ -269,6 +270,6 @@ class Response
 
     protected function sendBody()
     {
-        echo $this->body;
+        echo $this->content;
     }
 }

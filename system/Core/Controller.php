@@ -134,7 +134,7 @@ class Controller
             'msg' => $message,
             'redirect' => $redirect,
         );
-        $this->response->setBody($this->view->render($template, $data));
+        $this->response->setContent($this->view->render($template, $data));
         return $this->response;
     }
 
@@ -162,7 +162,7 @@ class Controller
             $filename = CUR_ROUTE;
         }
         
-        $this->response->setBody($this->view->render($filename));
+        $this->response->setContent($this->view->render($filename));
         return $this->response;
     }
 
@@ -200,7 +200,7 @@ class Controller
         if ($result instanceof Response) {
             return $result;
         } elseif (null !== $result) {
-            $this->response->setBody(strval($result));
+            $this->response->setContent(strval($result));
         }
         return $this->response;
     }

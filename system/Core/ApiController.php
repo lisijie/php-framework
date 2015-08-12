@@ -2,7 +2,8 @@
 
 namespace Core;
 
-use \App;
+use Core\Http\Request;
+use Core\Http\Response;
 
 class ApiController extends Controller
 {
@@ -10,10 +11,10 @@ class ApiController extends Controller
     protected $jsonpEnabled = true;
     protected $jsonpCallback = 'jsoncallback';
 
-    public function __construct()
+    public function __construct(Request $request, Response $response)
     {
-        parent::__construct();
-        $this->response->setHeader('content-type', 'application/json; charset=' . CHARSET);
+        parent::__construct($request, $response);
+        $this->response->headers()->set('content-type', 'application/json; charset=' . CHARSET);
     }
 
     protected function message($message, $msgno = MSG_ERR, $redirect = NULL, $template = '')
@@ -24,7 +25,7 @@ class ApiController extends Controller
             'data' => $this->view->getData(),
         );
         if ($redirect) $data['redirect'] = $redirect;
-        $this->response->setBody($this->encode($data));
+        $this->response->setContent($this->encode($data));
         return $this->response;
     }
 
@@ -34,7 +35,7 @@ class ApiController extends Controller
             'ret' => MSG_NONE,
             'data' => $this->view->getData()
         );
-        $this->response->setBody($this->encode($data));
+        $this->response->setContent($this->encode($data));
     }
 
     protected function encode($data)

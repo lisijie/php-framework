@@ -3,15 +3,16 @@
 namespace Core;
 
 use Core\Lib\Amf;
-use \App;
+use Core\Http\Request;
+use Core\Http\Response;
 
 class AmfController extends Controller
 {
 
-    public function __construct()
+    public function __construct(Request $request, Response $response)
     {
-        parent::__construct();
-        $this->response->setHeader('content-type', 'application/x-amf; charset=' . CHARSET);
+        parent::__construct($request, $response);
+        $this->response->headers()->set('content-type', 'application/x-amf; charset=' . CHARSET);
     }
 
     protected function message($message, $msgno = MSG_ERR, $redirect = NULL, $template = '')
@@ -22,7 +23,7 @@ class AmfController extends Controller
             'server_time' => time(),
         );
         if ($redirect) $data['redirect'] = $redirect;
-        $this->response->setBody(Amf::encode($data));
+        $this->response->setContent(Amf::encode($data));
         return $this->response;
     }
 
@@ -33,6 +34,6 @@ class AmfController extends Controller
             'data' => $this->view->getData(),
             'server_time' => time(),
         );
-        $this->response->setBody(Amf::encode($data));
+        $this->response->setContent(Amf::encode($data));
     }
 }
