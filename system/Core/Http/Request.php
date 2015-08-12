@@ -19,24 +19,20 @@ class Request
     // cookies
     protected $cookies;
 
-    // 请求参数
-    protected $params = array();
-
-
     public function __construct(Headers $header = null, Cookies $cookie = null)
     {
-        $this->header = is_null($header) ? Headers::createFromEnv() : $header;
+        $this->headers = is_null($header) ? Headers::createFromEnv() : $header;
         $this->cookies = is_null($cookie) ? new Cookies() : $cookie;
     }
 
     /**
      * 增加请求参数
-     * 
-     * @param array 参数列表
+     *
+     * @param array $params 参数列表
      */
     public function addParams(array $params)
     {
-        $this->params = array_merge($this->params, $params);
+        $_GET = array_merge($_GET, $params);
     }
 
     /**
