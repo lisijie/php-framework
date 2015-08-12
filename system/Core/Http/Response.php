@@ -11,9 +11,15 @@ namespace Core\Http;
  */
 class Response
 {
-    //头信息
+    /**
+     * 头信息
+     * @var Headers
+     */
     protected $headers = null;
-    //cookies
+    /**
+     * cookies
+     * @var Cookies
+     */
     protected $cookies = null;
     //内容
     protected $body = '';
@@ -113,27 +119,28 @@ class Response
      * URL重定向
      *
      * @param string $url
+     * @param int $status 状态码
      * @return $this
      */
-    public function redirect($url)
+    public function redirect($url, $status = 302)
     {
-        $this->setStatus(302);
-        $this->setHeader('Location', $url);
+        $this->setStatus($status);
+        $this->headers()->set('Location', $url);
         return $this;
     }
 
     /**
      * 设置输出http状态
      *
-     * @param int $code 状态码
+     * @param int $status 状态码
      * @param string $text 文本
      * @return $this
      */
-    public function setStatus($code, $text = null)
+    public function setStatus($status, $text = null)
     {
-        $this->status = $code;
+        $this->status = $status;
         if (null === $text) {
-            $text = isset(self::$httpCodes[$code]) ? self::$httpCodes[$code] : '';
+            $text = isset(self::$httpCodes[$status]) ? self::$httpCodes[$status] : '';
         }
         $this->statusText = $text;
         return $this;
@@ -152,12 +159,12 @@ class Response
     /**
      * 获取状态码对应信息
      *
-     * @param int $code 状态码
+     * @param int $status 状态码
      * @return string
      */
-    public static function getStatusMessage($code)
+    public static function getStatusText($status)
     {
-        return isset(static::$httpCodes[$code]) ? static::$httpCodes[$code] : '';
+        return isset(static::$httpCodes[$status]) ? static::$httpCodes[$status] : '';
     }
 
     /**
