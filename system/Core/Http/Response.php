@@ -88,22 +88,26 @@ class Response
      * @param string $name
      * @param string $value
      * @throws \UnexpectedValueException
+     * @return $this
      */
     public function setHeader($name, $value)
     {
         $this->header->set($name, $value);
+        return $this;
     }
 
     /**
      * 批量设置http头
      *
      * @param array $headers
+     * @return $this
      */
     public function setHeaders(array $headers)
     {
         foreach ($headers as $key => $value) {
             $this->header->set($key, $value);
         }
+        return $this;
     }
 
     /**
@@ -112,53 +116,63 @@ class Response
      * @param $name
      * @param $value
      * @throws \UnexpectedValueException
+     * @return $this
      */
     public function setCookie($name, $value)
     {
         $this->cookies->set($name, $value);
+        return $this;
     }
 
     /**
      * 批量设置cookie
      *
      * @param array $cookies
+     * @return $this
      */
     public function setCookies(array $cookies)
     {
         foreach ($cookies as $key => $value) {
             $this->cookies->set($key, $value);
         }
+        return $this;
     }
 
     /**
      * 移除cookie
      *
      * @param $name
+     * @return $this
      */
     public function removeCookie($name)
     {
         $this->cookies->remove($name);
+        return $this;
     }
 
     /**
      * URL重定向
      *
      * @param string $url
+     * @return $this
      */
     public function redirect($url)
     {
         $this->setStatus(302);
         $this->setHeader('Location', $url);
+        return $this;
     }
 
     /**
      * 设置HTTP状态码
      *
      * @param int $status
+     * @return $this
      */
     public function setStatus($status)
     {
         $this->status = $status;
+        return $this;
     }
 
     /**
@@ -186,20 +200,24 @@ class Response
      * 设置输出内容
      *
      * @param string $body
+     * @return $this
      */
     public function setBody($body)
     {
         $this->body = $body;
+        return $this;
     }
 
     /**
      * 追加输出内容
      *
      * @param string $body
+     * @return $this
      */
     public function appendBody($body)
     {
         $this->body .= $body;
+        return $this;
     }
 
     /**
