@@ -27,6 +27,8 @@ defined('CONFIG_PATH') or define('CONFIG_PATH', APP_PATH . 'Config' . DS);
 defined('LANG_PATH') or define('LANG_PATH', APP_PATH . 'Lang' . DS);
 //视图模板目录
 defined('VIEW_PATH') or define('VIEW_PATH', APP_PATH . 'View' . DS);
+//发布目录
+defined('PUBLIC_PATH') or define('PUBLIC_PATH', (isset($_SERVER['SCRIPT_FILENAME']) ? dirname($_SERVER['SCRIPT_FILENAME']) : getcwd()) . DS);
 
 /************* 字符集 ****************/
 defined('CHARSET') or define('CHARSET', 'utf-8');

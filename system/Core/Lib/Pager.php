@@ -1,16 +1,18 @@
 <?php
+namespace Core\Lib;
+
 /**
  * 分页类
  *
  * @author lisijie <lsj86@qq.com>
+ * @package Core\Lib
  */
-
-namespace Core\Lib;
-
 class Pager
 {
+    // 配置信息
+    private $config = array();
 
-    private $params = array();
+    // 输出样式模版
     private $templates = array(
         'prev_page' => '<li><a href="%s">&laquo;</a></li>',
         'prev_page_disabled' => '<li class="disabled"><span>&laquo;</span></li>',
@@ -18,7 +20,7 @@ class Pager
         'next_page_disabled' => '<li class="disabled"><span>&raquo;</span></li>',
         'page_item' => '<li><a href="%s">%s</a></li>',
         'page_item_active' => '<li class="active"><span>%s</span></li>',
-        'wrapper' => '<ul class="pagination pagination-sm">%s</ul>',
+        'wrapper' => '<ul class="pagination pagination-sm">%s</ul>', // 外层
     );
 
     /**
@@ -32,7 +34,7 @@ class Pager
      */
     public function __construct($curPage, $pageSize, $totalNum, $route = CUR_ROUTE, $params = array())
     {
-        $this->params = array(
+        $this->config = array(
             'curPage' => $curPage,
             'pageSize' => $pageSize,
             'totalNum' => $totalNum,
@@ -51,7 +53,7 @@ class Pager
      */
     public function setParam($name, $value)
     {
-        $this->params[$name] = $value;
+        $this->config[$name] = $value;
     }
 
     /**
@@ -62,7 +64,7 @@ class Pager
      */
     public function getParam($name)
     {
-        return isset($this->params[$name]) ? $this->params[$name] : null;
+        return isset($this->config[$name]) ? $this->config[$name] : null;
     }
 
     /**
@@ -82,9 +84,9 @@ class Pager
      */
     private function makeUrl($page)
     {
-        $params = $this->params['params'];
+        $params = $this->config['params'];
         $params['page'] = intval($page);
-        return URL($this->params['route'], $params);
+        return URL($this->config['route'], $params);
     }
 
     /**
@@ -92,10 +94,10 @@ class Pager
      */
     public function makeHtml()
     {
-        $totalNum = intval($this->params['totalNum']);
-        $pageSize = intval($this->params['pageSize']);
-        $linkNum = intval($this->params['linkNum']);
-        $curPage = intval($this->params['curPage']);
+        $totalNum = intval($this->config['totalNum']);
+        $pageSize = intval($this->config['pageSize']);
+        $linkNum = intval($this->config['linkNum']);
+        $curPage = intval($this->config['curPage']);
         $pageHtml = '';
 
         if ($totalNum > $pageSize) {
@@ -104,7 +106,7 @@ class Pager
                 $from = 1;
                 $to = $totalPage;
             } else {
-                $from = $curPage - $this->params['offset'];
+                $from = $curPage - $this->config['offset'];
                 $to = $from + $linkNum;
                 if ($from < 1) {
                     $from = 1;

@@ -11,12 +11,13 @@ class Form
      * @param string $name 控件名称
      * @param string $value 默认值
      * @param array $attr 其他属性
+     * @return string
      */
     public static function input($name, $value = '', $attr = array())
     {
         if (!isset($attr['type'])) $attr['type'] = 'text';
         $id = str_replace(array('[', ']'), '_', $name);
-        $string = '<input name="' . $name . '" id="' . $id . '" value="' . $value . '" ' . self::makeAttr($attr) . '/>' . "\r\n";
+        $string = '<input name="' . $name . '" id="' . $id . '" value="' . $value . '" ' . static::makeAttr($attr) . '/>' . "\r\n";
         return $string;
     }
 
@@ -27,10 +28,11 @@ class Form
      * @param string $name 控件名称
      * @param string $value 默认值
      * @param array $attr 其他属性
+     * @return string
      */
     public static function textarea($name, $value = '', $attr = array())
     {
-        $string = '<textarea name="' . $name . '" ' . self::makeAttr($attr) . '>' . $value . '</textarea>' . "\r\n";
+        $string = '<textarea name="' . $name . '" ' . static::makeAttr($attr) . '>' . $value . '</textarea>' . "\r\n";
         return $string;
     }
 
@@ -41,6 +43,7 @@ class Form
      * @param string $name 控件名称
      * @param string $value 默认值
      * @param string $mode 模式(full|simple)，默认:full
+     * @return string
      */
     public static function editor($name, $value = '', $mode = 'full', $attr = array())
     {
@@ -80,9 +83,11 @@ class Form
      * 单选框
      *
      * 创建一组单选框
+     *
      * @param string $name 控件名称
      * @param string $value 默认值
      * @param array $options 选项列表 array('值'=>'描述')
+     * @return string
      */
     public static function radio($name, $value = '', $options = array())
     {
@@ -101,6 +106,7 @@ class Form
      * @param string $name 控件名称
      * @param string $value 默认值
      * @param array $options 选项列表 array('值'=>'描述')
+     * @return string
      */
     public static function select($name, $value, $options = array(), $attr = array())
     {
@@ -121,6 +127,7 @@ class Form
      * @param string $value 默认值
      * @param string $desc 描述
      * @param boolean $checked 默认是否选中
+     * @return string
      */
     public static function checkbox($name, $value, $desc, $checked = false)
     {

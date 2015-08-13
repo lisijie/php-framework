@@ -1,45 +1,34 @@
 <?php
+namespace Core\Lib;
+
 /**
  * 图片处理类
  *
- * @copyright (c) 2013 www.lisijie.org
  * @author lisijie <lsj86@qq.com>
- * @version $Id: Image.php 67 2014-10-16 09:07:50Z lisijie $
+ * @package Core\Lib
  */
-
-namespace Core\Lib;
-
 class Image
 {
 
     /**
      * 创建缩略图
      *
-     * @param string $srcfile 源图片路径
-     * @param string $imgfile 缩略图保存路径
+     * @param string $srcFile 源图片路径
+     * @param string $dstFile 缩略图保存路径
      * @param int $width 缩略图宽度
      * @param int $height 缩略图高度
      * @param boolean $fix 是否固定尺寸（将会对图片进行裁剪）
+     * @return string 返回缩略图文件
      */
-    public static function thumb($srcfile, $imgfile, $width, $height, $fix = false)
+    public static function thumb($srcFile, $dstFile, $width, $height, $fix = false)
     {
         if (!$width || !$height) return false;
         if (!function_exists('gd_info')) return false;
-        list($srcW, $srcH, $type) = getimagesize($srcfile);
-        switch ($type) {
-            case 1 :
-                $src = imagecreatefromgif($srcfile);
-                break;
-            case 2 :
-                $src = imagecreatefromjpeg($srcfile);
-                break;
-            case 3 :
-                $src = imagecreatefrompng($srcfile);
-                break;
-            default:
-                return false;
-                break;
+        list($srcW, $srcH, $type) = getimagesize($srcFile);
+        if (!($srcImg = static::createImage($srcFile, $type))) {
+            return false;
         }
+
         if (!$fix) {
             $scale = min($width / $srcW, $height / $srcH);
             $width = (int)$srcW * $scale;
@@ -56,74 +45,62 @@ class Image
                 $srcH = $srcW * $height / $width;
             }
         }
+
         if (function_exists('imagecreatetruecolor')) {
-            $img = imagecreatetruecolor($width, $height);
-            imagecopyresampled($img, $src, 0, 0, 0, 0, $width, $height, $srcW, $srcH);
+            $dstImg = imagecreatetruecolor($width, $height);
+            imagecopyresampled($dstImg, $srcImg, 0, 0, $srcX, $srcY, $width, $height, $srcW, $srcH);
         } else {
-            $img = imagecreate($width, $height);
-            imagecopyresized($img, $src, 0, 0, 0, 0, $width, $height, $srcW, $srcH);
+            $dstImg = imagecreate($width, $height);
+            imagecopyresized($dstImg, $srcImg, 0, 0, $srcX, $srcY, $width, $height, $srcW, $srcH);
         }
-        if (is_file($imgfile)) {
-            @unlink($imgfile);
+        if (is_file($dstFile)) {
+            @unlink($dstFile);
         }
-        $fileext = pathinfo($imgfile, PATHINFO_EXTENSION);
-        switch ($fileext) {
+
+        switch (strtolower(pathinfo($dstFile, PATHINFO_EXTENSION))) {
             case 'gif' :
-                imagegif($img, $imgfile);
+                imagegif($dstImg, $dstFile);
                 break;
             case 'png' :
-                imagepng($img, $imgfile);
+                imagepng($dstImg, $dstFile);
                 break;
             default:
-                imagejpeg($img, $imgfile);
+                imagejpeg($dstImg, $dstFile);
                 break;
         }
-        imagedestroy($src);
-        imagedestroy($img);
-        return $imgfile;
+        imagedestroy($srcImg);
+        imagedestroy($dstImg);
+
+        return $dstFile;
     }
 
     /**
      * 添加图片水印
      *
-     * @param string $srcfile 要添加水印的图片路径
-     * @param string $markpic 水印图片路径
-     * @param int $markpos 水印位置（默认右下角）
+     * @param string $srcFile 要添加水印的图片路径
+     * @param string $markFile 水印图片路径
+     * @param int $markPos 水印位置（默认右下角）
      * @param int $marktrans 水印透明度百分比
-     * @return boolean 成功:true, 失败:false
+     * @return bool 成功:true, 失败:false
      */
-    public static function watermark($srcfile, $markpic, $markpos = 6, $marktrans = 100)
+    public static function watermark($srcFile, $markFile, $markPos = 6, $marktrans = 100)
     {
-        if (!is_file($srcfile)) return false;
-        list($wmW, $wmH, $wmType) = getimagesize($markpic);
-        switch ($wmType) {
-            case 1 :
-                $wm = imagecreatefromgif($markpic);
-                break;
-            case 2 :
-                $wm = imagecreatefromjpeg($markpic);
-                break;
-            case 3 :
-                $wm = imagecreatefrompng($markpic);
-                break;
+        if (!is_file($srcFile) || !is_file($markFile)) {
+            return false;
         }
-        if (!$wm) return false;
-        list($srcW, $srcH, $srcType) = getimagesize($srcfile);
+
+        list($wmW, $wmH, $wmType) = getimagesize($markFile);
+        if (!($wmImg = static::createImage($markFile, $wmType))) {
+            return false;
+        }
+        list($srcW, $srcH, $srcType) = getimagesize($srcFile);
         if ($wmW > $srcW || $wmH > $srcH) return false;
-        switch ($srcType) {
-            case 1 :
-                $src = imagecreatefromgif($srcfile);
-                break;
-            case 2 :
-                $src = imagecreatefromjpeg($srcfile);
-                break;
-            case 3 :
-                $src = imagecreatefrompng($srcfile);
-                break;
+        if (!($srcImg = static::createImage($srcFile, $srcType))) {
+            return false;
         }
-        if (!$src) return false;
+
         //水印位置
-        switch ($markpos) {
+        switch ($markPos) {
             case 1 : //顶部居左
                 $srcX = 0;
                 $srcY = 0;
@@ -152,24 +129,15 @@ class Image
                 $srcX = mt_rand(0, $srcW - $wmW);
                 $srcY = mt_rand(0, $srcH - $wmH);
         }
+
         if (function_exists('ImageAlphaBlending')) {
-            imagealphablending($wm, true);
-            imagesavealpha($wm, true);
+            imagealphablending($wmImg, true);
+            imagesavealpha($wmImg, true);
         }
-        imagecopy($src, $wm, $srcX, $srcY, 0, 0, $wmW, $wmH);
-        switch ($srcType) {
-            case 1 : //GIF
-                imagegif($src, $srcfile);
-                break;
-            case 3 : //PNG
-                imagepng($src, $srcfile);
-                break;
-            default : //默认JPG
-                imagejpeg($src, $srcfile);
-                break;
-        }
-        imagedestroy($src);
-        imagedestroy($wm);
+        imagecopy($srcImg, $wmImg, $srcX, $srcY, 0, 0, $wmW, $wmH);
+        static::saveImage($srcImg, $srcFile, $srcType);
+        imagedestroy($wmImg);
+
         return true;
     }
 
@@ -183,23 +151,15 @@ class Image
      * @param string $rgb 颜色十六进制RGB值，如:FF0000
      * @param int $markpos 水印位置
      * @param array $options 其他可选参数: angle:字体倾斜角度, shadow_x: 阴影X轴偏移量, shadow_y: 阴影Y轴偏移量, shadow_color: 阴影十六进制RGB值
+     * @return bool
      */
     public static function watermarkText($srcfile, $fontfile, $text, $size, $rgb, $markpos = 6, $options = array())
     {
         if (!is_file($srcfile) || !is_file($fontfile) || empty($text) || $size < 1) return false;
         list($srcW, $srcH, $srcType) = getimagesize($srcfile);
-        switch ($srcType) {
-            case 1 :
-                $image = imagecreatefromgif($srcfile);
-                break;
-            case 2 :
-                $image = imagecreatefromjpeg($srcfile);
-                break;
-            case 3 :
-                $image = imagecreatefrompng($srcfile);
-                break;
+        if (!($image = static::createImage($srcfile, $srcType))) {
+            return false;
         }
-        if (!$image) return false;
 
         //水印位置
         $offset = round($size / 3); //偏移量，不要紧挨着边
@@ -247,18 +207,56 @@ class Image
         $color = imagecolorallocate($image, hexdec($rgb[0]), hexdec($rgb[1]), hexdec($rgb[2]));
         imagettftext($image, $size, intval($options['angle']), $srcX, $srcY, $color, $fontfile, $text);
 
-        switch ($srcType) {
+        static::saveImage($image, $srcfile, $srcType);
+
+        return true;
+    }
+
+    /**
+     * 创建图像
+     *
+     * @param string $filename
+     * @param int $type
+     * @return bool|resource
+     */
+    private static function createImage($filename, $type)
+    {
+        $image = false;
+        switch ($type) {
             case 1 :
-                imagegif($image, $srcfile);
+                $image = imagecreatefromgif($filename);
+                break;
+            case 2 :
+                $image = imagecreatefromjpeg($filename);
                 break;
             case 3 :
-                imagepng($image, $srcfile);
+                $image = imagecreatefrompng($filename);
+                break;
+        }
+        return $image;
+    }
+
+    /**
+     * 保存图像
+     *
+     * @param resource $image
+     * @param string $saveFile
+     * @param int $type
+     */
+    private static function saveImage($image, $saveFile, $type)
+    {
+        switch ($type) {
+            case 1 :
+                imagegif($image, $saveFile);
+                break;
+            case 3 :
+                imagepng($image, $saveFile);
                 break;
             default :
-                imagejpeg($image, $srcfile);
+                imagejpeg($image, $saveFile);
+                break;
         }
         imagedestroy($image);
-        return true;
     }
 
 }

@@ -1,20 +1,38 @@
 <?php
+namespace Core\Lib;
+
 /**
  * 文件上传类
  *
- * @copyright (c) 2008-2012 JBlog (www.lisijie.org)
- * @author lisijie <lisijie86@gmail.com>
- * @version $Id: Upload.php 173 2014-11-02 12:27:08Z lisijie $
+ * 配置项说明：
+ *  - allow_types 允许上传的文件类型，多个用"|"分隔，如：jpg|png|gif
+ *  - save_path 上传目录，可以使用 {Y}、{y}、{m}、{d} 作为日期变量
+ *  - maxsize 最大允许上传的文件大小，单位KB
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core\Lib
  */
-
-namespace Core\Lib;
-
 class Upload
 {
 
+    // 上传目录
     private $savePath = 'upload/';
+    // 允许类型
     private $allowTypes = array();
+    // 文件大小上限
     private $maxsize = 0;
+    //错误消息
+    private $message = array(
+        0 => '上传成功',
+        1 => '上传的文件超过了 php.ini 中 upload_max_filesize 选项限制的值',
+        2 => '上传文件的大小超过了 HTML 表单中 MAX_FILE_SIZE 选项指定的值',
+        3 => '文件只有部分被上传',
+        4 => '文件没有被上传',
+        5 => '找不到临时文件夹',
+        6 => '文件写入失败',
+        -1 => '文件大小超出限制',
+        -2 => '文件类型不允许',
+    );
 
     public function __construct($options = array())
     {
@@ -33,7 +51,9 @@ class Upload
         $this->savePath = str_replace(array('{y}', '{Y}', '{m}', '{d}', '\\', '..'), array(date('y'), date('Y'), date('m'), date('d'), '/', ''), $this->savePath);
         if (substr($this->savePath, -1) != '/') $this->savePath .= '/';
         $this->maxsize *= 1024; //最大允许上传的文件大小/byte
-        $this->makepath($this->savePath); //创建目录
+        if (!is_dir($this->savePath)) {
+            mkdir($this->savePath, 0755, true); //创建目录
+        }
     }
 
     /**
@@ -48,10 +68,11 @@ class Upload
      * 生成上传文件保存路径
      *
      * @param string $ext 扩展名
+     * @return string
      */
     public function makeSaveFile($ext)
     {
-        return $this->savePath . date('YmdHis') . '_' . mt_rand(100, 999) . ".{$ext}";
+        return $this->savePath . date('YmdHis') . '_' . mt_rand(1, 99999) . ".{$ext}";
     }
 
     /**
@@ -93,7 +114,6 @@ class Upload
             'error' => '',
             'name' => $file['name'],
             'path' => '',
-            'url' => '',
             'size' => $file['size'],
             'type' => $file['type'],
             'ext' => $fileext,
@@ -110,8 +130,6 @@ class Upload
                 $filepath = $this->makeSaveFile($fileext);
                 if (move_uploaded_file($file['tmp_name'], $filepath)) {
                     $result['path'] = $filepath;
-                    $result['url'] = $filepath;
-                    @unlink($file['tmp_name']);
                 }
             }
         }
@@ -120,59 +138,14 @@ class Upload
     }
 
     /**
-     * 按照指定规则创建上传目录
-     */
-    private function makepath($path)
-    {
-        if (!is_dir($path)) {
-            if (!is_dir(dirname($path))) {
-                $this->makepath(dirname($path));
-            }
-            @mkdir($path);
-            @chmod($path, 0777);
-        }
-    }
-
-    /**
      * 根据错误号返回错误消息
      *
-     * @param int $err
+     * @param int $code
      * @return string
      */
-    private function errmsg($err)
+    private function errmsg($code)
     {
-        $msg = '';
-        switch ($err) {
-            case 0:
-                $msg = '';
-            case 1:
-                $msg = '文件超过了 php.ini 中 upload_max_filesize 选项限制的值。';
-                break;
-            case 2:
-                $msg = '上传文件的大小超过了 HTML 表单中 MAX_FILE_SIZE 选项指定的值。';
-                break;
-            case 3:
-                $msg = '文件只有部分被上传。';
-                break;
-            case 4:
-                $msg = '没有文件被上传。';
-                break;
-            case 6:
-                $msg = '找不到临时文件夹。';
-                break;
-            case 7:
-                $msg = '文件写入失败。';
-                break;
-            case -1:
-                $msg = '文件大小超出限制。';
-                break;
-            case -2:
-                $msg = '文件类型不允许。';
-                break;
-            default:
-                $msg = 'unknow error';
-        }
-        return $msg;
+        return isset($this->message[$code]) ? $this->message[$code] : '未知错误';
     }
 
     /**
@@ -185,5 +158,4 @@ class Upload
     {
         return strtolower(pathinfo($file, PATHINFO_EXTENSION));
     }
-
 }

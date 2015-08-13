@@ -86,4 +86,11 @@ return array(
             )
         ),
     ),
+
+    // 文件上传设置
+    'upload' => array(
+        'allow_types' => 'jpg|png|gif',
+        'save_path' => PUBLIC_PATH . 'upload/{Y}{m}/',
+        'maxsize' => 10240, // 10M
+    ),
 );

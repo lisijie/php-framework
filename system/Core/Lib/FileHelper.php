@@ -1,7 +1,11 @@
 <?php
-
 namespace Core\Lib;
 
+/**
+ * 文件操作助手类
+ *
+ * @package Core\Lib
+ */
 class FileHelper
 {
 

@@ -6,7 +6,7 @@ namespace Core\Lib;
  * 加密/解密
  *
  * @author lisijie <lsj86@qq.com>
- * @package core
+ * @package Core\Lib
  */
 class Cipher
 {

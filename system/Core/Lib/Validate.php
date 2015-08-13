@@ -1,15 +1,12 @@
 <?php
+namespace Core\Lib;
+
 /**
  * 验证类
  *
- * @copyright (c) 2012-2013 www.lisijie.org
  * @author lisijie <lsj86@qq.com>
- * @package Validate
- * @version $Id: Validate.php 271 2015-02-08 05:38:37Z lisijie $
+ * @package Core\Lib
  */
-
-namespace Core\Lib;
-
 class Validate
 {
 

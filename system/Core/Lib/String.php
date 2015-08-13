@@ -1,7 +1,12 @@
 <?php
-
 namespace Core\Lib;
 
+/**
+ * 字符串助手类
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core\Lib
+ */
 class String
 {
 
@@ -18,18 +23,13 @@ class String
     /**
      * 产生随机字符串
      *
-     * @param int $length
-     * @param string $string
+     * @param int $length 长度
+     * @param string $string 包含的字符列表，必须是ASCII字符
      * @return string
      */
     public static function random($length, $string = '23456789ABCDEFGHIJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz')
     {
-        $rstr = '';
-        $strlen = strlen($string);
-        for ($i = 0; $i < $length; $i++) {
-            $rstr .= $string{mt_rand(0, $strlen - 1)};
-        }
-        return $rstr;
+        return substr(str_shuffle(str_repeat($string, $length < strlen($string) ? 1 : ceil($length / strlen($string)))), 0, $length);
     }
 
     /**
@@ -41,7 +41,7 @@ class String
      * @param string $encoding
      * @return string
      */
-    public static function cut($str, $len = 0, $dot = '...', $encoding = CHARSET)
+    public static function truncate($str, $len = 0, $dot = '...', $encoding = CHARSET)
     {
         if (!$len || strlen($str) <= $len) return $str;
         $tempstr = '';
@@ -130,6 +130,7 @@ class String
      * 为特殊字符加上反斜杠
      *
      * 与addslashes不同之处在于本函数支持数组
+     *
      * @param string|array $string
      * @return string|array 返回处理后的变量
      */
@@ -137,7 +138,7 @@ class String
     {
         if (!is_array($string)) return addslashes($string);
         foreach ($string as $key => $val) {
-            $string[$key] = self::addSlashes($val);
+            $string[$key] = static::addSlashes($val);
         }
         return $string;
     }
@@ -146,6 +147,7 @@ class String
      * 去除特殊字符的反斜杠
      *
      * 与stripslashes不同之处在于本函数支持数组
+     *
      * @param string|array $string
      * @return string|array 返回处理后的变量
      */
@@ -153,7 +155,7 @@ class String
     {
         if (!is_array($string)) return stripslashes($string);
         foreach ($string as $key => $val) {
-            $string[$key] = self::delSlashes($val);
+            $string[$key] = static::delSlashes($val);
         }
         return $string;
     }

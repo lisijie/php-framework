@@ -278,7 +278,7 @@ class App
     /**
      * 获取DB实例
      *
-     * @param string $name
+     * @param string $name 节点名称
      * @return Core\Db
      */
     public static function db($name = 'default')
@@ -329,6 +329,7 @@ class App
     /**
      * 返回缓存对象
      *
+     * @param string $name 节点名称
      * @return Core\Cache\CacheInterface
      */
     public static function cache($name = 'default')
@@ -339,6 +340,7 @@ class App
     /**
      * 返回日志对象
      *
+     * @param string $name 节点名称
      * @return Core\Logger\LoggerInterface
      */
     public static function logger($name = 'default')

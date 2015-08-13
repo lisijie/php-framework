@@ -1,12 +1,4 @@
 <?php
-/**
- * AMF编码/解码
- *
- * @copyright (c) 2013 www.lisijie.org
- * @author lisijie <lsj86@qq.com>
- * @version $Id: Amf.php 1 2014-04-30 05:53:30Z lisijie $
- */
-
 namespace Core\Lib;
 
 require dirname(__FILE__) . '/Amf/AMFBaseSerializer.php';
@@ -16,9 +8,16 @@ require dirname(__FILE__) . '/Amf/AMFSerializer.php';
 require dirname(__FILE__) . '/Amf/CharsetHandler.php';
 require dirname(__FILE__) . '/Amf/Message.php';
 
+/**
+ * AMF编码/解码
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core\Lib
+ */
 class Amf
 {
 
+    // 编码
     public static function encode($data)
     {
         $ser = new \AMFSerializer();
@@ -27,7 +26,7 @@ class Amf
         return $ser->outBuffer;
     }
 
-    //解码
+    // 解码
     public static function decode($raw)
     {
         $amf = new \AMFObject($raw);
