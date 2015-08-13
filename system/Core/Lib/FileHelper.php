@@ -5,6 +5,8 @@ namespace Core\Lib;
 class FileHelper
 {
 
+    static $mimeTypes = array();
+
     /**
      * 创建目录
      *
@@ -40,7 +42,7 @@ class FileHelper
             while (false !== ($d = readdir($handle))) {
                 if ($d != '.' && $d != '..') {
                     if (is_dir($path . '/' . $d)) {
-                        self::removeDir($path . '/' . $d);
+                        static::removeDir($path . '/' . $d);
                         @rmdir($path . '/' . $d);
                     } else {
                         @unlink($path . '/' . $d);
@@ -67,7 +69,9 @@ class FileHelper
 
     /**
      * 检查文件或目录是否可写
+     *
      * @param string $filename 文件或目录
+     * @return bool
      */
     public static function writeable($filename)
     {
@@ -76,7 +80,9 @@ class FileHelper
 
     /**
      * 检查文件或目录是否可读
+     *
      * @param string $filename 文件或目录
+     * @return bool
      */
     public static function readable($filename)
     {
@@ -85,7 +91,9 @@ class FileHelper
 
     /**
      * 检查是否有效文件名
+     *
      * @param string $string
+     * @return bool
      */
     public static function checkName($string)
     {
@@ -94,10 +102,48 @@ class FileHelper
 
     /**
      * 返回文件小写扩展名
+     *
      * @param string $filename
+     * @return string
      */
-    public static function ext($filename)
+    public static function getFileExt($filename)
     {
         return strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+    }
+
+    /**
+     * 获取文件的MimeType
+     *
+     * @param string $filename 文件名
+     * @return null|string
+     */
+    public static function getMimeType($filename)
+    {
+        if (($ext = static::getFileExt($filename)) != "") {
+            return static::getMimeTypeByExt($ext);
+        }
+        return null;
+    }
+
+    /**
+     * 根据扩展名获取对应MimeType
+     *
+     * @param string $ext 扩展名
+     * @return string
+     */
+    public static function getMimeTypeByExt($ext)
+    {
+        self::loadMimeTypes();
+        return isset(static::$mimeTypes[$ext]) ? static::$mimeTypes[$ext] : '';
+    }
+
+    /**
+     * 加载mimeType配置信息
+     */
+    private static function loadMimeTypes()
+    {
+        if (empty(self::$mimeTypes)) {
+            self::$mimeTypes = require __DIR__ . 'mimeTypes.php';
+        }
     }
 }
