@@ -1,9 +1,14 @@
 <?php
 namespace Core\Http;
 
+use \App;
+use Core\Lib\Cipher;
+
 class Cookies implements \IteratorAggregate, \Countable
 {
     protected $data = array();
+
+    protected $cipher;
 
     protected $defaults = array(
         'value'    => '',    // cookie值
@@ -66,6 +71,70 @@ class Cookies implements \IteratorAggregate, \Countable
             return $this->data[$name]['value'];
         }
         return null;
+    }
+
+    /**
+     * 设置加密器
+     *
+     * @param object $cipher
+     * @return bool
+     */
+    public function setCipher($cipher)
+    {
+        if (!is_object($cipher)) {
+            return false;
+        }
+        $this->cipher = $cipher;
+        return true;
+    }
+
+    /**
+     * 获取加密器
+     *
+     * @return Cipher
+     */
+    public function getCipher()
+    {
+        if (!$this->cipher) {
+            $this->cipher = Cipher::createSimple();
+        }
+        return $this->cipher;
+    }
+
+    /**
+     * 设置加密的cookie
+     *
+     * @param string $name
+     * @param string $value
+     */
+    public function setEncrypt($name, $value)
+    {
+        $key = App::conf('app', 'secret_key');
+        if (empty($key)) {
+            throw new \RuntimeException("请先到app配置文件设置密钥: secret_key");
+        }
+        $value = $this->getCipher()->encrypt($value, $key);
+        $this->set($name, $value);
+    }
+
+    /**
+     * 获取并解密cookie
+     *
+     * @param $name
+     * @return null|string
+     */
+    public function getDecrypt($name)
+    {
+        $key = App::conf('app', 'secret_key');
+        if (empty($key)) {
+            throw new \RuntimeException("请先到app配置文件设置密钥: secret_key");
+        }
+
+        $value = $this->get($name);
+        if ($value) {
+            $value = $this->getCipher()->decrypt($value, $key);
+        }
+        return $value;
     }
 
     /**

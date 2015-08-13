@@ -8,6 +8,8 @@ return array(
 	//时区
 	'timezone' => 'PRC',
 
+    'secret_key' => 'asdasdEQWE!',
+
 	'view' => array(
 		'engine' => 'native',
 		'options' => array(

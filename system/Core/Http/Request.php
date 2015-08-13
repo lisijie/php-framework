@@ -26,6 +26,26 @@ class Request
     }
 
     /**
+     * 获取用于请求的cookies对象
+     *
+     * @return Cookies
+     */
+    public function cookies()
+    {
+        return $this->cookies;
+    }
+
+    /**
+     * 获取用于请求的headers对象
+     *
+     * @return Headers
+     */
+    public function headers()
+    {
+        return $this->headers;
+    }
+
+    /**
      * 增加请求参数
      *
      * @param array $params 参数列表
