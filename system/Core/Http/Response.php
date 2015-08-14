@@ -235,7 +235,7 @@ class Response
         if (!headers_sent($filename, $line)) {
             $this->sendHeaders();
             $this->sendCookies();
-        } else {
+        } elseif (count($this->headers()) > 0 && count($this->cookies()) > 0) {
             throw new \RuntimeException("Headers already sent in $filename on line $line");
         }
         $this->sendBody();

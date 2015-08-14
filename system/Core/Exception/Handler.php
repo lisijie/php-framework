@@ -108,21 +108,32 @@ class Handler
     protected function renderDebugInfo(Exception $e)
     {
         $errType = get_class($e);
-        $errMsg = 'error: ' . $e->getMessage() . '<br />errno: ' . $e->getCode();
-        $errMsg .= '<br />file: ' . $e->getFile() . '<br />line: ' . $e->getLine();
 
-        echo '<div style="margin:20px;">';
-        echo '<p style="color:red;font-family:Verdana;line-height:150%;">[' . $errType . ']</p>';
-        echo '<p style="font-size:11px;font-family:Verdana; background:#ffffdd; border:1px solid #f0f0f0; padding:5px">';
-        echo $errMsg;
-        echo '<br />time: ' . date('Y-m-d H:i:s');
-        echo '</p>';
+        if (PHP_SAPI == 'cli') {
+            echo "----------------------------------------------------------------------------------------------------\n";
+            echo "exception: {$errType}\n";
+            echo "error: {$e->getMessage()} (#{$e->getCode()})\n";
+            echo "file: {$e->getFile()} ({$e->getLine()})\n";
+            echo "----------------------------------------------------------------------------------------------------\n";
+            echo $e->getTraceAsString();
+            echo "\n----------------------------------------------------------------------------------------------------\n";
+        } else {
+            $errMsg = 'error: ' . $e->getMessage() . '<br />errno: ' . $e->getCode();
+            $errMsg .= '<br />file: ' . $e->getFile() . '<br />line: ' . $e->getLine();
 
-        echo '<p style="color:red;font-family:Verdana;line-height:150%;">[PHP Debug]</p>';
-        echo '<pre style="font-size:11px;font-family:Verdana; background:#e7f7ff; border:1px solid #f0f0f0; padding:5px; line-height: 150%">';
-        echo $e->getTraceAsString();
-        echo '</pre>';
-        echo '</div>';
+            echo '<div style="margin:20px;">';
+            echo '<p style="color:red;font-family:Verdana;line-height:150%;">[' . $errType . ']</p>';
+            echo '<p style="font-size:11px;font-family:Verdana; background:#ffffdd; border:1px solid #f0f0f0; padding:5px">';
+            echo $errMsg;
+            echo '<br />time: ' . date('Y-m-d H:i:s');
+            echo '</p>';
+
+            echo '<p style="color:red;font-family:Verdana;line-height:150%;">[PHP Debug]</p>';
+            echo '<pre style="font-size:11px;font-family:Verdana; background:#e7f7ff; border:1px solid #f0f0f0; padding:5px; line-height: 150%">';
+            echo $e->getTraceAsString();
+            echo '</pre>';
+            echo '</div>';
+        }        
     }
 
     /**
@@ -134,7 +145,7 @@ class Handler
     {
         $response = new Response();
         $response->setStatus($e->getCode());
-        $response->setBody($e->getMessage());
+        $response->setContent($e->getMessage());
         $response->send();
     }
 

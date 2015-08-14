@@ -22,7 +22,7 @@ class ApiController extends Controller
         $data = array(
             'ret' => $msgno,
             'msg' => $message,
-            'data' => $this->view->getData(),
+            'data' => App::view()->getData(),
         );
         if ($redirect) $data['redirect'] = $redirect;
         $this->response->setContent($this->encode($data));
@@ -33,7 +33,7 @@ class ApiController extends Controller
     {
         $data = array(
             'ret' => MSG_NONE,
-            'data' => $this->view->getData()
+            'data' => App::view()->getData()
         );
         $this->response->setContent($this->encode($data));
     }

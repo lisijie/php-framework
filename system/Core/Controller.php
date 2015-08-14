@@ -30,13 +30,6 @@ class Controller
     protected $response;
 
     /**
-     * 视图模板
-     *
-     * @var \Core\View\ViewInterface
-     */
-    protected $view;
-
-    /**
      * 构造方法，不可重写
      *
      * 子类可通过重写init()方法完成初始化
@@ -45,7 +38,6 @@ class Controller
     {
         $this->request  = $request;
         $this->response = $response;
-        $this->view     = App::view();
     }
 
     /**
@@ -94,7 +86,7 @@ class Controller
      */
     protected function assign($name, $value = null)
     {
-        $this->view->assign($name, $value);
+        App::view()->assign($name, $value);
     }
 
     /**
@@ -134,7 +126,7 @@ class Controller
             'msg' => $message,
             'redirect' => $redirect,
         );
-        $this->response->setContent($this->view->render($template, $data));
+        $this->response->setContent(App::view()->render($template, $data));
         return $this->response;
     }
 
@@ -162,7 +154,7 @@ class Controller
             $filename = CUR_ROUTE;
         }
         
-        $this->response->setContent($this->view->render($filename));
+        $this->response->setContent(App::view()->render($filename));
         return $this->response;
     }
 

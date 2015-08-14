@@ -31,7 +31,7 @@ class AmfController extends Controller
     {
         $data = array(
             'ret' => MSG_NONE,
-            'data' => $this->view->getData(),
+            'data' => App::view()->getData(),
             'server_time' => time(),
         );
         $this->response->setContent(Amf::encode($data));

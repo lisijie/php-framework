@@ -50,7 +50,6 @@ use Core\Http\Header;
 use Core\Http\Cookies;
 use Core\Exception\HttpNotFoundException;
 use Core\Bootstrap\BootstrapInterface;
-use Core\Bootstrap\Bootstrap;
 use Core\Container;
 use Core\Exception\HttpException;
 
@@ -65,13 +64,40 @@ class App
     protected static $container;
 
     /**
+     * 控制器命名空间
+     * 
+     * @var string|array
+     */
+    protected static $controllerNamespace = 'App\\Controller';
+
+    /**
+     * 默认动作名
+     * 
+     * @var string
+     */
+    protected static $defaultAction = 'indexAction';
+
+    /**
      * 运行应用并输出结果
      */
     public static function run()
     {
+        if (static::isCli()) {
+            static::$controllerNamespace = array('App\\Command', 'Core\\Console\\Controller');
+        }
         $request = new Request();
         $response = self::handleRequest($request);
         $response->send();
+    }
+
+    /**
+     * 是否命令行模式
+     * 
+     * @return bool
+     */
+    public static function isCli()
+    {
+        return PHP_SAPI == 'cli';
     }
 
     /**
@@ -87,7 +113,7 @@ class App
         //当前路由地址
         define('CUR_ROUTE', $router->getRoute());
         $request->addParams($router->getParams());
-        self::set('request', $request);
+        static::set('request', $request);
 
         return self::runRoute(CUR_ROUTE, $router->getParams());
     }
@@ -106,7 +132,7 @@ class App
             throw new HttpNotFoundException();
         }
 
-        list($controllerName, $actionName) = self::parseRoute($route);
+        list($controllerName, $actionName) = static::parseRoute($route);
 
         if (!class_exists($controllerName)) {
             throw new HttpNotFoundException();
@@ -134,18 +160,37 @@ class App
      */
     public static function parseRoute($route)
     {
-        $value = str_replace('/', ' ', substr($route, 0, strrpos($route, '/')));
-        $value = str_replace(' ', '\\', ucwords($value));
+        if (($pos = strrpos($route, '/')) !== false) {
+            $value = str_replace('/', ' ', substr($route, 0, $pos));
+            $value = str_replace(' ', '\\', ucwords($value));
+        } else {
+            $value = $route;
+        }
         if (strpos($value, '-') !== false && strpos($value, '--') === false) {
             $value = str_replace(' ', '', ucwords(str_replace('-', ' ', $value)));
         }
-        $controllerName = "\\App\\Controller\\{$value}Controller";
 
-        $actionName = substr($route, strrpos($route, '/') + 1);
-        if (strpos($actionName, '-') !== false && strpos($actionName, '--') === false) {
-            $actionName = lcfirst(ucwords(strtr($actionName, '-', ' ')));
+        if (is_array(static::$controllerNamespace)) {
+            foreach (static::$controllerNamespace as $ns) {
+                $controllerName = $ns . "\\{$value}Controller";
+                if (class_exists($controllerName)) {
+                    break;
+                }
+            }
+        } else {
+            $controllerName = static::$controllerNamespace . "\\{$value}Controller";
         }
-        $actionName = $actionName . 'Action';
+
+        if ($pos) {
+            $actionName = substr($route, strrpos($route, '/') + 1);
+            if (strpos($actionName, '-') !== false && strpos($actionName, '--') === false) {
+                $actionName = lcfirst(ucwords(strtr($actionName, '-', ' ')));
+            }
+            $actionName = $actionName . 'Action';
+        } else {
+            $actionName = static::$defaultAction;
+        }
+        
 
         return array($controllerName, $actionName);
     }
@@ -161,7 +206,11 @@ class App
     {
         self::$container = new Container();
         if (!is_object($bootstrap)) {
-            $bootstrap = new Bootstrap();
+            if (static::isCli()) {
+                $bootstrap = new \Core\Bootstrap\Console();
+            } else {
+                $bootstrap = new \Core\Bootstrap\Bootstrap();
+            }
         }
 
         $class = new ReflectionClass($bootstrap);
