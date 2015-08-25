@@ -243,11 +243,11 @@ class Response
 
     protected function sendHeaders()
     {
-        if (!$this->headers) {
-            return;
-        }
         if ($this->status != 200 && isset(self::$httpCodes[$this->status])) {
             header(sprintf("%s %s", $this->protocol, self::$httpCodes[$this->status]));
+        }
+        if (!$this->headers) {
+            return;
         }
         if (!$this->headers->has('content-type')) {
             $this->headers->set('content-type', 'text/html; charset='.$this->charset);

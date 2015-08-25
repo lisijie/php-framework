@@ -321,7 +321,7 @@ class App
      */
     public static function abort($code, $message = '')
     {
-        throw new HttpException($message, $code);
+        throw new HttpException($code, $message);
     }
 
     /**

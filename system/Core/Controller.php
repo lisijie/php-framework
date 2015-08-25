@@ -71,11 +71,42 @@ class Controller
      * 获取GET/POST值
      *
      * @param string $name
+     * @param mixed $default
+     * @param bool $filter
      * @return mixed
      */
-    protected function get($name)
+    protected function get($name, $default = null, $filter = true)
     {
-        return $this->request->get($name);
+        if (null === ($value = $this->request->getQuery($name, null, $filter))) {
+            $value = $this->request->getPost($name, $default, $filter);
+        }
+        return $value;
+    }
+
+    /**
+     * 获取GET值
+     *
+     * @param string $name
+     * @param mixed $default
+     * @param bool $filter
+     * @return mixed|null
+     */
+    protected function getQuery($name, $default = null, $filter = true)
+    {
+        return $this->request->getQuery($name, $default, $filter);
+    }
+
+    /**
+     * 获取POST值
+     *
+     * @param string $name
+     * @param mixed $default
+     * @param bool $filter
+     * @return mixed|null
+     */
+    protected function getPost($name, $default = null, $filter = true)
+    {
+        return $this->request->getPost($name, $default, $filter);
     }
 
     /**

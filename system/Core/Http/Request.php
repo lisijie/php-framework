@@ -110,29 +110,20 @@ class Request
     }
 
     /**
-     * 获取原始请求体
-     *
-     * @return string
-     */
-    public function getContent()
-    {
-        return file_get_contents("php://input");
-    }
-
-    /**
      * 获取查询参数
      *
-     * @param $name
-     * @param $default
-     * @return mixed
+     * @param string $name
+     * @param mixed $default
+     * @param bool $filter
+     * @return mixed|null
      */
-    public function getQuery($name = null, $default = null)
+    public function getQuery($name = null, $default = null, $filter = true)
     {
         if (null === $name) {
-            return $this->applyFilter($_GET);
+            return $filter ? $this->applyFilter($_GET) : $_GET;
         }
         if (isset($_GET[$name])) {
-            return $this->applyFilter($_GET[$name]);
+            return $filter ? $this->applyFilter($_GET[$name]) : $_GET[$name];
         }
         return $default;
     }
@@ -140,17 +131,18 @@ class Request
     /**
      * 获取POST参数
      *
-     * @param $name
-     * @param $default
+     * @param string $name
+     * @param mixed $default
+     * @param bool $filter 是否应用过滤器
      * @return mixed
      */
-    public function getPost($name = null, $default = null)
+    public function getPost($name = null, $default = null, $filter = true)
     {
         if (null === $name) {
-            return $this->applyFilter($_POST);
+            return $filter ? $this->applyFilter($_POST) : $_POST;
         }
         if (isset($_POST[$name])) {
-            return $this->applyFilter($_POST[$name]);
+            return $filter ? $this->applyFilter($_POST[$name]) : $_POST[$name];
         }
         return $default;
     }
@@ -159,27 +151,11 @@ class Request
      * 获取上传的文件
      *
      * @param $name
+     * @return array|null
      */
-    public function getFiles($name)
+    public function getFiles($name = null)
     {
-
-    }
-
-    /**
-     * 获取GET|POST值
-     *
-     * 优先从GET取，取不到从POST取
-     *
-     * @param string $name 键名
-     * @param mixed $default 默认值
-     * @return mixed 值
-     */
-    public function get($name, $default = null)
-    {
-        if (null === ($value = $this->getQuery($name))) {
-            $value = $this->getPost($name, $default);
-        }
-        return $value;
+        return null === $name ? $_FILES : (isset($_FILES[$name]) ? $_FILES[$name] : null);
     }
 
     /**
@@ -221,13 +197,13 @@ class Request
      * 获取$_SERVER环境变量值
      * @param string $name 键名
      * @param mixed $default 默认值
+     * @param bool $filter 是否应用过滤器
      * @return mixed 值`
      */
-    public function getServer($name, $default = NULL)
+    public function getServer($name, $default = null, $filter = true)
     {
         $value = isset($_SERVER[$name]) ? $_SERVER[$name] : $default;
-        $value = $this->applyFilter($value);
-        return $value;
+        return $filter ? $this->applyFilter($value) : $value;
     }
 
     /**
