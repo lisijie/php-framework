@@ -188,7 +188,7 @@ class Controller
             foreach ($methodParams as $p) {
                 $default = $p->isOptional() ? $p->getDefaultValue() : null;
                 $value = $this->request->get($p->getName(), $default);
-                if (null === $value) {
+                if (null === $value && !$p->isOptional()) {
                     throw new AppException('缺少请求参数:' . $p->getName());
                 }
                 $args[] = $value;

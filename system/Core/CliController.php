@@ -32,7 +32,7 @@ class CliController extends Controller
             foreach ($methodParams as $key => $p) {
                 $default = $p->isOptional() ? $p->getDefaultValue() : null;
                 $value = isset($params[$key]) ? $params[$key] : $default;
-                if (null === $value) {
+                if (null === $value && !$p->isOptional()) {
                     throw new AppException(get_class($this)."::{$actionName}() 缺少参数: " . $p->getName());
                 }
                 $args[] = $value;
