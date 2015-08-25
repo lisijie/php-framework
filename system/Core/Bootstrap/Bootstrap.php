@@ -21,29 +21,12 @@ class Bootstrap implements BootstrapInterface
 
 	public function startup()
 	{
-        //注册错误处理函数
-        set_error_handler(function ($code, $str, $file, $line) {
-            throw new \ErrorException($str, $code, 0, $file, $line);
-        });
-
         //设置时区
         if (App::conf('app', 'timezone')) {
             date_default_timezone_set(App::conf('app', 'timezone'));
         } elseif (ini_get('date.timezone') == '') {
             date_default_timezone_set('Asia/Shanghai'); //设置默认时区为中国时区
         }
-
-		//注册shutdown函数
-		register_shutdown_function(function() {
-			$error = error_get_last();
-			if ($error) {
-				$errTypes = array(E_ERROR => 'E_ERROR', E_PARSE => 'E_PARSE', E_USER_ERROR => 'E_USER_ERROR');
-				if (isset($errTypes[$error['type']])) {
-					$info = $errTypes[$error['type']].": {$error['message']} in {$error['file']} on line {$error['line']}";
-					App::logger()->error($info);
-				}
-			}
-		});
 
         //注册异常处理器
         if (class_exists('\\App\\Exception\\Handler')) {

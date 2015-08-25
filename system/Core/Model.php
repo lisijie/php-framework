@@ -23,7 +23,7 @@ class Model
      *
      * @var string
      */
-    protected $dbSection = 'default';
+    protected $dbNode = 'default';
 
     /**
      * 表名
@@ -39,7 +39,7 @@ class Model
 
     private final function __construct()
     {
-        $this->db = \App::getDb($this->dbSection);
+        $this->db = \App::db($this->dbNode);
         $this->init();
     }
 
@@ -73,7 +73,7 @@ class Model
      * @param array $filter
      * @return int
      */
-    protected function count(array $filter = array())
+    public function count(array $filter = array())
     {
         $sql = "SELECT COUNT(*) FROM {$this->tableName}";
         if (!empty($filter)) $sql .= " WHERE " . $this->parseFilter($filter);
@@ -90,7 +90,7 @@ class Model
      * @param int $offset 偏移量
      * @return array
      */
-    protected function select(array $fields = null, array $filter = null, array $order = null, $limit = 0, $offset = 0)
+    public function select(array $fields = null, array $filter = null, array $order = null, $limit = 0, $offset = 0)
     {
         $fields = empty($fields) ? '*' : implode(',', $fields);
         $sql = "SELECT {$fields} FROM {$this->tableName}";
@@ -118,7 +118,7 @@ class Model
      * @param int $size 每页数量
      * @return array
      */
-    protected function page(array $fields, array $filter, array $order, $page = 1, $size = 20)
+    public function page(array $fields, array $filter, array $order, $page = 1, $size = 20)
     {
         $offset = 0;
         if ($page > 0 && $size > 0) {
@@ -140,7 +140,7 @@ class Model
      * @param bool $ignore 是否忽略重复
      * @return int
      */
-    protected function insert($data, $replace = false, $multi = false, $ignore = false)
+    public function insert($data, $replace = false, $multi = false, $ignore = false)
     {
         $table = $this->tableName;
         return $this->db->insert($table, $data, $replace, $multi, $ignore);
@@ -153,7 +153,7 @@ class Model
      * @param array $fields 字段
      * @return array
      */
-    protected function getRow(array $filter = null, array $fields = array())
+    public function getRow(array $filter = null, array $fields = array())
     {
         if ($fields) {
             $fields = '`' . implode('`,`', $fields) . '`';
@@ -175,7 +175,7 @@ class Model
      * @param array $filter 更新条件
      * @return int
      */
-    protected function update($data, array $filter)
+    public function update($data, array $filter)
     {
         $sql = "UPDATE {$this->tableName} SET ";
         $split = '';
@@ -195,7 +195,7 @@ class Model
      * @param array $filter 条件
      * @return int 返回影响行数
      */
-    protected function delete(array $filter)
+    public function delete(array $filter)
     {
         $sql = "DELETE FROM {$this->tableName} ";
         if (!empty($filter)) {

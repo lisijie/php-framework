@@ -1,7 +1,7 @@
 <?php
 namespace App\Controller;
 
-use Core\ApiController as Controller;
+use Core\Controller as Controller;
 use Core\Lib\Cipher;
 
 class MainController extends Controller
@@ -14,6 +14,7 @@ class MainController extends Controller
 
     public function indexAction()
     {
+
         $this->assign(['foo'=>'bar']);
         $this->message('sadasddas');
 

@@ -34,7 +34,7 @@ class Controller
      *
      * 子类可通过重写init()方法完成初始化
      */
-    public function __construct(Request $request, Response $response)
+    public final function __construct(Request $request, Response $response)
     {
         $this->request  = $request;
         $this->response = $response;
@@ -158,12 +158,18 @@ class Controller
         return $this->response;
     }
 
+    protected function ajaxReturn($data, $format = 'json', $status = 200)
+    {
+
+    }
+
     /**
      * 执行当前控制器方法
-     * 
+     *
      * @param string $actionName 方法名
      * @param array $params 参数列表
-     * @return Response 输出对象
+     * @return Response|mixed
+     * @throws AppException
      */
     public function runActionWithParams($actionName, $params = array())
     {
@@ -177,9 +183,9 @@ class Controller
         }
 
         $args = array();
-        $params = $method->getParameters();
-        if (!empty($params)) {
-            foreach ($params as $p) {
+        $methodParams = $method->getParameters();
+        if (!empty($methodParams)) {
+            foreach ($methodParams as $p) {
                 $default = $p->isOptional() ? $p->getDefaultValue() : null;
                 $value = $this->request->get($p->getName(), $default);
                 if (null === $value) {

@@ -2,6 +2,7 @@
 
 namespace Core;
 
+use Core\Http\Response;
 use Core\Exception\AppException;
 
 class CliController extends Controller
@@ -9,10 +10,11 @@ class CliController extends Controller
 
     /**
      * 执行当前控制器方法
-     * 
+     *
      * @param string $actionName 方法名
      * @param array $params 参数列表
-     * @return Response 输出对象
+     * @return Response|mixed
+     * @throws AppException
      */
     public function runActionWithParams($actionName, $params = array())
     {

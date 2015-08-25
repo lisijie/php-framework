@@ -63,7 +63,31 @@ class Handler
      */
     public function register()
     {
+        // 注册错误处理函数，将所有错误转为异常
+        set_error_handler(function ($code, $str, $file, $line) {
+            throw new \ErrorException($str, $code, 0, $file, $line);
+        });
+        // 注册异常处理函数
         set_exception_handler(array($this, 'handle'));
+        // 注册shutdown函数, 记录运行时无法捕获的错误
+        $this->registerShutdown();
+    }
+
+    /**
+     * shutdown函数, 记录运行时无法捕获的错误
+     */
+    protected function registerShutdown()
+    {
+        register_shutdown_function(function() {
+            $error = error_get_last();
+            if ($error) {
+                $errTypes = array(E_ERROR => 'E_ERROR', E_PARSE => 'E_PARSE', E_USER_ERROR => 'E_USER_ERROR');
+                if (isset($errTypes[$error['type']])) {
+                    $info = $errTypes[$error['type']] . ": {$error['message']} in {$error['file']} on line {$error['line']}";
+                    $this->logger->error($info);
+                }
+            }
+        });
     }
 
     /**

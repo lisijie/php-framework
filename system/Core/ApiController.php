@@ -2,20 +2,13 @@
 
 namespace Core;
 
-use Core\Http\Request;
-use Core\Http\Response;
+use App;
 
 class ApiController extends Controller
 {
 
     protected $jsonpEnabled = true;
     protected $jsonpCallback = 'jsoncallback';
-
-    public function __construct(Request $request, Response $response)
-    {
-        parent::__construct($request, $response);
-        $this->response->headers()->set('content-type', 'application/json; charset=' . CHARSET);
-    }
 
     protected function message($message, $msgno = MSG_ERR, $redirect = NULL, $template = '')
     {
@@ -25,7 +18,8 @@ class ApiController extends Controller
             'data' => App::view()->getData(),
         );
         if ($redirect) $data['redirect'] = $redirect;
-        $this->response->setContent($this->encode($data));
+        $this->response->headers()->set('content-type', 'application/json; charset=' . CHARSET);
+        $this->response->setContent($this->jsonEncode($data));
         return $this->response;
     }
 
@@ -35,10 +29,11 @@ class ApiController extends Controller
             'ret' => MSG_NONE,
             'data' => App::view()->getData()
         );
-        $this->response->setContent($this->encode($data));
+        $this->response->headers()->set('content-type', 'application/json; charset=' . CHARSET);
+        $this->response->setContent($this->jsonEncode($data));
     }
 
-    protected function encode($data)
+    protected function jsonEncode($data)
     {
         $result = json_encode($data);
         $result = preg_replace_callback('#\\\u([0-9a-f]{4})#i', function ($arr) {
