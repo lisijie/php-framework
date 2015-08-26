@@ -105,6 +105,33 @@ class FileHelper
     }
 
     /**
+     * 列出该目录及其子目录下的所有文件
+     *
+     * @param string $dir 目录名
+     * @return array
+     */
+    public static function scanDir($dir)
+    {
+        $dir = rtrim($dir, '/\\');
+        $result = array();
+        if (is_dir($dir)) {
+            if ($d = opendir($dir)) {
+                while (false !== ($file = readdir($d))) {
+                    if ($file != '.' && $file != '..') {
+                        if (is_dir($dir . DIRECTORY_SEPARATOR . $file)) {
+                            $result = array_merge($result, static::scanDir($dir . DIRECTORY_SEPARATOR . $file));
+                        } else {
+                            $result[] = $dir . DIRECTORY_SEPARATOR . $file;
+                        }
+                    }
+                }
+                closedir($d);
+            }
+        }
+        return $result;
+    }
+
+    /**
      * 返回文件小写扩展名
      *
      * @param string $filename

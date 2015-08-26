@@ -46,6 +46,20 @@ class ClassLoader
     }
 
     /**
+     * 获取已注册的命名空间对应目录
+     *
+     * @param string $namespace
+     * @return array
+     */
+    public function getNamespacePaths($namespace)
+    {
+        if (isset($this->namespaces[$namespace])) {
+            return $this->namespaces[$namespace];
+        }
+        return array();
+    }
+
+    /**
      * 注册单个类
      *
      * @param string $className 类名
@@ -60,6 +74,8 @@ class ClassLoader
 
     /**
      * 注册目录
+     *
+     * 用于对某个前缀的类指定搜索目录。
      *
      * @param string $prefix 类前缀
      * @param array|string $paths 目录列表

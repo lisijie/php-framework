@@ -71,13 +71,6 @@ class App
     protected static $controllerNamespace = 'App\\Controller';
 
     /**
-     * 默认动作名
-     * 
-     * @var string
-     */
-    protected static $defaultAction = 'indexAction';
-
-    /**
      * 运行应用并输出结果
      */
     public static function run()
@@ -116,6 +109,24 @@ class App
         static::set('request', $request);
 
         return self::runRoute(CUR_ROUTE, $router->getParams());
+    }
+
+    /**
+     * 获取控制目录
+     *
+     * @return array
+     */
+    public static function getControllerPaths()
+    {
+        $paths = array();
+        foreach ((array)static::$controllerNamespace as $ns) {
+            $ps = ClassLoader::getInstance()->getNamespacePaths(strstr($ns, '\\', true));
+            foreach ($ps as &$v) {
+                $v .= strtr(strstr($ns, '\\'), '\\', DS);
+            }
+            $paths[$ns] = $ps;
+        }
+        return $paths;
     }
 
     /**
@@ -164,12 +175,11 @@ class App
             $value = str_replace('/', ' ', substr($route, 0, $pos));
             $value = str_replace(' ', '\\', ucwords($value));
         } else {
-            $value = $route;
+            $value = ucfirst($route);
         }
         if (strpos($value, '-') !== false && strpos($value, '--') === false) {
             $value = str_replace(' ', '', ucwords(str_replace('-', ' ', $value)));
         }
-
         if (is_array(static::$controllerNamespace)) {
             foreach (static::$controllerNamespace as $ns) {
                 $controllerName = $ns . "\\{$value}Controller";
@@ -188,7 +198,7 @@ class App
             }
             $actionName = $actionName . 'Action';
         } else {
-            $actionName = static::$defaultAction;
+            $actionName = '';
         }
         
 

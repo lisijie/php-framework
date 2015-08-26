@@ -15,16 +15,21 @@ use Core\Exception\AppException;
  */
 class Controller
 {
+
+    /**
+     * 默认动作
+     * @var string
+     */
+    protected $defaultAction = 'indexAction';
+
     /**
      * 请求对象
-     *
      * @var \Core\Http\Request
      */
     protected $request;
 
     /**
      * 输出对象
-     *
      * @var \Core\Http\Response
      */
     protected $response;
@@ -204,6 +209,9 @@ class Controller
      */
     public function runActionWithParams($actionName, $params = array())
     {
+        if (empty($actionName)) {
+            $actionName = $this->defaultAction;
+        }
         if (!method_exists($this, $actionName)) {
             throw new \BadMethodCallException("方法不存在: {$actionName}");
         }

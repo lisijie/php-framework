@@ -2,11 +2,23 @@
 
 namespace Core;
 
+
 use Core\Http\Response;
 use Core\Exception\AppException;
+use Core\Lib\Console;
 
 class CliController extends Controller
 {
+
+    protected function stdout($string)
+    {
+        return Console::stdout($string);
+    }
+
+    protected function stdin($raw = false)
+    {
+        return Console::stdin($raw);
+    }
 
     /**
      * 执行当前控制器方法
@@ -18,6 +30,9 @@ class CliController extends Controller
      */
     public function runActionWithParams($actionName, $params = array())
     {
+        if (empty($actionName)) {
+            $actionName = $this->defaultAction;
+        }
         if (!method_exists($this, $actionName)) {
             throw new \BadMethodCallException("方法不存在: {$actionName}");
         }
