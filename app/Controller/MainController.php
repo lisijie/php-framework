@@ -16,7 +16,10 @@ class MainController extends Controller
     public function indexAction()
     {
 
-        $this->assign(['foo'=>'bar']);
+        $this->assign(array(
+            'title' => '演示页面',
+            'name' => 'world',
+        ));
 
         return $this->display();
     }

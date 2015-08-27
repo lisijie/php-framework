@@ -15,34 +15,43 @@ class Smarty extends ViewAbstract
 {
     private $smarty;
 
-    public function __construct(array $options)
+    protected function init()
     {
-        if (!isset($options['ext'])) {
-            $options['ext'] = '.html';
+        if (!isset($this->options['ext'])) {
+            $this->options['ext'] = '.html';
         }
-        $this->options = $options;
         $defaults = array(
             'template_dir' => VIEW_PATH,
             'config_dir' => VIEW_PATH . 'config' . DIRECTORY_SEPARATOR,
             'compile_dir' => DATA_PATH . 'cache/smarty_complied',
             'cache_dir' => DATA_PATH . 'cache/smarty_cache',
         );
+        $this->options = array_merge($defaults, $this->options);
         if (!class_exists('\Smarty')) {
             throw new ViewException('Smarty 类不存在，请使用composer安装');
         }
         $this->smarty = new \Smarty();
         foreach ($defaults as $key => $value) {
-            $this->smarty->{$key} = isset($options[$key]) ? $options[$key] : $value;
+            $this->smarty->{$key} = $this->options[$key];
+        }
+        $this->smarty->registerPlugin('function', 'layout_section', array($this, 'section'));
+        $this->smarty->registerPlugin('function', 'layout_content', array($this, 'content'));
+    }
+
+    public function section($params)
+    {
+        if (isset($params['name'])) {
+            return parent::section($params['name']);
         }
     }
 
-    public function render($filename, $data = array())
+    protected function beforeRender()
     {
-        $filename = $filename . $this->getOption('ext');
-        if (!empty($data)) {
-            $this->assign($data);
-        }
         $this->smarty->assign($this->data);
+    }
+
+    protected function renderFile($filename)
+    {
         return $this->smarty->fetch($filename);
     }
 

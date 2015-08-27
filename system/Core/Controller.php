@@ -180,11 +180,12 @@ class Controller
      * URL跳转
      *
      * @param string $url 目的地址
+     * @param int $status 状态码
      * @return Response 输出对象
      */
-    protected function redirect($url)
+    protected function redirect($url, $status = 302)
     {
-        $this->response->redirect($url);
+        $this->response->redirect($url, $status);
         return $this->response;
     }
 

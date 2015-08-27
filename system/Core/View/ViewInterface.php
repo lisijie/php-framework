@@ -11,25 +11,30 @@ namespace Core\View;
 interface ViewInterface
 {
 
+    /**
+     * 获取设置项的值
+     *
+     * @param string $name
+     * @return mixed
+     */
     public function getOption($name);
 
     /**
      * 渲染模板
      *
      * @param $filename
-     * @param $data
      * @return string
      */
-    public function render($filename, $data = array());
+    public function render($filename);
 
     /**
      * 注册模板变量
      *
-     * @param $var
+     * @param $name
      * @param $value
      * @return mixed
      */
-    public function assign($var, $value = null);
+    public function assign($name, $value = null);
 
     /**
      * 返回模板变量数据
@@ -37,5 +42,17 @@ interface ViewInterface
      * @return array
      */
     public function getData();
+
+    /**
+     * 返回模板文件路径
+     *
+     * @param string $filename
+     * @return mixed
+     */
+    public function getViewFile($filename);
+
+    public function setLayout($filename);
+
+    public function setLayoutSection($name, $filename);
 
 }
