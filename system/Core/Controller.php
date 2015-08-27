@@ -125,6 +125,16 @@ class Controller
         App::view()->assign($name, $value);
     }
 
+    protected function setLayout($filename)
+    {
+        App::view()->setLayout($filename);
+    }
+
+    protected function setLayoutSection($name, $filename)
+    {
+        App::view()->setLayoutSection($name, $filename);
+    }
+
     /**
      * 获取请求来源地址
      *

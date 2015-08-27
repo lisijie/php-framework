@@ -30,6 +30,7 @@ class AmfController extends Controller
         );
         $this->response->headers()->set('content-type', 'application/x-amf; charset=' . CHARSET);
         $this->response->setContent(Amf::encode($data));
+        return $this->response;
     }
 
 }

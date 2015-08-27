@@ -31,6 +31,7 @@ class ApiController extends Controller
         );
         $this->response->headers()->set('content-type', 'application/json; charset=' . CHARSET);
         $this->response->setContent($this->jsonEncode($data));
+        return $this->response;
     }
 
     protected function jsonEncode($data)
