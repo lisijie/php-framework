@@ -36,20 +36,20 @@
 
 很多项目都会有在命令行模式下执行PHP脚本的需求，例如结合crontab做定时数据统计、数据清理等。在本框架中，命令行脚本控制器统一放在Command目录下，需要继承自 Core\CliController，如果需要参数，则必须在方法中声明。示例代码：
 
-	```php
-	<?php
-	namespace App\Command;
-	
-	use Core\CliController as Controller;
-	
-	class DemoController extends Controller
-	{
-	    public function testAction($name)
-	    {
-	        $this->stdout("hello, {$name}\n");
-	    }
-	}
-	```
+```php
+<?php
+namespace App\Command;
+
+use Core\CliController as Controller;
+
+class DemoController extends Controller
+{
+    public function testAction($name)
+    {
+        $this->stdout("hello, {$name}\n");
+    }
+}
+```
 
 执行命令行脚本方法：
 
@@ -58,8 +58,10 @@
 
 例如以上代码的执行命令为
 
-	[demo@localhost public]$ php index.php demo/test world
-	hello, world
+```Bash
+[demo@localhost public]$ php index.php demo/test world
+hello, world
+```
 
 如果你需要定时执行以上命令，把它添加到crontab配置中即可。
 
