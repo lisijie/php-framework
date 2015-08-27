@@ -65,20 +65,20 @@
 
 另一个更好的方式是单独写一个命令行脚本的入口文件，放到public以外的目录，并加上可执行权限，然后像执行二进制程序一样去执行它。
 
-	```php
-	#!/usr/local/php/bin/php
-	<?php
-	define('APP_PATH',  dirname(__DIR__) .'/app/');
-	define('DATA_PATH', dirname(__DIR__) .'/data/');
-	
-	define('DEBUG', true);
-	define('RUN_MODE', 'dev');
-	
-	require dirname(__DIR__) .'/system/App.php';
-	
-	App::bootstrap();
-	App::run();
-	```
+```php
+#!/usr/local/php/bin/php
+<?php
+define('APP_PATH',  dirname(__DIR__) .'/app/');
+define('DATA_PATH', dirname(__DIR__) .'/data/');
+
+define('DEBUG', true);
+define('RUN_MODE', 'dev');
+
+require dirname(__DIR__) .'/system/App.php';
+
+App::bootstrap();
+App::run();
+```
 
 把以上代码保存到名为 app 的文件中，然后加上可执行权限。之后就可以直接使用 ./app 运行了。几处路径请自行修改。
 
