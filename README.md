@@ -10,6 +10,8 @@
 
 ### 实践指南
 
+###### 1. 目录结构
+
 一个基本的应用目录结构如下：
 
 	|- app 应用目录
@@ -30,6 +32,55 @@
 
 对于较大型的项目，或者需要提供多端接口的应用（如手机APP），建议在 Controller 和 Model 之间再增加一个 Service 层，用于封装业务逻辑，便于重用业务代码，最终调用关系为 Controller -> Service -> Model。
 
+###### 2. 命令行脚本
+
+很多项目都会有在命令行模式下执行PHP脚本的需求，例如结合crontab做定时数据统计、数据清理等。在本框架中，命令行脚本控制器统一放在Command目录下，需要继承自 Core\CliController，如果需要参数，则必须在方法中声明。示例代码：
+
+	```php
+	<?php
+	namespace App\Command;
+	
+	use Core\CliController as Controller;
+	
+	class DemoController extends Controller
+	{
+	    public function testAction($name)
+	    {
+	        $this->stdout("hello, {$name}\n");
+	    }
+	}
+	```
+
+执行命令行脚本方法：
+
+可以直接在终端使用 
+> php index.php 路由地址 参数1 参数2... 
+
+例如以上代码的执行命令为
+
+	[demo@localhost public]$ php index.php demo/test world
+	hello, world
+
+如果你需要定时执行以上命令，把它添加到crontab配置中即可。
+
+另一个更好的方式是单独写一个命令行脚本的入口文件，放到public以外的目录，并加上可执行权限，然后像执行二进制程序一样去执行它。
+
+	```php
+	#!/usr/local/php/bin/php
+	<?php
+	define('APP_PATH',  dirname(__DIR__) .'/app/');
+	define('DATA_PATH', dirname(__DIR__) .'/data/');
+	
+	define('DEBUG', true);
+	define('RUN_MODE', 'dev');
+	
+	require dirname(__DIR__) .'/system/App.php';
+	
+	App::bootstrap();
+	App::run();
+	```
+
+把以上代码保存到名为 app 的文件中，然后加上可执行权限。之后就可以直接使用 ./app 运行了。几处路径请自行修改。
 
 ### 服务器配置
 
