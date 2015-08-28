@@ -19,6 +19,14 @@ class Request
     // cookies
     protected $cookies;
 
+    protected $scriptUrl;
+
+    protected $clientIP;
+
+    protected $hostName;
+
+    protected $hostInfo;
+
     public function __construct(Headers $header = null, Cookies $cookie = null)
     {
         $this->headers = is_null($header) ? Headers::createFromEnv() : $header;
@@ -62,7 +70,7 @@ class Request
      */
     public function getMethod()
     {
-        return $this->getServer('REQUEST_METHOD');
+        return isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) : 'GET';
     }
 
     /**
@@ -96,7 +104,7 @@ class Request
      */
     public function getPort()
     {
-        return $this->getServer('SERVER_PORT');
+        return (int) $_SERVER['SERVER_PORT'];
     }
 
     /**
@@ -106,7 +114,12 @@ class Request
      */
     public function getQueryString()
     {
-        return $this->getServer('QUERY_STRING');
+        return isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
+    }
+
+    public function getRequestUri()
+    {
+        return isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
     }
 
     /**
@@ -194,15 +207,20 @@ class Request
     }
 
     /**
-     * 获取$_SERVER环境变量值
+     * 获取$_SERVER环境变量
+     *
      * @param string $name 键名
      * @param mixed $default 默认值
      * @param bool $filter 是否应用过滤器
      * @return mixed 值`
      */
-    public function getServer($name, $default = null, $filter = true)
+    public function getServer($name = null, $default = null, $filter = true)
     {
-        $value = isset($_SERVER[$name]) ? $_SERVER[$name] : $default;
+        if (null === $name) {
+            $value = $_SERVER;
+        } else {
+            $value = isset($_SERVER[$name]) ? $_SERVER[$name] : $default;
+        }
         return $filter ? $this->applyFilter($value) : $value;
     }
 
@@ -213,14 +231,17 @@ class Request
      */
     public function getClientIp()
     {
-        if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
-            $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        } elseif (isset($_SERVER['HTTP_CLIENT_IP']) && $_SERVER['HTTP_CLIENT_IP']) {
-            $ip = $_SERVER['HTTP_CLIENT_IP'];
-        } else {
-            $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+        if ($this->clientIP === null) {
+            if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
+                $ip = $_SERVER['HTTP_X_FORWARDED_FOR'];
+            } elseif (isset($_SERVER['HTTP_CLIENT_IP']) && $_SERVER['HTTP_CLIENT_IP']) {
+                $ip = $_SERVER['HTTP_CLIENT_IP'];
+            } else {
+                $ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+            }
+            $this->clientIP = preg_match('/^([0-9]{1,3}\.){3}[0-9]{1,3}$/', $ip) ? $ip : 'unknown';
         }
-        return preg_match('/^([0-9]{1,3}\.){3}[0-9]{1,3}$/', $ip) ? $ip : 'unknown';
+        return $this->clientIP;
     }
 
     /**
@@ -238,88 +259,137 @@ class Request
     }
 
     /**
-     * 获取当前脚本名称
-     *
-     * @return mixed
-     */
-    public function getScriptName()
-    {
-        return $this->getServer('SCRIPT_NAME', $this->getServer('ORIG_SCRIPT_NAME', ''));
-    }
-
-    /**
-     * 获取访问主机地址
+     * 获取请求来源地址
      *
      * @return string
      */
-    public function getHost()
+    public function getReferrer()
     {
-        if (!($host = $this->getServer('HTTP_HOST'))) {
-            if (!($host = $this->getServer('SERVER_NAME'))) {
-                $host = $this->getServer('SERVER_ADDR');
+        return isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '';
+    }
+
+    /**
+     * 获取用户浏览器类型
+     *
+     * @return string
+     */
+    public function getUserAgent()
+    {
+        return isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+    }
+
+    /**
+     * 获取请求的Content-Type
+     *
+     * @return string
+     */
+    public function getContentType()
+    {
+        if (isset($_SERVER["CONTENT_TYPE"])) {
+            return $_SERVER["CONTENT_TYPE"];
+        } elseif (isset($_SERVER["HTTP_CONTENT_TYPE"])) {
+            return $_SERVER["HTTP_CONTENT_TYPE"];
+        }
+        return '';
+    }
+
+    /**
+     * 获取当前请求脚本的物理路径
+     *
+     * @return mixed
+     */
+    public function getScriptFile()
+    {
+        return $_SERVER['SCRIPT_FILENAME'];
+    }
+
+    /**
+     * 获取当前请求脚本的URL
+     *
+     * 例如请求URL是 http://www.example.com:8080/app/index.php?r=main/test ，返回结果为 /app/index.php
+     *
+     * @return string
+     */
+    public function getScriptUrl()
+    {
+        if ($this->scriptUrl === null) {
+            $scriptFile = $this->getScriptFile();
+            $scriptName = basename($scriptFile);
+            if (basename($_SERVER['SCRIPT_NAME']) === $scriptName) {
+                $this->scriptUrl = $_SERVER['SCRIPT_NAME'];
+            } elseif (basename($_SERVER['PHP_SELF']) === $scriptName) {
+                $this->scriptUrl = $_SERVER['PHP_SELF'];
+            } elseif (isset($_SERVER['ORIG_SCRIPT_NAME']) && basename($_SERVER['ORIG_SCRIPT_NAME']) === $scriptName) {
+                $this->scriptUrl = $_SERVER['ORIG_SCRIPT_NAME'];
+            } elseif (($pos = strpos($_SERVER['PHP_SELF'], '/' . $scriptName)) !== false) {
+                $this->scriptUrl = substr($_SERVER['SCRIPT_NAME'], 0, $pos) . '/' . $scriptName;
+            } elseif (!empty($_SERVER['DOCUMENT_ROOT']) && strpos($scriptFile, $_SERVER['DOCUMENT_ROOT']) === 0) {
+                $this->scriptUrl = str_replace('\\', '/', str_replace($_SERVER['DOCUMENT_ROOT'], '', $scriptFile));
             }
         }
-        return $host;
+        return $this->scriptUrl;
+    }
+
+    /**
+     * 获取访问主机名
+     *
+     * 例如请求URL是 http://www.example.com:8080/app/index.php?r=main/test ，返回结果为 www.example.com
+     *
+     * @return string
+     */
+    public function getHostName()
+    {
+        if ($this->hostName === null) {
+            if (!($this->hostName = $this->getServer('HTTP_HOST'))) {
+                if (!($this->hostName = $this->getServer('SERVER_NAME'))) {
+                    $this->hostName = $this->getServer('SERVER_ADDR');
+                }
+            }
+        }
+        return $this->hostName;
     }
 
     /**
      * 获取主机URL
      *
+     * 例如请求URL是 http://www.example.com:8080/app/index.php?r=main/test ，返回结果为 http://www.example.com:8080
+     *
      * @return string
      */
-    public function getHostUrl()
+    public function getHostInfo()
     {
-        $isHttps = $this->isHttps();
-        $port = $this->getServer('SERVER_PORT');
-        return ($isHttps ? 'https://' : 'http://') . $this->getHost() . ((($isHttps && $port != 443) || (!$isHttps && $port != 80)) ? ':' . $port : '');
+        if ($this->hostInfo === null) {
+            $isHttps = $this->isHttps();
+            $port = $this->getServer('SERVER_PORT');
+            $this->hostInfo = ($isHttps ? 'https://' : 'http://') . $this->getHostName() . ((($isHttps && $port != 443) || (!$isHttps && $port != 80)) ? ':' . $port : '');
+        }
+        return $this->hostInfo;
     }
 
     /**
-     * 获取基础URL
+     * 获取不包含域名和入口文件的URL
+     *
+     * 例如请求URL是 http://www.example.com:8080/app/index.php?r=main/test ，返回结果为 /app
      *
      * @return string
      */
     public function getBaseUrl()
     {
-        $filename = basename($this->getServer('SCRIPT_FILENAME'));
+        $baseUrl = dirname($this->getScriptUrl());
 
-        if (basename($this->getServer('SCRIPT_NAME')) === $filename) {
-            $baseUrl = $this->getServer('SCRIPT_NAME');
-        } elseif (basename($this->getServer('PHP_SELF')) === $filename) {
-            $baseUrl = $this->getServer('PHP_SELF');
-        } elseif (basename($this->getServer('ORIG_SCRIPT_NAME')) === $filename) {
-            $baseUrl = $this->getServer('ORIG_SCRIPT_NAME');
-        } else {
-            $baseUrl = '';
-        }
-
-        return rtrim($baseUrl, '/');
-    }
-
-
-    /**
-     * 获取项目基础路径
-     *
-     * @return string
-     */
-    public function getBasePath()
-    {
-        $path = dirname($this->getBaseUrl());
-        if ('\\' == DIRECTORY_SEPARATOR) {
-            $path = strtr($path, '\\', '/');
-        }
-
-        return rtrim($path, '/');
+        return rtrim($baseUrl, '\\/');
     }
 
     /**
      * 获取PATHINFO
      *
-     * @return mixed
+     * 例如请求URL是 http://www.example.com/index.php/main/index?q=123 ，返回结果为 /main/index
+     *
+     * @return string
      */
     public function getPathInfo()
     {
-        return $this->getServer('PATH_INFO');
+        return isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
     }
 
     //返回是否HTTPS连接
@@ -350,13 +420,4 @@ class Request
         return file_get_contents('php://input');
     }
 
-    /**
-     * 返回键是否在GET/POST中
-     * @param string $name
-     * @return boolean
-     */
-    public function __isset($name)
-    {
-        return (isset($_GET[$name]) || isset($_POST[$name]));
-    }
 }

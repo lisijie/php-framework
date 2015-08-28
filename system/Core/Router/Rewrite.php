@@ -28,9 +28,9 @@ class Rewrite extends Router
     public function parse()
     {
         $requestUri = rawurldecode($this->request->getServer('REQUEST_URI'));
-        $basePath = $this->request->getBasePath();
-        if ($basePath && ($pos = strpos($requestUri, $basePath)) === 0) {
-            $requestUri = substr($requestUri, strlen($basePath));
+        $baseUrl = $this->request->getBaseUrl();
+        if ($baseUrl && ($pos = strpos($requestUri, $baseUrl)) === 0) {
+            $requestUri = substr($requestUri, strlen($baseUrl));
         }
         if (strpos($requestUri, '?') !== false) {
             list($path, $query) = explode('?', $requestUri);
@@ -48,7 +48,7 @@ class Rewrite extends Router
     public function makeUrl($route, $params = array())
     {
         $result = $this->makeUrlPath($route, $params);
-        return $this->request->getBasePath() . '/' . ltrim($result['path'], '/') . (empty($result['params']) ? '' : '?' . http_build_query($result['params']));
+        return $this->request->getBaseUrl() . '/' . ltrim($result['path'], '/') . (empty($result['params']) ? '' : '?' . http_build_query($result['params']));
     }
 
 }

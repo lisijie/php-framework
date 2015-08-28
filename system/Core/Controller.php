@@ -54,6 +54,14 @@ class Controller
     }
 
     /**
+     * 动作执行前调用，必须返回true，才会继续执行
+     */
+    public function before()
+    {
+        return true;
+    }
+
+    /**
      * 动作执行后调用
      */
     public function after()

@@ -155,7 +155,10 @@ class App
         try {
             $controller = new $controllerName(self::get('request'), $response);
             $controller->init();
-            $response = $controller->runActionWithParams($actionName, $params);
+            if ($controller->before()) {
+                $response = $controller->runActionWithParams($actionName, $params);
+                $controller->after();
+            }
             return $response;
         } catch (BadMethodCallException $e) {
             throw new HttpNotFoundException();
