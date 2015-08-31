@@ -27,7 +27,7 @@ class Rewrite extends Router
 
     public function parse()
     {
-        $requestUri = rawurldecode($this->request->getServer('REQUEST_URI'));
+        $requestUri = rawurldecode($this->request->getRequestUri());
         $baseUrl = $this->request->getBaseUrl();
         if ($baseUrl && ($pos = strpos($requestUri, $baseUrl)) === 0) {
             $requestUri = substr($requestUri, strlen($baseUrl));
