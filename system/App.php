@@ -155,7 +155,7 @@ class App
         try {
             $controller = new $controllerName(self::get('request'), $response);
             $controller->init();
-            if ($controller->before()) {
+            if ($controller->before() === true) {
                 $response = $controller->runActionWithParams($actionName, $params);
                 $controller->after();
             }

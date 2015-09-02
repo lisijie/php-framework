@@ -46,7 +46,7 @@ class Controller
     }
 
     /**
-     * 模块子类初始化方法
+     * 控制器初始化方法，执行初始化操作
      */
     public function init()
     {
@@ -54,7 +54,9 @@ class Controller
     }
 
     /**
-     * 动作执行前调用，必须返回true，才会继续执行
+     * 动作执行前置方法
+     * 
+     * 该方法会在Action方法被执行前调用，只有在本方法返回true时，才会执行接下来的Action方法，否则将跳过进入after()方法。
      */
     public function before()
     {
@@ -195,6 +197,26 @@ class Controller
     {
         $this->response->redirect($url, $status);
         return $this->response;
+    }
+
+    /**
+     * 跳转回首页
+     *
+     * @return Response
+     */
+    protected function goHome()
+    {
+        return $this->redirect($this->request->getBaseUrl());
+    }
+
+    /**
+     * 跳转到来源页面
+     *
+     * @return Response
+     */
+    protected function goBack()
+    {
+        return $this->redirect($this->request->getReferrer());
     }
 
     /**
