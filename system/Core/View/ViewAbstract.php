@@ -28,6 +28,18 @@ abstract class ViewAbstract implements ViewInterface
     }
 
     /**
+     * 重置
+     *
+     * 清除模板变量和布局设置
+     */
+    public function reset()
+    {
+        $this->data = array();
+        $this->layout = '';
+        $this->layoutSections = array();
+    }
+
+    /**
      * 设置布局模板
      *
      * @param $filename
