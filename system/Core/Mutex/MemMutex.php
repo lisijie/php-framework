@@ -1,18 +1,28 @@
 <?php
 namespace Core\Mutex;
 
-class MemMutex extends Mutex
+use Core\Cache\CacheInterface;
+
+class MemMutex extends MutexAbstract
 {
-    public $cache = 'default';
+    /**
+     * @var CacheInterface
+     */
+    public $cache;
 
     public $lockTime = 0;
 
     private $prefix = 'lock_';
 
+    public function setCache(CacheInterface $cache)
+    {
+        $this->cache = $cache;
+    }
+
     protected function doLock($name, $timeout)
     {
         $waitTime = 0;
-        while (!$this->memory()->add($this->prefix . $name, 1, $this->lockTime)) {
+        while (!$this->cache->add($this->prefix . $name, 1, $this->lockTime)) {
             if (++$waitTime > $timeout) {
                 return false;
             }
@@ -23,11 +33,7 @@ class MemMutex extends Mutex
 
     protected function doUnlock($name)
     {
-        return $this->memory()->rm($this->prefix . $name);
+        return $this->cache->rm($this->prefix . $name);
     }
 
-    private function memory()
-    {
-        return \App::cache($this->cache);
-    }
 }
