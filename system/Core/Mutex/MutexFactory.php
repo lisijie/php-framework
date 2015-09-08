@@ -15,7 +15,7 @@ class MutexFactory
     /**
      * 创建基于文件的锁
      *
-     * @param bool|true $autoUnlock
+     * @param bool|true $autoUnlock 是否自动释放锁
      * @return FileMutex
      */
     public static function createFileMutex($autoUnlock = true)
@@ -26,7 +26,8 @@ class MutexFactory
     /**
      * 创建基于内存的锁
      *
-     * @param bool|true $autoUnlock
+     * @param string $cacheType 缓存类型
+     * @param bool|true $autoUnlock 是否自动释放锁
      * @return MemMutex
      */
     public static function createMemMutex($cacheType = '', $autoUnlock = true)
@@ -43,8 +44,8 @@ class MutexFactory
     /**
      * 创建基于MySQL的锁
      *
-     * @param string $dbNode
-     * @param bool|true $autoUnlock
+     * @param string $dbNode 数据节点
+     * @param bool|true $autoUnlock 是否自动释放锁
      * @return MysqlMutex
      */
     public static function createMysqlMutex($dbNode = '', $autoUnlock = true)
