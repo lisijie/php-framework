@@ -12,7 +12,7 @@ use Core\Lib\FileHelper;
  *
  * @package Core\Mutex
  */
-class FileMutex extends Mutex
+class FileMutex extends MutexAbstract
 {
 	private $path;
     private $files = array();

@@ -55,4 +55,5 @@ interface ViewInterface
 
     public function setLayoutSection($name, $filename);
 
+    public function reset();
 }

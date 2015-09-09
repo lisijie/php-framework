@@ -1,6 +1,8 @@
 <?php
 namespace Core\Mutex;
 
+use Core\Db;
+
 /**
  * MySQL锁
  *
@@ -10,22 +12,23 @@ namespace Core\Mutex;
  *
  * @package Core\Mutex
  */
-class MysqlMutex extends Mutex
+class MysqlMutex extends MutexAbstract
 {
-    public $db = 'default';
+    public $db;
+
+    public function setDb(Db $db)
+    {
+        $this->db = $db;
+    }
 
     protected function doLock($name, $timeout)
     {
-        return (bool)$this->db()->getOne("SELECT GET_LOCK(?, ?)", array($name, $timeout), 0, true);
+        return (bool)$this->db->getOne("SELECT GET_LOCK(?, ?)", array($name, $timeout), 0, true);
     }
 
     protected function doUnlock($name)
     {
-        return (bool)$this->db()->getOne("SELECT RELEASE_LOCK(?)", array($name), 0, true);
+        return (bool)$this->db->getOne("SELECT RELEASE_LOCK(?)", array($name), 0, true);
     }
 
-    private function db()
-    {
-        return \App::db($this->db);
-    }
 }

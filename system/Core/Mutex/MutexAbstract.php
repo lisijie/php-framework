@@ -7,7 +7,7 @@ namespace Core\Mutex;
  *
  * @package Core\Mutex
  */
-abstract class Mutex
+abstract class MutexAbstract implements MutexInterface
 {
 	private $locks = array();
 	private $autoUnlock = true;
