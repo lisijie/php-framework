@@ -76,7 +76,7 @@ return array(
         'default' => array(
             // 日志处理器1
             array(
-                'level' => 1, //日志级别: 1-8
+                'level' => 1, //日志级别: 1-5
                 'handler' => 'FileHandler', //日志处理器
                 'config' => array(
                     'savepath' => DATA_PATH . '/logs/', //日志保存目录

@@ -28,16 +28,9 @@ class Logger implements LoggerInterface
         self::FATAL   => 'FATAL',
         self::ERROR   => 'ERROR',
         self::WARN    => 'WARN',
-        self::NOTICE  => 'NOTICE',
         self::INFO    => 'INFO',
         self::DEBUG   => 'DEBUG',
     );
-
-    /**
-     * 日志记录级别
-     * @var string
-     */
-    protected $logLevel = self::DEBUG;
 
     /**
      * 日志名称
@@ -84,8 +77,7 @@ class Logger implements LoggerInterface
         if (!isset($this->levels[$level])) {
             throw new InvalidArgumentException('日志级别无效');
         }
-        $this->handlers[$level] = $handler;
-        ksort($this->handlers);
+        $this->handlers[] = array($level, $handler);
     }
 
     /**
@@ -201,7 +193,8 @@ class Logger implements LoggerInterface
             'extra' => array(),
         );
 
-        foreach ($this->handlers as $lv => $handler) {
+        foreach ($this->handlers as $value) {
+            list($lv, $handler) = $value;
             if ($lv <= $level) {
                 $handler->handle($record);
             }
