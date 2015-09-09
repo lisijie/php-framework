@@ -13,14 +13,11 @@ use Core\Logger\Handler\NullHandler;
  */
 class Logger implements LoggerInterface
 {
-    const EMERGENCY = 8;
-    const ALERT = 7;
-    const CRITICAL = 6;
-    const ERROR = 5;
-    const WARNING = 4;
-    const NOTICE = 3;
-    const INFO = 2;
-    const DEBUG = 1;
+    const FATAL   = 5;
+    const ERROR   = 4;
+    const WARN    = 3;
+    const INFO    = 2;
+    const DEBUG   = 1;
 
     /**
      * 日志等级对应名称映射
@@ -28,18 +25,16 @@ class Logger implements LoggerInterface
      * @var array
      */
     protected $levels = array(
-        self::EMERGENCY => 'EMERGENCY',
-        self::ALERT => 'ALERT',
-        self::CRITICAL => 'CRITICAL',
-        self::ERROR => 'ERROR',
-        self::WARNING => 'WARNING',
-        self::NOTICE => 'NOTICE',
-        self::INFO => 'INFO',
-        self::DEBUG => 'DEBUG',
+        self::FATAL   => 'FATAL',
+        self::ERROR   => 'ERROR',
+        self::WARN    => 'WARN',
+        self::NOTICE  => 'NOTICE',
+        self::INFO    => 'INFO',
+        self::DEBUG   => 'DEBUG',
     );
 
     /**
-     * 日志记录级别 1-8
+     * 日志记录级别
      * @var string
      */
     protected $logLevel = self::DEBUG;
@@ -104,32 +99,6 @@ class Logger implements LoggerInterface
     }
 
     /**
-     * 系统不可用
-     *
-     * @param string $message
-     * @param array $context
-     * @return null|void
-     */
-    public function emergency($message, array $context = array())
-    {
-        $this->log(self::EMERGENCY, $message, $context);
-    }
-
-    /**
-     * 必须立即采取措施
-     *
-     * 例如: 网站数据库连接失败，网站即将瘫痪，必须马上通知相关人员处理
-     *
-     * @param string $message
-     * @param array $context
-     * @return null|void
-     */
-    public function alert($message, array $context = array())
-    {
-        $this->log(self::ALERT, $message, $context);
-    }
-
-    /**
      * 发生危险错误
      *
      * 例如: 应用程序组件不可用,意想不到的异常。
@@ -138,9 +107,9 @@ class Logger implements LoggerInterface
      * @param array $context
      * @return null|void
      */
-    public function critical($message, array $context = array())
+    public function fatal($message, array $context = array())
     {
-        $this->log(self::CRITICAL, $message, $context);
+        $this->log(self::FATAL, $message, $context);
     }
 
     /**
@@ -158,7 +127,7 @@ class Logger implements LoggerInterface
     }
 
     /**
-     * 没有错误的异常事件
+     * 表明会出现潜在错误的情形
      *
      * 例如: 使用一个已经废弃的API,虽然没有错误,但应该提醒用户修正
      *
@@ -166,21 +135,9 @@ class Logger implements LoggerInterface
      * @param array $context
      * @return null|void
      */
-    public function warning($message, array $context = array())
+    public function warn($message, array $context = array())
     {
-        $this->log(self::WARNING, $message, $context);
-    }
-
-    /**
-     * 正常但重要的事件
-     *
-     * @param string $message
-     * @param array $context
-     * @return null|void
-     */
-    public function notice($message, array $context = array())
-    {
-        $this->log(self::NOTICE, $message, $context);
+        $this->log(self::WARN, $message, $context);
     }
 
     /**
