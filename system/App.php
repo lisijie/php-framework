@@ -240,7 +240,7 @@ class App
     /**
      * 获取配置信息
      *
-     * 优先从 config/{RUN_MODE}/ 下查找，如果不存在再从 config/ 下查找。
+     * 优先从 config/{RUN_ENV}/ 下查找，如果不存在再从 config/ 下查找。
      *
      * @param string $file 配置文件
      * @param string $key
@@ -254,12 +254,14 @@ class App
         if ($reload || !isset($allConfig[$file])) {
             if (!preg_match('/^[a-z0-9\_]+$/i', $file)) return false;
             $fileName = CONFIG_PATH . $file . '.php';
-            $diffName = CONFIG_PATH . RUN_MODE . '/' . $file . '.php';
+            $diffName = CONFIG_PATH . RUN_ENV . '/' . $file . '.php';
             if (!is_file($diffName) && !is_file($fileName)) {
                 die("配置文件不存在: {$file}");
             }
             if (is_file($fileName)) {
                 $allConfig[$file] = include $fileName;
+            } else {
+                $allConfig[$file] = array();
             }
             if (is_file($diffName)) {
                 $diff = include $diffName;
@@ -452,6 +454,33 @@ class App
     public static function container()
     {
         return self::$container;
+    }
+
+    /**
+     * 当前是否生产环境
+     *
+     * @return bool
+     */
+    public static function isProduction(){
+        return RUN_ENV == 'production';
+    }
+
+    /**
+     * 当前是否开发环境
+     *
+     * @return bool
+     */
+    public static function isDevelopment(){
+        return RUN_ENV == 'development';
+    }
+
+    /**
+     * 当前是否测试环境
+     *
+     * @return bool
+     */
+    public static function isTesting(){
+        return RUN_ENV == 'testing';
     }
 
     /**

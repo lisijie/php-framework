@@ -120,8 +120,10 @@ class Handler
         }
 
         if ($this->debug) {
-            $this->renderDebugInfo($e);
+            return $this->renderDebugInfo($e);
         }
+
+        exit('系统发生异常: '.get_class($e).'('.$e->getCode().')');
     }
 
     /**
