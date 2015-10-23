@@ -174,7 +174,7 @@ class FileHelper
     private static function loadMimeTypes()
     {
         if (empty(self::$mimeTypes)) {
-            self::$mimeTypes = require __DIR__ . 'mimeTypes.php';
+            self::$mimeTypes = require __DIR__ . '/mimeTypes.php';
         }
     }
 }
