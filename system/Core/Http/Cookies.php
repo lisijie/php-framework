@@ -14,9 +14,9 @@ class Cookies implements \IteratorAggregate, \Countable
         'value'    => '',    // cookie值
         'expire'   => 0,     // 过期时间戳
         'domain'   => null,  // 作用域名
-        'path'     => null,  // cookie目录
+        'path'     => '/',  // cookie目录
         'secure'   => false, // 是否使用https安全连接
-        'httponly' => false  // 设为true可防止cookies被js读取，提高安全性
+        'httponly' => true  // 设为true可防止cookies被js读取，提高安全性
     );
 
     public function __construct(array $cookies = null)
