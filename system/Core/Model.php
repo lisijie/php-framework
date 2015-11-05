@@ -75,7 +75,7 @@ class Model
      */
     public function count(array $filter = array())
     {
-        $sql = "SELECT COUNT(*) FROM {$this->tableName}";
+        $sql = "SELECT COUNT(*) FROM " . $this->db->table($this->tableName);
         if (!empty($filter)) $sql .= " WHERE " . $this->parseFilter($filter);
         return intval($this->db->getOne($sql));
     }
@@ -92,8 +92,9 @@ class Model
      */
     public function select(array $fields = null, array $filter = null, array $order = null, $limit = 0, $offset = 0)
     {
+        $table = $this->db->table($this->tableName);
         $fields = empty($fields) ? '*' : implode(',', $fields);
-        $sql = "SELECT {$fields} FROM {$this->tableName}";
+        $sql = "SELECT {$fields} FROM {$table}";
         if (!empty($filter)) {
             $sql .= " WHERE " . $this->parseFilter($filter);
         }
@@ -142,7 +143,7 @@ class Model
      */
     public function insert($data, $replace = false, $multi = false, $ignore = false)
     {
-        $table = $this->tableName;
+        $table = $this->db->table($this->tableName);
         return $this->db->insert($table, $data, $replace, $multi, $ignore);
     }
 
@@ -160,7 +161,7 @@ class Model
         } else {
             $fields = '*';
         }
-        $sql = "SELECT {$fields} FROM {$this->tableName} ";
+        $sql = "SELECT {$fields} FROM " . $this->db->table($this->tableName);
         if (!empty($filter)) {
             $sql .= " WHERE " . $this->parseFilter($filter);
         }
@@ -177,7 +178,8 @@ class Model
      */
     public function update($data, array $filter)
     {
-        $sql = "UPDATE {$this->tableName} SET ";
+        $table = $this->db->table($this->tableName);
+        $sql = "UPDATE {$table} SET ";
         $split = '';
         foreach ($data as $key => $val) {
             $sql .= "{$split}`{$key}` = :{$key}";
@@ -197,7 +199,8 @@ class Model
      */
     public function delete(array $filter)
     {
-        $sql = "DELETE FROM {$this->tableName} ";
+        $table = $this->db->table($this->tableName);
+        $sql = "DELETE FROM {$table} ";
         if (!empty($filter)) {
             $sql .= " WHERE " . $this->parseFilter($filter);
         }
