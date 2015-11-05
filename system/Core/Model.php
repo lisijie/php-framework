@@ -224,6 +224,25 @@ class Model
     }
 
     /**
+     * 使用指定字段重新索引数组
+     *
+     * @param array $data
+     * @param $idx
+     * @return array
+     */
+    protected function index(array $data, $idx)
+    {
+        if (empty($data) || !isset($data[0][$idx])) {
+            return $data;
+        }
+        $tmp = array();
+        foreach ($data as $row) {
+            $tmp[$row[$idx]] = $row;
+        }
+        return $tmp;
+    }
+
+    /**
      * 将数组解析成SQL
      *
      * @param array $filter
