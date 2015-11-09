@@ -248,7 +248,7 @@ class Model
      * @param array $filter
      * @return string
      */
-    private function parseFilter(array $filter)
+    protected function parseFilter(array $filter)
     {
         $where = array();
         foreach ($filter as $field => $val) {
