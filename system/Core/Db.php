@@ -193,7 +193,7 @@ class Db
      */
     public function getRow($sql, $data = array(), $fromMaster = false)
     {
-        $stm = $this->query($sql, $data, $fromMaster ? 'write' : 'read');
+        $stm = $this->query($sql, $data, $fromMaster);
         return $stm->fetch(\PDO::FETCH_ASSOC);
     }
 
@@ -208,7 +208,7 @@ class Db
      */
     public function getOne($sql, $data = array(), $index = 0, $fromMaster = false)
     {
-        $result = $this->getRow($sql, $data, $fromMaster ? 'write' : 'read');
+        $result = $this->getRow($sql, $data, $fromMaster);
         return (is_array($result) ? (isset($result[$index]) ? $result[$index] : array_shift($result)) : $result);
     }
 
@@ -222,7 +222,7 @@ class Db
      */
     public function select($sql, $data = array(), $fromMaster = false)
     {
-        $stm = $this->query($sql, $data, $fromMaster ? 'write' : 'read');
+        $stm = $this->query($sql, $data, $fromMaster);
         return $stm->fetchAll(\PDO::FETCH_ASSOC);
     }
 
