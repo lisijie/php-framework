@@ -182,7 +182,8 @@ class Controller
             'msg' => $message,
             'redirect' => $redirect,
         );
-        $this->response->setContent(App::view()->render($template, $data));
+        App::view()->assign($data);
+        $this->response->setContent(App::view()->render($template));
         return $this->response;
     }
 
