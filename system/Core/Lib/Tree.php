@@ -4,30 +4,52 @@ namespace Core\Lib;
 
 class Tree
 {
-    protected $_data = array();
-    protected $_child = array();
-    protected $_parent = array();
-    protected $_layer = array();
-    protected $_return = '';
-    protected $_icon = array('│', '├─ ', '└─ ');
-    protected $_nbsp = '&nbsp;';
+    /**
+     * 每个节点的数据
+     * @var array
+     */
+    protected $data = array();
+	/**
+	 * 保存每个父节点下面的子节点ID列表
+	 * @var array
+	 */
+    protected $child = array();
+	/**
+	 * 保存每个节点ID对应的父节点ID
+	 * @var array
+	 */
+    protected $parent = array();
+	/**
+	 * 每个节点层数
+	 * @var array
+	 */
+    protected $layer = array();
+	/**
+	 * 空格的HTML实体
+	 * @var string
+	 */
+    protected $space = '&nbsp;';
+
+	protected $icon = array('│', '├─ ', '└─ ');
 
     /**
      * 增加一个节点
      *
+     * 添加节点一定要先添加父节点，再添加子节点
+     *
      * @param int $id 节点ID
-     * @param int $parentid 父级ID
+     * @param int $parentId 父级ID
      * @param array $data 节点数据
      */
-    public function addNode($id, $parentid, $data)
+    public function addNode($id, $parentId, $data)
     {
-        $this->_data[$id] = (array)$data;
-        $this->_child[$parentid][] = $id;
-        $this->_parent[$id] = $parentid;
-        if (!isset($this->_layer[$parentid])) {
-            $this->_layer[$id] = 0;
+        $this->data[$id] = (array)$data;
+        $this->child[$parentId][] = $id;
+        $this->parent[$id] = $parentId;
+        if (!isset($this->layer[$parentId])) {
+            $this->layer[$id] = 0;
         } else {
-            $this->_layer[$id] = $this->_layer[$parentid] + 1;
+            $this->layer[$id] = $this->layer[$parentId] + 1;
         }
     }
 
@@ -35,37 +57,38 @@ class Tree
      * 根据节点ID返回节点数据
      *
      * @param int $id
+     * @return null|array
      */
     public function getValue($id)
     {
-        return $this->_data[$id];
+        return isset($this->data[$id]) ? $this->data[$id] : null;
     }
 
     /**
-     * 获取某个节点的子节点列表
+     * 获取某个节点的子节点ID列表
      *
      * @param int $id
      * @return array
      */
-    public function getChilds($id)
+    public function getChildren($id)
     {
-        return isset($this->_child[$id]) ? $this->_child[$id] : array();
+        return isset($this->child[$id]) ? $this->child[$id] : array();
     }
 
     /**
-     * 获取某个节点的子节点（包括子节点的子节点）列表
+     * 获取某个节点的子节点（包括子节点的子节点）ID列表
      *
      * @param int $id
      * @return array
      */
-    public function getDeepChilds($id)
+    public function getDeepChildren($id)
     {
         $list = array();
-        if (isset($this->_child[$id])) {
-            foreach ($this->_child[$id] as $cid) {
+        if (isset($this->child[$id])) {
+            foreach ($this->child[$id] as $cid) {
                 $list[] = $cid;
-                if (isset($this->_child[$cid])) {
-                    $list = array_merge($list, $this->getDeepChilds($cid));
+                if (isset($this->child[$cid])) {
+                    $list = array_merge($list, $this->getDeepChildren($cid));
                 }
             }
         }
@@ -74,12 +97,13 @@ class Tree
 
     /**
      * 返回某个节点的父节点ID
+     *
      * @param int $id
      * @return int
      */
-    public function getParent($id)
+    public function getParentId($id)
     {
-        return $this->_parent[$id];
+        return $this->parent[$id];
     }
 
     /**
@@ -88,13 +112,13 @@ class Tree
      * @param int $id
      * @return array
      */
-    public function getDeepParents($id)
+    public function getDeepParentIds($id)
     {
         $list = array();
-        if ($this->_parent[$id] > 0) {
-            $list[] = $pid = $this->_parent[$id];
-            if ($this->_parent[$pid] > 0) {
-                $list = array_merge($list, $this->getDeepParents($pid));
+        if ($this->parent[$id] > 0) {
+            $list[] = $pid = $this->parent[$id];
+            if ($this->parent[$pid] > 0) {
+                $list = array_merge($list, $this->getDeepParentIds($pid));
             }
         }
         return $list;
@@ -102,57 +126,75 @@ class Tree
 
     /**
      * 获取某个节点下的子节点列表
+     *
      * @param array $list
      * @param int $root
      * @return array
      */
     public function getList(&$list, $root = 0)
     {
-        if (isset($this->_child[$root])) {
-            foreach ($this->_child[$root] as $id) {
+        if (isset($this->child[$root])) {
+            foreach ($this->child[$root] as $id) {
                 $list[] = $id;
-                if (isset($this->_child[$id])) {
+                if (isset($this->child[$id])) {
                     $this->getList($list, $id);
                 }
             }
         }
     }
 
-    public function getLayer($id, $s = '├─&nbsp;')
+    public function getLayer($id, $s = '├─&nbsp;', $before = '')
     {
-        if ($this->_layer[$id] > 0) {
-            return str_repeat('&nbsp;', $this->_layer[$id] * 4) . $s;
+        if ($this->layer[$id] > 0) {
+            return $before . str_repeat($this->space, $this->layer[$id] * 4) . $s;
         }
-        return '';
+        return $before;
     }
 
-    public function getTree($root, $sid, $str, $groupstr = '', $selstr = 'selected="selected"')
+	/**
+	 * 返回一个树形结构HTML
+	 *
+	 * $str = '<option value=\"$id\" $selected>$spacer$name</option>'
+	 *
+	 * @param int $rootId 根分类ID
+	 * @param int $selectedId 选中的ID
+	 * @param string $str 每个节点拼接的HTML格式
+	 * @param string $groupStr
+	 * @param string $selStr
+	 * @return string
+	 */
+    public function makeTreeHtml($rootId, $selectedId, $str, $groupStr = '', $selStr = 'selected')
     {
-        $_childs = $this->getChilds($root);
-        $_count = count($_childs);
+        $childIds = $this->getChildren($rootId);
+        $_count = count($childIds);
+	    $result = '';
         if ($_count > 0) {
-            foreach ($_childs as $_key => $_id) {
+            foreach ($childIds as $_key => $_id) {
                 $data = $this->getValue($_id);
-                $layer = $this->_layer[$_id];
-                $spacer = '';
-                if ($layer > 0) {
-                    $spacer = str_repeat($this->_nbsp, $layer * 4);
-                    if ($_count == ($_key + 1)) {
-                        $spacer .= $this->_icon[2]; //└─
-                    } else {
-                        $spacer .= $this->_icon[1]; //├─
-                    }
+
+                if ($_count == ($_key + 1)) {
+                    $spacer = $this->getLayer($_id, $this->icon[2]); //└─
+                } else {
+                    $spacer = $this->getLayer($_id, $this->icon[1]); //├─
                 }
-                $selected = ($_id == $sid) ? $selstr : '';
+
+                $selected = ($_id == $selectedId) ? $selStr : '';
                 @extract($data);
-                $parentid > 0 && $groupstr ? eval("\$string = \"{$groupstr}\";") : eval("\$string = \"{$str}\";");
-                $this->return .= $string;
-                if ($this->_child[$_id]) {
-                    $this->getTree($_id, $sid, $str, $adds);
+	            $string = '';
+
+	            if ($groupStr && $this->getParentId($_id) > 0) {
+		            eval("\$string = \"{$groupStr}\";");
+	            } else {
+		            eval("\$string = \"{$str}\";");
+	            }
+
+	            $result .= $string;
+                if (isset($this->child[$_id])) {
+	                $result .= $this->makeTreeHtml($_id, $selectedId, $str, $groupStr, $selStr);
                 }
             }
         }
-        return $this->return;
+        return $result;
     }
 
 }
