@@ -207,7 +207,7 @@ class Controller
      */
     protected function goHome()
     {
-        return $this->redirect($this->request->getBaseUrl());
+        return $this->redirect($this->request->getBaseUrl() ?: '/');
     }
 
     /**

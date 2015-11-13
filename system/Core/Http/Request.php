@@ -117,6 +117,11 @@ class Request
         return isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
     }
 
+    /**
+     * 获取请求URI
+     *
+     * @return string
+     */
     public function getRequestUri()
     {
         return isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
@@ -375,9 +380,7 @@ class Request
      */
     public function getBaseUrl()
     {
-        $baseUrl = dirname($this->getScriptUrl());
-
-        return rtrim($baseUrl, '\\/');
+        return rtrim(dirname($this->getScriptUrl()), '\\/');
     }
 
     /**

@@ -230,7 +230,7 @@ class Model
      * @param $idx
      * @return array
      */
-    protected function index(array $data, $idx)
+    public function index(array $data, $idx)
     {
         if (empty($data) || !isset($data[0][$idx])) {
             return $data;

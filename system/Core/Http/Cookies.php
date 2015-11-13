@@ -113,7 +113,8 @@ class Cookies implements \IteratorAggregate, \Countable
         if (empty($key)) {
             throw new \RuntimeException("请先到app配置文件设置密钥: secret_key");
         }
-        $value = $this->getCipher()->encrypt($value, $key);
+        if (is_string($value)) $value = array('value' => $value);
+        $value['value'] = $this->getCipher()->encrypt($value['value'], $key);
         $this->set($name, $value);
     }
 
