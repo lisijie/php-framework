@@ -34,7 +34,6 @@ class Bootstrap implements BootstrapInterface
         } else {
             \Core\Exception\Handler::factory(App::logger(), DEBUG)->register();
         }
-
 	}
 
     //注册DB初始化方法
@@ -44,8 +43,16 @@ class Bootstrap implements BootstrapInterface
         if (!isset($config[$name])) {
             throw new \InvalidArgumentException("数据配置不存在: {$name}");
         }
-        $db = new Db($config[$name]);
-        $db->setLogger(App::logger());
+        $config = $config[$name];
+        $db = new Db($config);
+        if (isset($config['slow_log']) && $config['slow_log']) { // 慢查询日志
+            $db->addHook(Db::TAG_AFTER_QUERY, function($data) use($config) {
+                if ($data['time'] > $config['slow_log']) {
+                    $logger = App::logger('database');
+                    $logger->debug("\nROUTE: ".CUR_ROUTE."\nSQL: {$data['sql']}\nDATA: ".json_encode($data['data'])."\nTIME: {$data['time']}\nMETHOD: {$data['method']}\n");
+                }
+            });
+        }
         return $db;
 	}
 

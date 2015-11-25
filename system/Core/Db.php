@@ -2,8 +2,6 @@
 
 namespace Core;
 
-use Core\Logger\Logger;
-
 /**
  * 数据库操作类
  *
@@ -12,6 +10,24 @@ use Core\Logger\Logger;
  */
 class Db
 {
+
+    const TAG_BEFORE_QUERY = 'before_query';
+    const TAG_AFTER_QUERY  = 'after_query';
+
+    /**
+     * 慢查询次数
+     *
+     * @var int
+     */
+    static $slowCount = 0;
+
+    /**
+     * 查询次数
+     *
+     * @var int
+     */
+    static $queryCount = 0;
+
     /**
      * 事务数量
      *
@@ -33,24 +49,50 @@ class Db
     private $connection = array();
 
     /**
-     * 是否开启调试
+     * hooks
      *
-     * @var bool
+     * @var array
      */
-    private $debug = false;
-
-    /**
-     * 日志对象
-     *
-     * @var \Core\Logger\Logger
-     */
-    private $logger;
+    private $hooks = array();
 
     public function __construct($options)
     {
         if (!isset($options['charset'])) $options['charset'] = 'utf8';
-        $this->debug = (isset($options['debug']) && $options['debug']) ? true : false;
         $this->options = $options;
+    }
+
+    /**
+     * 添加钩子函数
+     *
+     * @param string $tag
+     * @param callable $func
+     */
+    public function addHook($tag, $func)
+    {
+        $this->hooks[$tag][] = $func;
+    }
+
+    /**
+     * 执行钩子函数
+     *
+     * @param string $tag
+     * @param array $data
+     */
+    private function runHook($tag, array $data)
+    {
+        static::$queryCount ++;
+        if (isset($this->options['slow_log']) && $data['time'] > $this->options['slow_log']) {
+            static::$slowCount ++;
+        }
+        if (isset($this->hooks[$tag]) && !empty($this->hooks[$tag])) {
+            foreach ($this->hooks[$tag] as $func) {
+                if ($func instanceof \Closure) {
+                    $func($data);
+                } elseif (is_callable($func)) {
+                    call_user_func($func, $data);
+                }
+            }
+        }
     }
 
     /**
@@ -124,26 +166,6 @@ class Db
     }
 
     /**
-     * 设置debug状态
-     *
-     * @param boolean $bool
-     */
-    public function setDebug($bool)
-    {
-        $this->debug = $bool;
-    }
-
-    /**
-     * 设置日志对象
-     *
-     * @param \Core\Logger\Logger $logger
-     */
-    public function setLogger(Logger $logger)
-    {
-        $this->logger = $logger;
-    }
-
-    /**
      * 执行SQL并返回PDOStatement
      *
      * @param string $sql SQL语句
@@ -159,9 +181,14 @@ class Db
         $stm = $conn->prepare($sql);
         $this->bindValue($stm, $data);
         $stm->execute();
-        if ($this->debug && $this->logger) {
-            $this->logger->debug("sql:{$sql}, data:" . json_encode($data) . ", time:" . round(microtime(true) - $st, 4));
-        }
+        $this->runHook(static::TAG_AFTER_QUERY, array(
+            'sql'    => $sql,
+            'data'   => $data,
+            'method' => 'query',
+            'mode'   => $mode,
+            'time'   => microtime(true) - $st,
+            'result' => $stm
+        ));
         return $stm;
     }
 
@@ -177,9 +204,14 @@ class Db
         $conn = $this->getConnect();
         $sql = $this->sql($sql);
         $ret = $conn->exec($sql);
-        if ($this->debug && $this->logger) {
-            $this->logger->info("sql:{$sql}, ret:{$ret}, time:" . round(microtime(true) - $st, 4));
-        }
+        $this->runHook(static::TAG_AFTER_QUERY, array(
+            'sql'    => $sql,
+            'data'   => array(),
+            'method' => 'execute',
+            'mode'   => 'write',
+            'time'   => microtime(true) - $st,
+            'result' => $ret,
+        ));
         return $ret;
     }
 
@@ -252,9 +284,14 @@ class Db
             $stm->execute(array_values($row));
             $ids[] = $conn->lastInsertId();
         }
-        if ($this->debug && $this->logger) {
-            $this->logger->info("sql:{$sql}, data:" . json_encode($data) . ", time:" . round(microtime(true) - $st, 4));
-        }
+        $this->runHook(static::TAG_AFTER_QUERY, array(
+            'sql'    => $sql,
+            'data'   => $data,
+            'method' => 'insert',
+            'mode'   => 'write',
+            'time'   => microtime(true) - $st,
+            'result' => $ids
+        ));
         return $multi ? $ids : array_shift($ids);
     }
 

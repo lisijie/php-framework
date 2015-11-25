@@ -20,7 +20,7 @@ class Pager
         'next_page_disabled' => '<li class="disabled"><span>&raquo;</span></li>',
         'page_item' => '<li><a href="%s">%s</a></li>',
         'page_item_active' => '<li class="active"><span>%s</span></li>',
-        'wrapper' => '<ul class="pagination pagination-sm">%s</ul>', // 外层
+        'wrapper' => '<ul class="pagination">%s</ul>', // 外层
     );
 
     /**

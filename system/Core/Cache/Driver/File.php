@@ -63,7 +63,7 @@ class File extends Cache implements CacheInterface
         $file = $this->filename($key);
         if (is_file($file)) {
             $data = file_get_contents($file);
-            if (false !== $data) {
+            if (!empty($data)) {
                 list(, $expire) = unpack('V', substr($data, 13, 4));
                 $compress = substr($data, 17, 1);
                 if (($expire > 0 && NOW > $expire) || ($compress && !function_exists('gzcompress'))) {

@@ -47,7 +47,6 @@ $loader->register();
 use Core\Http\Request;
 use Core\Http\Response;
 use Core\Http\Header;
-use Core\Http\Cookies;
 use Core\Exception\HttpNotFoundException;
 use Core\Bootstrap\BootstrapInterface;
 use Core\Container;
@@ -75,8 +74,15 @@ class App
      */
     public static function run()
     {
-        if (static::isCli()) {
-            static::$controllerNamespace = array('App\\Command', 'Core\\Console\\Controller');
+        if (self::isCli()) {
+            self::$controllerNamespace = array('App\\Command', 'Core\\Console\\Controller');
+        }
+        $config = self::conf('app', 'profiler', array());
+        if ($config && $config['enabled']) {
+            $profiler = new \Core\Lib\Profiler();
+            $profiler->setDataPath($config['data_path']);
+            $profiler->setXhprofUrl($config['xhprof_url']);
+            $profiler->start();
         }
         $request = new Request();
         $response = self::handleRequest($request);
@@ -325,7 +331,6 @@ class App
             return $params[$m[1] - 1];
         }, $cache[$file][$idx]);
     }
-
 
     /**
      * 抛出一个HTTP异常

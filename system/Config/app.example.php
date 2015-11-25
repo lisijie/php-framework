@@ -42,8 +42,8 @@ return array(
     'database' => array(
         //默认数据库
         'default' => array(
-            //是否开启调试，开启后会记录SQL的执行信息
-            'debug' => false,
+            //是否开启慢查询日志，0为关闭
+            'slow_log' => 0.1,
             //表前缀
             'prefix' => 't_',
             //字符集
