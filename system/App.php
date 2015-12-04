@@ -90,6 +90,15 @@ class App
     }
 
     /**
+     * 设置控制器命名空间前缀
+     *
+     * @param $ns
+     */
+    public static function setControllerNamespace($ns) {
+        self::$controllerNamespace = $ns;
+    }
+
+    /**
      * 是否命令行模式
      * 
      * @return bool
@@ -300,7 +309,7 @@ class App
         if (false === strpos($langId, '.')) {
             if (!isset($cache['common'])) {
                 $filename = App::conf('app', 'lang', 'zh_CN') . "/language.php";
-                if (is_file($filename)) {
+                if (is_file(LANG_PATH . $filename)) {
                     $lang = array();
                     include LANG_PATH . $filename;
                     $cache['common'] = $lang;
