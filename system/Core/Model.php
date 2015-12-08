@@ -208,6 +208,30 @@ class Model
         return $this->db->delete($sql);
     }
 
+	/**
+	 * 字段自增
+	 *
+	 * $this->increment(['a'=>1, 'b'=>-2], ['id'=>1])
+	 *
+	 * @param array $data 字段和值
+	 * @param array $filter 条件
+	 * @return int 影响行数
+	 */
+    public function increment(array $data, array $filter)
+    {
+	    $table = $this->db->table($this->tableName);
+	    $sql = "UPDATE {$table} SET ";
+	    foreach ($data as $key => $val) {
+		    $sql .= " `{$key}` = `{$key}` + " . intval($val) . ",";
+	    }
+	    $where = $this->parseFilter($filter);
+	    $sql = rtrim($sql, ',');
+	    if ($where) {
+		    $sql .= " WHERE {$where}";
+	    }
+	    return $this->db->execute($sql);
+    }
+
     /**
      * 返回表名
      *

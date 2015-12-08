@@ -177,4 +177,28 @@ class FileHelper
             self::$mimeTypes = require __DIR__ . '/mimeTypes.php';
         }
     }
+
+	/**
+	 * 递归拷贝
+	 *
+	 * @param string $src 源路径
+	 * @param string $dst 目标路径
+	 * @return bool
+	 */
+	public static function copyRecurse($src, $dst) {
+		$dir = opendir($src);
+		if (!$dir) return false;
+		is_dir($dst) || mkdir($dst);
+		while(false !== ($file = readdir($dir))) {
+			if (($file != '.') && ($file != '..')) {
+				if (is_dir($src . '/' . $file)) {
+					self::copyRecurse($src . '/' . $file, $dst . '/' . $file);
+				} else {
+					copy($src . '/' . $file, $dst . '/' . $file);
+				}
+			}
+		}
+		closedir($dir);
+		return true;
+	}
 }
