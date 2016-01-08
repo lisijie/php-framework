@@ -30,7 +30,7 @@ class Rewrite extends Router
         $requestUri = $this->request->getRequestUri();
 	    $parts      = parse_url($requestUri);
 	    $path       = $parts['path'];
-	    $query      = $parts['query'];
+	    $query      = isset($parts['query']) ? $parts['query'] : '';
 	    // 去掉项目目录
 	    $baseUrl = $this->request->getBaseUrl();
         if ($baseUrl && ($pos = strpos($path, $baseUrl)) === 0) {
