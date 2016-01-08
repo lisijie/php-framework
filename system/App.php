@@ -208,11 +208,11 @@ class App
         } else {
             $controllerName = static::$controllerNamespace . "\\{$value}Controller";
         }
-
         if ($pos) {
             $actionName = substr($route, strrpos($route, '/') + 1);
             if (strpos($actionName, '-') !== false && strpos($actionName, '--') === false) {
-                $actionName = lcfirst(ucwords(strtr($actionName, '-', ' ')));
+                $actionName = ucwords(str_replace('-', ' ', $actionName));
+	            $actionName = lcfirst(str_replace(' ', '', $actionName));
             }
             $actionName = $actionName . 'Action';
         } else {

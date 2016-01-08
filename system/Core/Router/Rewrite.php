@@ -27,15 +27,14 @@ class Rewrite extends Router
 
     public function parse()
     {
-        $requestUri = rawurldecode($this->request->getRequestUri());
-        $baseUrl = $this->request->getBaseUrl();
-        if ($baseUrl && ($pos = strpos($requestUri, $baseUrl)) === 0) {
-            $requestUri = substr($requestUri, strlen($baseUrl));
-        }
-        if (strpos($requestUri, '?') !== false) {
-            list($path, $query) = explode('?', $requestUri);
-        } else {
-            $path = $requestUri;
+        $requestUri = $this->request->getRequestUri();
+	    $parts      = parse_url($requestUri);
+	    $path       = $parts['path'];
+	    $query      = $parts['query'];
+	    // 去掉项目目录
+	    $baseUrl = $this->request->getBaseUrl();
+        if ($baseUrl && ($pos = strpos($path, $baseUrl)) === 0) {
+	        $path = substr($path, strlen($baseUrl));
         }
         $path = trim($path, '/');
         if (!empty($query)) {
