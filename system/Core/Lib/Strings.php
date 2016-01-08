@@ -7,7 +7,7 @@ namespace Core\Lib;
  * @author lisijie <lsj86@qq.com>
  * @package Core\Lib
  */
-class String
+class Strings
 {
 
     /**
