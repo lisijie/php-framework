@@ -264,7 +264,7 @@ class Response
         }
         foreach ($this->cookies as $key => $value) {
             $str = $this->cookies->parseValue($key, $value);
-            header("Set-Cookie: $str", true);
+            header("Set-Cookie: $str", false);
         }
     }
 
