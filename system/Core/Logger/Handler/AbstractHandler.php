@@ -32,9 +32,9 @@ abstract class AbstractHandler implements HandlerInterface
 
     public function getFormatter()
     {
-        if ($this->formatter) {
-            return $this->formatter;
+        if (!$this->formatter) {
+			$this->formatter = $this->getDefaultFormatter();
         }
-        return $this->getDefaultFormatter();
+	    return $this->formatter;
     }
 }
