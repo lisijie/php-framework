@@ -101,12 +101,24 @@ class Bootstrap implements BootstrapInterface
 	public function initLogger($name)
 	{
         $config = App::conf('app', 'logger', array());
+		$timezone = App::conf('app', 'timezone', 'UTC');
         $logger = new Logger($name);
-        $logger->setTimeZone(new \DateTimeZone('PRC'));
+        $logger->setTimeZone(new \DateTimeZone($timezone));
         if (isset($config[$name])) {
             foreach ($config[$name] as $conf) {
-                $class = '\\Core\\Logger\\Handler\\' . $conf['handler'];
-                $logger->setHandler(new $class($conf['config']), $conf['level']);
+                $handlerClass = '\\Core\\Logger\\Handler\\' . $conf['handler'];
+	            $handler = new $handlerClass($conf['config']);
+	            if (!empty($conf['formatter'])) {
+		            $formatterClass = '\\Core\\Logger\\Formatter\\' . $conf['formatter'];
+		            $formatter = new $formatterClass();
+		            $handler->setFormatter($formatter);
+	            }
+	            if (!empty($conf['date_format'])) {
+		            var_dump($handler->getFormatter());
+		            $handler->getFormatter()->setDateFormat($conf['date_format']);
+		            var_dump($handler->getFormatter());
+	            }
+                $logger->setHandler($handler, $conf['level']);
             }
         }
         return $logger;

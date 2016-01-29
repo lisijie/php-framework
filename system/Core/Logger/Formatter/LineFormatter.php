@@ -2,13 +2,12 @@
 namespace Core\Logger\Formatter;
 
 /**
- * 日志格式器接口
- * Class FormatterInterface
+ * 普通行日志格式器
  *
  * @package Core\Logger
  * @author lisijie <lsj86@qq.com>
  */
-class LineFormatter implements FormatterInterface
+class LineFormatter extends AbstractFormatter
 {
     public function format(array $record)
     {
@@ -27,7 +26,7 @@ class LineFormatter implements FormatterInterface
         }
 
         $record['channel'] = strtoupper($record['channel']);
-        $message = "[" . $record['datetime']->format('Y-m-d H:i:s') . "] [{$record['channel']}] [{$record['level_name']}] {$record['message']}\n";
+        $message = "[" . $record['datetime']->format($this->getDateFormat()) . "] [{$record['channel']}] [{$record['level_name']}] {$record['message']}\n";
 
         return $message;
     }
