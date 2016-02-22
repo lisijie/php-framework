@@ -98,15 +98,20 @@ class Db
     /**
      * 获取数据库PDO连接
      *
+     * $reload 参数用于重新创建PDO对象，相当于重新连接数据库。当你的程序作为命令行脚本运行时，有时可能会由于
+     * 数据库连接空闲时间超出MySQL设置的阈值（wait_timeout）而被MySQL主动断开（ 出现异常消息： MySQL server has
+     * gone away）。为了防止这种情况发生，需要在代码中显式调用 $db->getConnect('read', true) 重新连接数据库。
+     *
      * @param string $mode 读写模式 write | read
+     * @param bool $reload 是否重新连接数据库
      * @return \PDO
      */
-    public function getConnect($mode = 'write')
+    public function getConnect($mode = 'write', $reload = false)
     {
         if ($mode != 'read' || empty($this->options[$mode])) {
             $mode = 'write';
         }
-        if (!isset($this->connection[$mode])) {
+        if (!isset($this->connection[$mode]) || $reload) {
             $conf = $this->options[$mode];
             $this->connection[$mode] = new \PDO($conf['dsn'], $conf['username'], $conf['password'], array(
                 \PDO::ATTR_PERSISTENT => ($conf['pconnect'] ? true : false),
