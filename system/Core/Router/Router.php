@@ -272,14 +272,6 @@ abstract class Router
         return $this->params;
     }
 
-    /**
-     * 获取请求的主机名
-     */
-    public function getHost()
-    {
-        return $this->request->getHostName();
-    }
-
     public function resolve(Request $request)
     {
         $this->request = $request;

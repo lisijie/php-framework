@@ -349,6 +349,8 @@ class Request
                 if (!($this->hostName = $this->getServer('SERVER_NAME'))) {
                     $this->hostName = $this->getServer('SERVER_ADDR');
                 }
+            } elseif (strpos($this->hostName, ':') !== false) {
+	            $this->hostName = current(explode(':', $this->hostName));
             }
         }
         return $this->hostName;
@@ -365,8 +367,18 @@ class Request
     {
         if ($this->hostInfo === null) {
             $isHttps = $this->isHttps();
-            $port = $this->getServer('SERVER_PORT');
-            $this->hostInfo = ($isHttps ? 'https://' : 'http://') . $this->getHostName() . ((($isHttps && $port != 443) || (!$isHttps && $port != 80)) ? ':' . $port : '');
+	        $http = $isHttps ? 'https' : 'http';
+	        if (null !== ($host = $this->getServer('HTTP_HOST'))) {
+				$this->hostInfo = "{$http}://{$host}";
+	        } else {
+		        $port = $this->getServer('SERVER_PORT');
+		        $serverName = $this->getServer('SERVER_NAME');
+		        if (($isHttps && $port != 443) || (!$isHttps && $port != 80)) {
+			        $this->hostInfo = "{$http}://{$serverName}:{$port}";
+		        } else {
+			        $this->hostInfo = "{$http}://{$serverName}";
+		        }
+	        }
         }
         return $this->hostInfo;
     }
