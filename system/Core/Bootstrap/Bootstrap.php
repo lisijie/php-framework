@@ -104,6 +104,9 @@ class Bootstrap implements BootstrapInterface
 		$timezone = App::conf('app', 'timezone', 'UTC');
         $logger = new Logger($name);
         $logger->setTimeZone(new \DateTimeZone($timezone));
+		if ($name != 'default' && !isset($config[$name])) {
+			$name = 'default';
+		}
         if (isset($config[$name])) {
             foreach ($config[$name] as $conf) {
                 $handlerClass = '\\Core\\Logger\\Handler\\' . $conf['handler'];
@@ -114,9 +117,7 @@ class Bootstrap implements BootstrapInterface
 		            $handler->setFormatter($formatter);
 	            }
 	            if (!empty($conf['date_format'])) {
-		            var_dump($handler->getFormatter());
 		            $handler->getFormatter()->setDateFormat($conf['date_format']);
-		            var_dump($handler->getFormatter());
 	            }
                 $logger->setHandler($handler, $conf['level']);
             }
