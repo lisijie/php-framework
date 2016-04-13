@@ -9,7 +9,7 @@ namespace Core\Logger\Formatter;
  */
 abstract class AbstractFormatter implements FormatterInterface
 {
-	private $dateFormat = 'c';
+	private $dateFormat = 'Y-m-d H:i:s';
 
 	/**
 	 * 返回日期格式

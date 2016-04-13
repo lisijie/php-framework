@@ -1,8 +1,8 @@
 <?php
 //版本号
-define('VERSION', '1.1.2');
+define('VERSION', '1.1.3');
 //发布时间
-define('RELEASE', '20160325');
+define('RELEASE', '20160413');
 //用于访问检查
 define('IN_APP', TRUE);
 //运行模式: development:开发环境, production:生产环境, testing:测试环境
