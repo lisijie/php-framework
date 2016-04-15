@@ -49,7 +49,7 @@ class Bootstrap implements BootstrapInterface
             $db->addHook(Db::TAG_AFTER_QUERY, function($data) use($config) {
                 if ($data['time'] > $config['slow_log']) {
                     $logger = App::logger('database');
-                    $logger->debug("\nROUTE: ".CUR_ROUTE."\nSQL: {$data['sql']}\nDATA: ".json_encode($data['data'])."\nTIME: {$data['time']}\nMETHOD: {$data['method']}\n");
+                    $logger->warn("\nROUTE: ".CUR_ROUTE."\nSQL: {$data['sql']}\nDATA: ".json_encode($data['data'])."\nTIME: {$data['time']}\nMETHOD: {$data['method']}\n");
                 }
             });
         }

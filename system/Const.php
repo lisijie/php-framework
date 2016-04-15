@@ -1,6 +1,6 @@
 <?php
 //版本号
-define('VERSION', '1.1.3');
+define('VERSION', '1.1.4');
 //发布时间
 define('RELEASE', '20160413');
 //用于访问检查
