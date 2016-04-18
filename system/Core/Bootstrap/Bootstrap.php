@@ -49,7 +49,7 @@ class Bootstrap implements BootstrapInterface
             $db->addHook(Db::TAG_AFTER_QUERY, function($data) use($config) {
                 if ($data['time'] > $config['slow_log']) {
                     $logger = App::logger('database');
-	                $msg = CUR_ROUTE . " 发生慢查询，耗时 ".round($data['time'],4)."s, 查询方法: {$data['method']}, SQL:\n {$data['sql']}";
+	                $msg = CUR_ROUTE . " 发生慢查询，耗时 ".round($data['time'],4)."s, 查询方法: {$data['method']}, SQL:\n{$data['sql']}";
 	                if (!empty($data['data'])) {
 		                $msg .= "\n参数: " . json_encode($data['data']);
 	                }
