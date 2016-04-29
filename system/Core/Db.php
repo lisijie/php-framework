@@ -230,6 +230,9 @@ class Db
      */
     public function getRow($sql, $data = array(), $fromMaster = false)
     {
+	    if (strpos(strtolower($sql), " limit ") === false) {
+			$sql .= " LIMIT 1";
+	    }
         $stm = $this->query($sql, $data, $fromMaster);
         return $stm->fetch(\PDO::FETCH_ASSOC);
     }
