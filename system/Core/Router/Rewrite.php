@@ -25,7 +25,7 @@ namespace Core\Router;
 class Rewrite extends Router
 {
 
-    public function parse()
+    protected function parse()
     {
         $requestUri = $this->request->getRequestUri();
 	    $parts      = parse_url($requestUri);

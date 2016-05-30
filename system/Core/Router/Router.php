@@ -27,7 +27,7 @@ use Core\Http\Request;
  * @author lisijie <lsj86@qq.com>
  * @package Core\Router
  */
-abstract class Router
+abstract class Router implements RouterInterface
 {
     protected $config = array();
 
@@ -290,7 +290,7 @@ abstract class Router
     /**
      * 开始路由解析
      */
-    abstract public function parse();
+    abstract protected function parse();
 
     /**
      * 工厂方法

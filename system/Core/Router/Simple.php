@@ -12,7 +12,7 @@ namespace Core\Router;
 class Simple extends Router
 {
 
-    public function parse()
+    protected function parse()
     {
         $r = $this->request->getQuery($this->routeVar);
         if (!empty($r)) {

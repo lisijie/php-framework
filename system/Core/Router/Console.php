@@ -10,7 +10,7 @@ namespace Core\Router;
 class Console extends Router
 {
 
-    public function parse()
+    protected function parse()
     {
     	$argv = $_SERVER['argv'];
     	array_shift($argv);

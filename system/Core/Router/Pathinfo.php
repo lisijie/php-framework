@@ -12,7 +12,7 @@ namespace Core\Router;
 class Pathinfo extends Router
 {
 
-    public function parse()
+    protected function parse()
     {
         if (null !== ($pathInfo = $this->request->getPathInfo())) {
             $this->parseUrl($pathInfo);
