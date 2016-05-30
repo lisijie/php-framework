@@ -24,8 +24,8 @@ class Memcached implements HandlerInterface
 
     public function __construct($options)
     {
-        if (!isset($options['servers'])) {
-            $options['servers'] = array(array('127.0.0.1', 11211));
+        if (empty($options['servers'])) {
+            throw new \InvalidArgumentException('缺少Memcached服务器配置');
         }
         $this->handler = new \Memcached();
         $this->handler->addServers($options['servers']);

@@ -3,23 +3,21 @@ namespace Core\Mutex;
 
 interface MutexInterface
 {
-    /**
-     * »ñÈ¡Ëø
-     *
-     * »ñÈ¡Ãû³ÆÎª$nameµÄËø£¬³É¹¦·µ»Øtrue£¬Ê§°Ü·µ»Øfalse¡£
-     *
-     * @param string $name ËøÃû³Æ
-     * @param int $timeout µÈ´ıÊ±¼ä
-     * @return bool
-     */
-    public function lock($name, $timeout = 0);
-
-    /**
-     * ÊÍ·ÅËø
-     *
-     * @param string $name Ãû³Æ
-     * @return bool
-     */
-    public function unlock($name);
-
+	/**
+	 * è·å–é”
+	 *
+	 * è·å–åç§°ä¸º$nameçš„é”ï¼ŒæˆåŠŸè¿”å›trueï¼Œå¤±è´¥è¿”å›falseã€‚
+	 *
+	 * @param string $name é”åç§°
+	 * @param int $timeout ç­‰å¾…æ—¶é—´
+	 * @return bool
+	 */
+	public function lock($name, $timeout = 0);
+	/**
+	 * é‡Šæ”¾é”
+	 *
+	 * @param string $name åç§°
+	 * @return bool
+	 */
+	public function unlock($name);
 }

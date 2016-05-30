@@ -4,58 +4,56 @@ namespace Core\Mutex;
 use App;
 
 /**
- * ¹¤³§Àà
+ * å·¥åŽ‚ç±»
  *
- * ÓÃÓÚ´´½¨¸÷ÖÖËøµÄ¶ÔÏó
+ * ç”¨äºŽåˆ›å»ºå„ç§é”çš„å¯¹è±¡
  *
  * @package Core\Mutex
  */
 class MutexFactory
 {
-    /**
-     * ´´½¨»ùÓÚÎÄ¼þµÄËø
-     *
-     * @param bool|true $autoUnlock ÊÇ·ñ×Ô¶¯ÊÍ·ÅËø
-     * @return FileMutex
-     */
-    public static function createFileMutex($autoUnlock = true)
-    {
-        return new FileMutex($autoUnlock);
-    }
-
-    /**
-     * ´´½¨»ùÓÚÄÚ´æµÄËø
-     *
-     * @param string $cacheType »º´æÀàÐÍ
-     * @param bool|true $autoUnlock ÊÇ·ñ×Ô¶¯ÊÍ·ÅËø
-     * @return MemMutex
-     */
-    public static function createMemMutex($cacheType = '', $autoUnlock = true)
-    {
-        $mu = new MemMutex($autoUnlock);
-        if (empty($cacheType)) {
-            $mu->setCache(App::cache());
-        } else {
-            $mu->setCache(App::cache($cacheType));
-        }
-        return $mu;
-    }
-
-    /**
-     * ´´½¨»ùÓÚMySQLµÄËø
-     *
-     * @param string $dbNode Êý¾Ý½Úµã
-     * @param bool|true $autoUnlock ÊÇ·ñ×Ô¶¯ÊÍ·ÅËø
-     * @return MysqlMutex
-     */
-    public static function createMysqlMutex($dbNode = '', $autoUnlock = true)
-    {
-        $mu = new MysqlMutex($autoUnlock);
-        if (empty($dbNode)) {
-            $mu->setDb(App::db());
-        } else {
-            $mu->setDb(App::db($dbNode));
-        }
-        return $mu;
-    }
+	/**
+	 * åˆ›å»ºåŸºäºŽæ–‡ä»¶çš„é”
+	 *
+	 * @param bool|true $autoUnlock æ˜¯å¦è‡ªåŠ¨é‡Šæ”¾é”
+	 * @return FileMutex
+	 */
+	public static function createFileMutex($autoUnlock = true)
+	{
+		return new FileMutex($autoUnlock);
+	}
+	/**
+	 * åˆ›å»ºåŸºäºŽå†…å­˜çš„é”
+	 *
+	 * @param string $cacheType ç¼“å­˜ç±»åž‹
+	 * @param bool|true $autoUnlock æ˜¯å¦è‡ªåŠ¨é‡Šæ”¾é”
+	 * @return MemMutex
+	 */
+	public static function createMemMutex($cacheType = '', $autoUnlock = true)
+	{
+		$mu = new MemMutex($autoUnlock);
+		if (empty($cacheType)) {
+			$mu->setCache(App::cache());
+		} else {
+			$mu->setCache(App::cache($cacheType));
+		}
+		return $mu;
+	}
+	/**
+	 * åˆ›å»ºåŸºäºŽMySQLçš„é”
+	 *
+	 * @param string $dbNode æ•°æ®èŠ‚ç‚¹
+	 * @param bool|true $autoUnlock æ˜¯å¦è‡ªåŠ¨é‡Šæ”¾é”
+	 * @return MysqlMutex
+	 */
+	public static function createMysqlMutex($dbNode = '', $autoUnlock = true)
+	{
+		$mu = new MysqlMutex($autoUnlock);
+		if (empty($dbNode)) {
+			$mu->setDb(App::db());
+		} else {
+			$mu->setDb(App::db($dbNode));
+		}
+		return $mu;
+	}
 }
