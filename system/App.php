@@ -5,14 +5,11 @@
  * @author lisijie <lsj86@qq.com>
  */
 
-//检查PHP版本，必须5.3以上
-if (version_compare(PHP_VERSION, '5.3.0', '<')) {
-    die('require PHP > 5.3.0 !');
+//检查PHP版本，必须5.4以上
+if (version_compare(PHP_VERSION, '5.4.0', '<')) {
+    die('require PHP > 5.4.0 !');
 }
-//不使用魔术引用, php 5.4之后已废弃魔术引用
-if (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) {
-    die('当前应用不允许运行在 magic_quotes_gpc = on 的环境下，请到 php.ini 关闭。');
-}
+
 //检查目录常量
 foreach (array('APP_PATH', 'DATA_PATH') as $name) {
     if (!defined($name)) {
@@ -39,20 +36,20 @@ if (is_file(VENDOR_PATH . 'autoload.php')) {
 ini_set('display_errors', DEBUG);
 
 //注册自动加载
-$loader = ClassLoader::getInstance();
-$loader->registerNamespace('Core', __DIR__ . '/Core');
-$loader->registerNamespace('App', rtrim(APP_PATH, DIRECTORY_SEPARATOR));
-$loader->register();
+ClassLoader::getInstance()
+	->registerNamespace('Core', __DIR__ . '/Core')
+	->registerNamespace('App', rtrim(APP_PATH, DIRECTORY_SEPARATOR))
+	->register();
 
 use Core\Http\Request;
 use Core\Http\Response;
-use Core\Http\Header;
 use Core\Exception\HttpNotFoundException;
 use Core\Bootstrap\BootstrapInterface;
 use Core\Container;
 use Core\Exception\HttpException;
+use Core\Object;
 
-class App
+class App extends Object
 {
 
     /**
@@ -77,7 +74,7 @@ class App
         if (self::isCli()) {
             self::$controllerNamespace = array('App\\Command', 'Core\\Console\\Controller');
         }
-        $config = self::conf('app', 'profiler', array());
+        $config = self::conf('app', 'profiler', []);
         if ($config && $config['enabled']) {
             $profiler = new \Core\Lib\Profiler();
             $profiler->setDataPath($config['data_path']);
@@ -133,7 +130,7 @@ class App
      */
     public static function getControllerPaths()
     {
-        $paths = array();
+        $paths = [];
         foreach ((array)static::$controllerNamespace as $ns) {
             $ps = ClassLoader::getInstance()->getNamespacePaths(strstr($ns, '\\', true));
             foreach ($ps as &$v) {
@@ -152,7 +149,7 @@ class App
      * @throws HttpNotFoundException
      * @return Response
      */
-    public static function runRoute($route, $params = array())
+    public static function runRoute($route, $params = [])
     {
         if (!preg_match('#^[a-z][a-z0-9/\-]+$#i', $route)) {
             throw new HttpNotFoundException();
@@ -184,6 +181,9 @@ class App
     /**
      * 解析路由地址返回控制器名和方法名
      *
+     * 路由地址由英文字母、斜杠和减号组成，如：/foo/bar/say-hello
+     * 将解析到 Foo/BarController 控制器的 sayHelloAction() 方法。
+     *
      * @param string $route 路由地址
      * @return array 返回 [控制器名称, 方法名]
      */
@@ -198,6 +198,7 @@ class App
         if (strpos($value, '-') !== false && strpos($value, '--') === false) {
             $value = str_replace(' ', '', ucwords(str_replace('-', ' ', $value)));
         }
+	    $controllerName = $actionName = '';
         if (is_array(static::$controllerNamespace)) {
             foreach (static::$controllerNamespace as $ns) {
                 $controllerName = $ns . "\\{$value}Controller";
@@ -215,12 +216,9 @@ class App
 	            $actionName = lcfirst(str_replace(' ', '', $actionName));
             }
             $actionName = $actionName . 'Action';
-        } else {
-            $actionName = '';
         }
-        
 
-        return array($controllerName, $actionName);
+        return [$controllerName, $actionName];
     }
 
     /**
@@ -246,7 +244,7 @@ class App
         foreach ($methods as $method) {
             $methodName = $method->getName();
             if (substr($methodName, 0, 4) == 'init') {
-                self::$container->set(lcfirst(substr($methodName, 4)), array($bootstrap, $methodName), true);
+                self::$container->set(lcfirst(substr($methodName, 4)), [$bootstrap, $methodName], true);
             }
         }
         $bootstrap->startup();
@@ -265,7 +263,7 @@ class App
      */
     public static function conf($file, $key = '', $default = '', $reload = false)
     {
-        static $allConfig = array();
+        static $allConfig = [];
         if ($reload || !isset($allConfig[$file])) {
             if (!preg_match('/^[a-z0-9\_]+$/i', $file)) return false;
             $fileName = CONFIG_PATH . $file . '.php';
@@ -276,7 +274,7 @@ class App
             if (is_file($fileName)) {
                 $allConfig[$file] = include $fileName;
             } else {
-                $allConfig[$file] = array();
+                $allConfig[$file] = [];
             }
             if (is_file($diffName)) {
                 $diff = include $diffName;
@@ -303,14 +301,14 @@ class App
      * @throws InvalidArgumentException
      * @return string
      */
-    public static function lang($langId, $params = array())
+    public static function lang($langId, $params = [])
     {
-        static $cache = array();
+        static $cache = [];
         if (false === strpos($langId, '.')) {
             if (!isset($cache['common'])) {
                 $filename = App::conf('app', 'lang', 'zh_CN') . "/language.php";
                 if (is_file(LANG_PATH . $filename)) {
-                    $lang = array();
+                    $lang = [];
                     include LANG_PATH . $filename;
                     $cache['common'] = $lang;
                 }
@@ -324,7 +322,7 @@ class App
         } else {
             list($file, $idx) = explode('.', $langId);
             if ($file && !isset($cache[$file])) {
-                $lang = array();
+                $lang = [];
                 $filename = App::conf('app', 'lang', 'zh_CN') . "/{$file}.php";
                 if (!is_file(LANG_PATH . $filename)) {
                     throw new InvalidArgumentException("lang file {$filename} not exists.");
@@ -511,7 +509,7 @@ class App
             $name = strtolower(substr($method, 3));
             if (self::$container->has($name)) {
                 array_unshift($params, $name);
-                return call_user_func_array(array(self::$container, 'get'), $params);
+                return call_user_func_array([self::$container, 'get'], $params);
             }
         }
         throw new InvalidArgumentException("方法不存在: " . __CLASS__ . "::{$method}");
