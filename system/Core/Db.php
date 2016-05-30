@@ -8,7 +8,7 @@ namespace Core;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Db
+class Db extends Object
 {
 
     const TAG_BEFORE_QUERY = 'before_query';

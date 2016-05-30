@@ -74,7 +74,7 @@ class App extends Object
         if (self::isCli()) {
             self::$controllerNamespace = array('App\\Command', 'Core\\Console\\Controller');
         }
-        $config = self::conf('app', 'profiler', []);
+        $config = self::config()->get('app', 'profiler', []);
         if ($config && $config['enabled']) {
             $profiler = new \Core\Lib\Profiler();
             $profiler->setDataPath($config['data_path']);
@@ -238,6 +238,7 @@ class App extends Object
                 $bootstrap = new \Core\Bootstrap\Bootstrap();
             }
         }
+	    self::$container->setSingleton('config', new \Core\Config(CONFIG_PATH, RUN_ENV));
 
         $class = new ReflectionClass($bootstrap);
         $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
@@ -251,49 +252,9 @@ class App extends Object
     }
 
     /**
-     * 获取配置信息
-     *
-     * 优先从 config/{RUN_ENV}/ 下查找，如果不存在再从 config/ 下查找。
-     *
-     * @param string $file 配置文件
-     * @param string $key
-     * @param mixed $default
-     * @param boolean $reload
-     * @return bool|mixed|string
-     */
-    public static function conf($file, $key = '', $default = '', $reload = false)
-    {
-        static $allConfig = [];
-        if ($reload || !isset($allConfig[$file])) {
-            if (!preg_match('/^[a-z0-9\_]+$/i', $file)) return false;
-            $fileName = CONFIG_PATH . $file . '.php';
-            $diffName = CONFIG_PATH . RUN_ENV . '/' . $file . '.php';
-            if (!is_file($diffName) && !is_file($fileName)) {
-                die("配置文件不存在: {$file}");
-            }
-            if (is_file($fileName)) {
-                $allConfig[$file] = include $fileName;
-            } else {
-                $allConfig[$file] = [];
-            }
-            if (is_file($diffName)) {
-                $diff = include $diffName;
-                if (is_array($diff)) {
-                    $allConfig[$file] = array_merge($allConfig[$file], $diff);
-                }
-            }
-        }
-        if (empty($key)) {
-            return $allConfig[$file];
-        } else {
-            return isset($allConfig[$file][$key]) ? $allConfig[$file][$key] : $default;
-        }
-    }
-
-    /**
      * 语言包解析
      *
-     * 如果$langId不包含点号，则从公共语言包 common.php 文件搜索对应索引，如果
+     * 如果$langId不包含点号，则从公共语言包 language.php 文件搜索对应索引，如果
      * 公共语言包文件不存在，则直接返回 $langId。
      *
      * @param string $langId 语言ID,格式：文件名.数组key
@@ -306,7 +267,7 @@ class App extends Object
         static $cache = [];
         if (false === strpos($langId, '.')) {
             if (!isset($cache['common'])) {
-                $filename = App::conf('app', 'lang', 'zh_CN') . "/language.php";
+                $filename = App::config()->get('app', 'lang', 'zh_CN') . "/language.php";
                 if (is_file(LANG_PATH . $filename)) {
                     $lang = [];
                     include LANG_PATH . $filename;
@@ -323,7 +284,7 @@ class App extends Object
             list($file, $idx) = explode('.', $langId);
             if ($file && !isset($cache[$file])) {
                 $lang = [];
-                $filename = App::conf('app', 'lang', 'zh_CN') . "/{$file}.php";
+                $filename = App::config()->get('app', 'lang', 'zh_CN') . "/{$file}.php";
                 if (!is_file(LANG_PATH . $filename)) {
                     throw new InvalidArgumentException("lang file {$filename} not exists.");
                 }
@@ -433,6 +394,16 @@ class App extends Object
     {
         return self::get('view');
     }
+
+	/**
+	 * 配置信息处理对象
+	 *
+	 * @return Core\Config
+	 */
+	public static function config()
+	{
+		return self::get('config');
+	}
 
     /**
      * 注入对象

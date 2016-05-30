@@ -58,7 +58,7 @@ return array(
     //  - pathinfo PATH_INFO方式，URL形式如： www.domain.com/index.php/main/index?foo=bar
     //  - rewrite URL重写方式，需要在服务器配置重写规则，然后可在路由配置文件 route.php 进行个性化配置
     'router' => array(
-        'type' => 'rewrite',
+        'type' => 'simple',
         'default_route' => 'main/index', //默认路由
     ),
 

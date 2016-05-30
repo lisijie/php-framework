@@ -21,6 +21,6 @@ class Object
 			}
 		}
 
-		return __CLASS__ . '{'.implode(', ', $vars).'}';
+		return get_class($this) . '{'.implode(', ', $vars).'}';
 	}
 }

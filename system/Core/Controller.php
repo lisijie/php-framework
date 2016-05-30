@@ -13,7 +13,7 @@ use Core\Exception\AppException;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Controller
+class Controller extends Object
 {
 
     /**
@@ -236,11 +236,6 @@ class Controller
         return $this->response;
     }
 
-    protected function ajaxReturn($data, $format = 'json', $status = 200)
-    {
-
-    }
-
     /**
      * 执行当前控制器方法
      *
@@ -283,4 +278,32 @@ class Controller
         }
         return $this->response;
     }
+
+	/**
+	 * JSON编码
+	 *
+	 * @param $data
+	 * @return mixed|string
+	 */
+	protected function jsonEncode($data)
+	{
+		$result = json_encode($data);
+		$result = preg_replace_callback('#\\\u([0-9a-f]{4})#i', function ($arr) {
+			return iconv('UCS-2BE', 'UTF-8', pack('H4', $arr[1]));
+		}, $result);
+		return $result;
+	}
+
+	/**
+	 * 输出JSON格式
+	 * @return Response
+	 */
+	protected function serveJSON()
+	{
+		$content = $this->jsonEncode(App::view()->getData());
+		$charset = $this->response->getCharset();
+		$this->response->headers()->set('content-type', "application/json; charset={$charset}");
+		$this->response->setContent($content);
+		return $this->response;
+	}
 }

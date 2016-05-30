@@ -84,7 +84,7 @@ class Response
         505 => '505 HTTP Version Not Supported'
     );
 
-    public function __construct($content = '', $charset = CHARSET)
+    public function __construct($content = '', $charset = 'utf-8')
     {
         $this->content = $content;
         $this->charset = $charset;
@@ -142,6 +142,16 @@ class Response
         $this->charset = $charset;
         return $this;
     }
+
+	/**
+	 * 获取字符集类型
+	 *
+	 * @return string
+	 */
+	public function getCharset()
+	{
+		return $this->charset;
+	}
 
     /**
      * 设置输出http状态

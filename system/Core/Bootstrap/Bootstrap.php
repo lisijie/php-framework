@@ -22,8 +22,8 @@ class Bootstrap implements BootstrapInterface
 	public function startup()
 	{
         //设置时区
-        if (App::conf('app', 'timezone')) {
-            date_default_timezone_set(App::conf('app', 'timezone'));
+        if (App::config()->get('app', 'timezone')) {
+            date_default_timezone_set(App::config()->get('app', 'timezone'));
         } elseif (ini_get('date.timezone') == '') {
             date_default_timezone_set('Asia/Shanghai'); //设置默认时区为中国时区
         }
@@ -39,7 +39,7 @@ class Bootstrap implements BootstrapInterface
     //注册DB初始化方法
 	public function initDb($name)
 	{
-        $config = App::conf('app', 'database');
+        $config = App::config()->get('app', 'database');
         if (!isset($config[$name])) {
             throw new \InvalidArgumentException("数据配置不存在: {$name}");
         }
@@ -62,7 +62,7 @@ class Bootstrap implements BootstrapInterface
 
 	public function initSession()
 	{
-		$config = App::conf('app', 'session', array());
+		$config = App::config()->get('app', 'session', array());
 		$session = new Session();
         if (isset($config['type'])) {
             switch ($config['type']) {
@@ -82,7 +82,7 @@ class Bootstrap implements BootstrapInterface
 
 	public function initCache($name)
 	{
-        $config = App::conf('app','cache', array());
+        $config = App::config()->get('app','cache', array());
         if ($name == 'default' && isset($config['default'])) {
             $name = $config['default'];
         }
@@ -95,17 +95,17 @@ class Bootstrap implements BootstrapInterface
     //注册路由
 	public function initRouter()
 	{
-        $options = App::conf('app', 'router', array());
+        $options = App::config()->get('app', 'router', array());
         $router = Router::factory($options);
-        $router->setConfig(App::conf('route'));
+        $router->setConfig(App::config()->get('route'));
         return $router;
 	}
 
     //注册日志记录器
 	public function initLogger($name)
 	{
-        $config = App::conf('app', 'logger', array());
-		$timezone = App::conf('app', 'timezone', 'UTC');
+        $config = App::config()->get('app', 'logger', array());
+		$timezone = App::config()->get('app', 'timezone', 'UTC');
         $logger = new Logger($name);
         $logger->setTimeZone(new \DateTimeZone($timezone));
 		if ($name != 'default' && !isset($config[$name])) {
@@ -132,7 +132,7 @@ class Bootstrap implements BootstrapInterface
     //初始化视图模板对象
     public function initView()
     {
-        $viewConf = App::conf('app', 'view');
+        $viewConf = App::config()->get('app', 'view');
         return ViewFactory::create($viewConf['engine'], $viewConf['options']);
     }
 }

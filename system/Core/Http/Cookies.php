@@ -109,7 +109,7 @@ class Cookies implements \IteratorAggregate, \Countable
      */
     public function setEncrypt($name, $value)
     {
-        $key = App::conf('app', 'secret_key');
+        $key = App::config()->get('app', 'secret_key');
         if (empty($key)) {
             throw new \RuntimeException("请先到app配置文件设置密钥: secret_key");
         }
@@ -126,7 +126,7 @@ class Cookies implements \IteratorAggregate, \Countable
      */
     public function getDecrypt($name)
     {
-        $key = App::conf('app', 'secret_key');
+        $key = App::config()->get('app', 'secret_key');
         if (empty($key)) {
             throw new \RuntimeException("请先到app配置文件设置密钥: secret_key");
         }
