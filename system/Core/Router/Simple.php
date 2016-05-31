@@ -1,4 +1,7 @@
 <?php
+
+namespace Core\Router;
+
 /**
  * 简单路由解析
  * 根据QueryString解析
@@ -6,9 +9,6 @@
  * @author lisijie <lsj86@qq.com>
  * @package Core\Router
  */
-
-namespace Core\Router;
-
 class Simple extends Router
 {
 

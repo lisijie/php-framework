@@ -1,4 +1,7 @@
 <?php
+
+namespace Core\Router;
+
 /**
  * URL Rewrite
  *
@@ -19,9 +22,6 @@
  * @author lisijie <lsj86@qq.com>
  * @package Core\Router
  */
-
-namespace Core\Router;
-
 class Rewrite extends Router
 {
 

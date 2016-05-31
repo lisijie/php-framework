@@ -1,4 +1,7 @@
 <?php
+
+namespace Core\Router;
+
 /**
  * PATH_INFO理由解析
  * 对$_SERVER['PATH_INFO']进行理由解析，需要WEB服务器支持
@@ -6,9 +9,6 @@
  * @author lisijie <lsj86@qq.com>
  * @package Core\Router
  */
-
-namespace Core\Router;
-
 class Pathinfo extends Router
 {
 
