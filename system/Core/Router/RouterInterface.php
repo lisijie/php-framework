@@ -20,9 +20,6 @@ interface RouterInterface
 	// 获取默认路由地址
 	public function getDefaultRoute();
 
-	// 标准化路由地址
-	public function normalizeRoute($route);
-
 	// 解析请求
 	public function resolve(Request $request);
 
@@ -33,5 +30,5 @@ interface RouterInterface
 	public function getParams();
 
 	// 根据路由地址和参数生成访问URL
-	public function makeUrl($route, $params = array());
+	public function makeUrl($route, $params = []);
 }

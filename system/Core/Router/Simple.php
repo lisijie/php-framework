@@ -20,7 +20,7 @@ class Simple extends Router
         }
     }
 
-    public function makeUrl($route, $params = array())
+    public function makeUrl($route, $params = [])
     {
         $result = $this->makeUrlPath($route, $params);
         return $this->request->getBaseUrl() . '/?' . $this->routeVar . '=' . $result['path'] . (empty($result['params']) ? '' : '&' . http_build_query($result['params']));

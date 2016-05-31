@@ -20,7 +20,7 @@ class Console extends Router
     	$this->params = $argv;
     }
 
-    public function makeUrl($route, $params = array())
+    public function makeUrl($route, $params = [])
     {
         $result = $this->makeUrlPath($route, $params);
         return $result['path'] . ' ' . implode(' ', $result['params']);

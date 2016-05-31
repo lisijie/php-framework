@@ -29,39 +29,39 @@ use Core\Http\Request;
  */
 abstract class Router implements RouterInterface
 {
-    protected $config = array();
+    protected $config = [];
 
     /**
      * 控制器到URI规则的映射
      * @var array
      */
-    protected $routeMap = array();
+    protected $routeMap = [];
 
     /**
      * URI规则到控制器的映射
      * @var array
      */
-    protected $uriMap = array();
+    protected $uriMap = [];
 
     /**
      * 变量对应正则
      *
      * @var array
      */
-    protected $typeRegexp = array(
+    protected $typeRegexp = [
         'int' => '(\d+)',
         'string' => '([^/\#]*)',
         'str' => '([^/\#]*)',
         'date' => '(\d{8})',
         'year' => '(\d{4})',
-    );
+    ];
 
     /**
      * 当前路由参数
      *
      * @var array
      */
-    protected $params = array();
+    protected $params = [];
 
     /**
      * 当前路由地址
@@ -91,7 +91,7 @@ abstract class Router implements RouterInterface
      */
     protected $routeVar = 'r';
 
-    public function __construct($options = array())
+    public function __construct($options = [])
     {
         if (isset($options['default_route'])) {
             $this->defaultRoute = (string)$options['default_route'];
@@ -137,12 +137,12 @@ abstract class Router implements RouterInterface
      * @param $route
      * @return string
      */
-    public function normalizeRoute($route)
+    protected function normalizeRoute($route)
     {
         $route = preg_replace_callback('#[A-Z]#', function($m) {
             return '-' . strtolower($m[0]);
         }, $route);
-        return ltrim(strtr($route, array('/-' => '/')), '-');
+        return ltrim(strtr($route, ['/-' => '/']), '-');
     }
 
     /**
@@ -153,7 +153,7 @@ abstract class Router implements RouterInterface
         foreach ($this->config as $conf) {
             list($url, $route) = $conf;
             $route = $this->normalizeRoute($route);
-            $params = array();
+            $params = [];
             if (strpos($url, '{') !== false) {
                 $re = preg_replace_callback('#{[^}]+}#', function ($matches) use (&$params) {
                     $string = trim($matches[0], '{}');
@@ -169,8 +169,8 @@ abstract class Router implements RouterInterface
             } else {
                 $re = $url;
             }
-            $this->uriMap[$re] = array('route' => $route, 'params' => (isset($conf[2])&&is_array($conf[2]) ? array_merge($params, $conf[2]) : $params));
-            $this->routeMap[$route][] = array('url' => $url, 'params' => array_flip($params));
+            $this->uriMap[$re] = ['route' => $route, 'params' => (isset($conf[2])&&is_array($conf[2]) ? array_merge($params, $conf[2]) : $params)];
+            $this->routeMap[$route][] = ['url' => $url, 'params' => array_flip($params)];
         }
     }
 
@@ -188,7 +188,7 @@ abstract class Router implements RouterInterface
         $match = false;
         foreach ($this->uriMap as $re => $value) {
             if (preg_match('#^' . $re . '$#i', $url, $matches)) {
-                $routeParams = array();
+                $routeParams = [];
                 foreach ($value['params'] as $k => $v) {
                     if (is_int($k) && isset($matches[$k+1])) {
                         $routeParams[$v] = $matches[$k+1];
@@ -219,7 +219,7 @@ abstract class Router implements RouterInterface
         $route = $this->normalizeRoute($route);
         $path = '';
         if (isset($this->routeMap[$route])) {
-            $map = array();
+            $map = [];
             $n = -1;
             foreach ($this->routeMap[$route] as $value) {
                 //参数完全匹配
@@ -253,7 +253,7 @@ abstract class Router implements RouterInterface
             $path = $route;
         }
 
-        return array('path' => $path, 'params' => $params);
+        return ['path' => $path, 'params' => $params];
     }
 
     /**
@@ -285,7 +285,7 @@ abstract class Router implements RouterInterface
      * @param array $params 参数
      * @return string
      */
-    abstract public function makeUrl($route, $params = array());
+    abstract public function makeUrl($route, $params = []);
 
     /**
      * 开始路由解析

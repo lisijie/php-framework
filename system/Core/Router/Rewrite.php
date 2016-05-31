@@ -44,7 +44,7 @@ class Rewrite extends Router
         $this->parseUrl($path);
     }
 
-    public function makeUrl($route, $params = array())
+    public function makeUrl($route, $params = [])
     {
         $result = $this->makeUrlPath($route, $params);
         return $this->request->getBaseUrl() . '/' . ltrim($result['path'], '/') . (empty($result['params']) ? '' : '?' . http_build_query($result['params']));
