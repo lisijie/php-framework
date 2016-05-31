@@ -482,6 +482,8 @@ class App extends Object
                 array_unshift($params, $name);
                 return call_user_func_array([self::$container, 'get'], $params);
             }
+        } elseif ($method === 'conf') { // 兼容旧版的获取配置方法
+	        return call_user_func_array([self::config(), 'get'], $params);
         }
         throw new InvalidArgumentException("方法不存在: " . __CLASS__ . "::{$method}");
     }
