@@ -56,4 +56,8 @@ interface ViewInterface
 	 * @return mixed
 	 */
     public function reset();
+
+	public function registerCssFile($url, $options = []);
+
+	public function registerJsFile($url, $options = [], $head = true);
 }
