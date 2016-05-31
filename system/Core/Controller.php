@@ -196,7 +196,8 @@ class Controller extends Object
             'msg' => $message,
             'redirect' => $redirect,
         );
-        $this->response->setContent(App::view()->render($template, $data));
+	    $this->assign($data);
+        $this->response->setContent(App::view()->render($template, $this->data));
         return $this->response;
     }
 
