@@ -2,17 +2,52 @@
 
 namespace Core\View;
 
+/**
+ * 视图模板抽象类
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core\View
+ */
 abstract class ViewAbstract implements ViewInterface
 {
-
+	/**
+	 * 布局模板中内容主体的占位符
+	 */
     const LAYOUT_CONTENT = '<![CDATA[LAYOUT_CONTENT]]>';
+
+	/**
+	 * 布局模板中子模板的占位符
+	 */
     const LAYOUT_SECTION = '<![CDATA[LAYOUT_SECTION_%s]]>';
 
+	/**
+	 * 模板变量
+	 * @var array
+	 */
     protected $data = array();
+
+	/**
+	 * 视图设置
+	 * @var array
+	 */
     protected $options = array();
-    protected $layout = '';
+
+	/**
+	 * 布局模板名称
+	 * @var string
+	 */
+	protected $layout = '';
+
+	/**
+	 * 布局子模板信息
+	 * @var array
+	 */
     protected $layoutSections = array();
 
+	/**
+	 * 构造函数
+	 * @param array $options 配置选项，不同的模板引擎有不同的选项
+	 */
     public final function __construct(array $options)
     {
         $this->options = $options;
@@ -34,16 +69,17 @@ abstract class ViewAbstract implements ViewInterface
      */
     public function reset()
     {
-        $this->data = array();
+        $this->data = [];
         $this->layout = '';
-        $this->layoutSections = array();
+        $this->layoutSections = [];
     }
 
     /**
      * 设置布局模板
      *
-     * @param $filename
+     * @param string $filename
      * @throws ViewException
+     * @return bool
      */
     public function setLayout($filename)
     {
@@ -52,6 +88,7 @@ abstract class ViewAbstract implements ViewInterface
             throw new ViewException("布局模板不存在: {$filename}");
         }
         $this->layout = $filename;
+	    return true;
     }
 
     /**
@@ -61,9 +98,10 @@ abstract class ViewAbstract implements ViewInterface
      *  1. 在控制器中使用 setLayoutSection('标识名称', '模板文件') 设置
      *  2. 在 layout 模板使用 $this->section('标识名称') 填充
      *
-     * @param string name
+     * @param string $name
      * @param string $filename
      * @throws ViewException
+     * @return bool
      */
     public function setLayoutSection($name, $filename)
     {
@@ -72,6 +110,7 @@ abstract class ViewAbstract implements ViewInterface
             throw new ViewException("布局模板不存在: {$filename}");
         }
         $this->layoutSections[$name] = $filename;
+	    return true;
     }
 
     /**
@@ -108,32 +147,6 @@ abstract class ViewAbstract implements ViewInterface
     }
 
     /**
-     * 注册模板变量
-     *
-     * @param $name
-     * @param $value
-     * @return mixed
-     */
-    public function assign($name, $value = null)
-    {
-        if (is_array($name)) {
-            $this->data = array_merge($this->data, $name);
-        } else {
-            $this->data[$name] = $value;
-        }
-    }
-
-    /**
-     * 返回模板变量数据
-     *
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
-    }
-
-    /**
      * 返回模板文件的路径
      *
      * @param $filename
@@ -147,11 +160,13 @@ abstract class ViewAbstract implements ViewInterface
     /**
      * 渲染模板
      *
-     * @param string $filename
+     * @param string $filename 模板文件名
+     * @param array $data 模板变量
      * @return string
      */
-    public function render($filename)
+    public function render($filename, array $data = [])
     {
+	    $this->data = $data;
         $this->beforeRender();
         if (!$this->layout) {
             return $this->renderFile($this->getViewFile($filename));
@@ -170,8 +185,16 @@ abstract class ViewAbstract implements ViewInterface
         return strtr($content, $replace);
     }
 
+	/**
+	 * 渲染模板前的操作
+	 */
     protected function beforeRender() {}
 
+	/**
+	 * 渲染模板
+	 * @param string $_file_ 模板文件名_
+	 * @return string
+	 */
     abstract protected function renderFile($_file_);
 
 }

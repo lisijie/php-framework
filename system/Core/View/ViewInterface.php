@@ -23,25 +23,10 @@ interface ViewInterface
      * 渲染模板
      *
      * @param $filename
+     * @param $data
      * @return string
      */
-    public function render($filename);
-
-    /**
-     * 注册模板变量
-     *
-     * @param $name
-     * @param $value
-     * @return mixed
-     */
-    public function assign($name, $value = null);
-
-    /**
-     * 返回模板变量数据
-     *
-     * @return array
-     */
-    public function getData();
+    public function render($filename, array $data);
 
     /**
      * 返回模板文件路径
@@ -51,9 +36,24 @@ interface ViewInterface
      */
     public function getViewFile($filename);
 
+	/**
+	 * 设置布局文件
+	 * @param $filename
+	 * @return mixed
+	 */
     public function setLayout($filename);
 
+	/**
+	 * 设置子布局文件
+	 * @param $name
+	 * @param $filename
+	 * @return mixed
+	 */
     public function setLayoutSection($name, $filename);
 
+	/**
+	 * 重置
+	 * @return mixed
+	 */
     public function reset();
 }

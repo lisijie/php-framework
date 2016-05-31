@@ -15,6 +15,11 @@ use Core\Exception\AppException;
  */
 class Controller extends Object
 {
+	/**
+	 * 输出的数据
+	 * @var array
+	 */
+	private $data = [];
 
     /**
      * 默认动作
@@ -132,8 +137,17 @@ class Controller extends Object
      */
     protected function assign($name, $value = null)
     {
-        App::view()->assign($name, $value);
+	    if (is_array($name)) {
+		    $this->data = array_merge($this->data, $name);
+	    } else {
+		    $this->data[$name] = $value;
+	    }
     }
+
+	protected function getData()
+	{
+		return $this->data;
+	}
 
     protected function setLayout($filename)
     {
@@ -182,8 +196,7 @@ class Controller extends Object
             'msg' => $message,
             'redirect' => $redirect,
         );
-        App::view()->assign($data);
-        $this->response->setContent(App::view()->render($template));
+        $this->response->setContent(App::view()->render($template, $data));
         return $this->response;
     }
 
@@ -231,8 +244,7 @@ class Controller extends Object
         if (empty($filename)) {
             $filename = CUR_ROUTE;
         }
-        
-        $this->response->setContent(App::view()->render($filename));
+        $this->response->setContent(App::view()->render($filename, $this->data));
         return $this->response;
     }
 
@@ -296,11 +308,16 @@ class Controller extends Object
 
 	/**
 	 * 输出JSON格式
+	 *
+	 * @param array $data
 	 * @return Response
 	 */
-	protected function serveJSON()
+	protected function serveJSON(array $data = [])
 	{
-		$content = $this->jsonEncode(App::view()->getData());
+		if (!empty($data)) {
+			$this->assign($data);
+		}
+		$content = $this->jsonEncode($this->data);
 		$charset = $this->response->getCharset();
 		$this->response->headers()->set('content-type', "application/json; charset={$charset}");
 		$this->response->setContent($content);

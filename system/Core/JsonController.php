@@ -27,7 +27,7 @@ class JsonController extends Controller
         $data = array(
             'code' => $msgno,
             'msg' => $message,
-            'data' => App::view()->getData(),
+            'data' => $this->getData(),
         );
         if ($redirect) $data['redirect'] = $redirect;
 	    $charset = $this->response->getCharset();
@@ -40,7 +40,7 @@ class JsonController extends Controller
     {
         $data = array(
             'code' => MSG_NONE,
-            'data' => App::view()->getData()
+            'data' => $this->getData()
         );
 	    $charset = $this->response->getCharset();
         $this->response->headers()->set('content-type', "application/json; charset={$charset}");
