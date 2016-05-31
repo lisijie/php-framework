@@ -51,7 +51,7 @@ class Config extends Object
 		if (is_file($diffFile)) {
 			$diff = include $diffFile;
 			if (is_array($diff) && !empty($diff)) {
-				$config = array($config, $diff);
+				$config = array_merge($config, $diff);
 			}
 		}
 		$this->data[$file] = $config;
