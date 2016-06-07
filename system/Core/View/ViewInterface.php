@@ -19,6 +19,15 @@ interface ViewInterface
      */
     public function getOption($name);
 
+	/**
+	 * 设置配置项的值
+	 *
+	 * @param $name
+	 * @param $value
+	 * @return mixed
+	 */
+	public function setOption($name, $value);
+
     /**
      * 渲染模板
      *

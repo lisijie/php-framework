@@ -57,22 +57,6 @@ class Native extends ViewAbstract
         echo parent::section($name);
     }
 
-	/**
-	 * 输出头部资源占位符
-	 */
-	public function head()
-	{
-		echo parent::head();
-	}
-
-	/**
-	 * 输出尾部资源占位符
-	 */
-	public function foot()
-	{
-		echo parent::foot();
-	}
-
     /**
      * 渲染页面组件
      *

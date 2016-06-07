@@ -39,11 +39,13 @@ class Controller extends Object
      */
     protected $response;
 
-    /**
-     * 构造方法，不可重写
-     *
-     * 子类可通过重写init()方法完成初始化
-     */
+	/**
+	 * 构造方法，不可重写
+	 * 子类可通过重写init()方法完成初始化
+	 *
+	 * @param Request $request 请求对象
+	 * @param Response $response 输出对象
+	 */
     public final function __construct(Request $request, Response $response)
     {
         $this->request  = $request;
@@ -235,7 +237,7 @@ class Controller extends Object
     }
 
     /**
-     * 输出结果
+     * 渲染模板并返回输出对象
      *
      * @param string $filename
      * @return Response 输出对象
@@ -248,6 +250,19 @@ class Controller extends Object
         $this->response->setContent(App::view()->render($filename, $this->data));
         return $this->response;
     }
+
+	/**
+	 * 渲染模板
+	 *
+	 * @param string $filename
+	 * @param array $data
+	 * @return string
+	 */
+	public function render($filename, $data = [])
+	{
+		$data = array_merge($this->data, $data);
+		return App::view()->render($filename, $data);
+	}
 
     /**
      * 执行当前控制器方法
@@ -310,15 +325,15 @@ class Controller extends Object
 	/**
 	 * 输出JSON格式
 	 *
-	 * @param array $data
+	 * @param array $data 输出的数据，默认使用assign的数据
 	 * @return Response
 	 */
 	protected function serveJSON(array $data = [])
 	{
-		if (!empty($data)) {
-			$this->assign($data);
+		if (empty($data)) {
+			$data = $this->data;
 		}
-		$content = $this->jsonEncode($this->data);
+		$content = $this->jsonEncode($data);
 		$charset = $this->response->getCharset();
 		$this->response->headers()->set('content-type', "application/json; charset={$charset}");
 		$this->response->setContent($content);

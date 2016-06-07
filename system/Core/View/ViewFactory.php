@@ -12,7 +12,7 @@ class ViewFactory
      * @return \Core\View\ViewInterface
      * @throws \Core\View\ViewException
      */
-    public static function create($type, $options = array())
+    public static function create($type, $options = [])
     {
         $className = '\\Core\\View\\Adapter\\' . ucfirst($type);
         if (!class_exists($className)) {

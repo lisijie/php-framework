@@ -167,6 +167,7 @@ class App extends Object
         try {
             $controller = new $controllerName(self::get('request'), $response);
             $controller->init();
+	        self::set('controller', $controller);
             if ($controller->before() === true) {
                 $response = $controller->runActionWithParams($actionName, $params);
                 $controller->after();
