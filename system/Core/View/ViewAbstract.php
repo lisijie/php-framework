@@ -88,6 +88,14 @@ abstract class ViewAbstract implements ViewInterface
 	}
 
 	/**
+	 * 初始化方法
+	 */
+	protected function init()
+	{
+
+	}
+
+	/**
 	 * 获取设置项的值
 	 *
 	 * @param string $name
@@ -109,14 +117,6 @@ abstract class ViewAbstract implements ViewInterface
 	{
 		$this->options[$name] = $value;
 		return true;
-	}
-
-	/**
-	 * 初始化方法
-	 */
-	protected function init()
-	{
-
 	}
 
 	/**
@@ -369,7 +369,7 @@ abstract class ViewAbstract implements ViewInterface
 	 *
 	 * @return string
 	 */
-	protected function renderHeadHtml()
+	private function renderHeadHtml()
 	{
 		$lines = [];
 		if (!empty($this->cssFiles)) {
@@ -388,7 +388,7 @@ abstract class ViewAbstract implements ViewInterface
 	 *
 	 * @return string
 	 */
-	protected function renderFootHtml()
+	private function renderFootHtml()
 	{
 		$lines = [];
 		if (!empty($this->jsFiles[self::POS_FOOT])) {

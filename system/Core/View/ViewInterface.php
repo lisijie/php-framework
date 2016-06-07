@@ -69,4 +69,10 @@ interface ViewInterface
 	public function registerCssFile($url, $options = []);
 
 	public function registerJsFile($url, $options = [], $head = true);
+
+	public function requireCssFile($url, $options = []);
+
+	public function requireJsFile($url, $options = []);
+
+	public function getAssetUrl($url);
 }
