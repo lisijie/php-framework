@@ -315,11 +315,7 @@ class Controller extends Object
 	 */
 	protected function jsonEncode($data)
 	{
-		$result = json_encode($data);
-		$result = preg_replace_callback('#\\\u([0-9a-f]{4})#i', function ($arr) {
-			return iconv('UCS-2BE', 'UTF-8', pack('H4', $arr[1]));
-		}, $result);
-		return $result;
+		return json_encode($data, JSON_UNESCAPED_UNICODE);
 	}
 
 	/**
