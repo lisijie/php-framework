@@ -169,7 +169,7 @@ class Logger implements LoggerInterface
      * @return null|void
      * @throws InvalidArgumentException
      */
-    public function log($level, $message, array $context = array())
+    private function log($level, $message, array $context = array())
     {
         if (!isset($this->levels[$level])) {
             throw new InvalidArgumentException('日志等级无效:' . $level);
