@@ -269,6 +269,9 @@ class Db extends Object
     /**
      * 插入数据
      *
+     * 可进行单条插入、批量插入、更新插入，当进行单条插入时，返回的是插入记录的自增主键ID，如果没有自增主键，则返回0。
+     * 如果是批量插入，则返回包含所有插入的ID数组。
+     *
      * @param string $table 表名
      * @param array $data 要插入的数据
      * @param bool $replace 是否替换插入

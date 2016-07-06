@@ -133,18 +133,55 @@ class Model extends Object
 	/**
 	 * 插入记录
 	 *
-	 * 返回最后插入的ID
+	 * 可进行单条插入、批量插入、更新插入，当进行单条插入时，返回的是插入记录的自增主键ID，如果没有自增主键，则返回0。
+	 * 如果是批量插入，则返回包含所有插入的ID数组。
 	 *
 	 * @param array $data 插入数据
 	 * @param bool $replace 是否替换插入
 	 * @param bool $multi 是否批量插入
 	 * @param bool $ignore 是否忽略重复
-	 * @return int
+	 * @return string|array 最后插入的自增ID，批量插入的话返回所有ID
 	 */
-	public function insert($data, $replace = false, $multi = false, $ignore = false)
+	public function insert(array $data, $replace = false, $multi = false, $ignore = false)
 	{
+		if (empty($data)) return false;
 		$table = $this->db->table($this->tableName);
 		return $this->db->insert($table, $data, $replace, $multi, $ignore);
+	}
+
+	/**
+	 * 插入或更新
+	 *
+	 * 当主键或唯一索引不存在时，进行插入，当出现主键或唯一索引冲突时，则进行更新。
+	 * 返回值说明：
+	 *   返回影响的记录数，如果是新插入的数据，则+1，如果是更新数据，则+2，如果数据没有发生变化，则为0。
+	 *   因此，当对单条记录进行插入或更新时，可以根据返回值判断，数据是更新还是插入，还是不变。
+	 *   当进行批量操作时，返回值只能表示有没数据被插入或更新，并不能表示具体插入或更新了多少行。
+	 *
+	 * @param array $data 要插入的数据
+	 * @param bool|false $multi 是否批量操作
+	 * @return int 影响记录数
+	 */
+	public function insertOrUpdate(array $data, $multi = false)
+	{
+		if (empty($data)) return 0;
+		if (!$multi) $data = array($data);
+		$table = $this->db->table($this->tableName);
+		$fields = '`' . implode('`,`', array_keys($data[0])) . '`'; //字段
+		// 插入值列表
+		$values = [];
+		foreach ($data as $row) {
+			$values[] = implode(',', array_map([$this->db, 'quote'], array_values($row)));
+		}
+		$values = '(' . implode('),(', $values) . ')';
+		// 更新列表
+		foreach (array_keys($data[0]) as $field) {
+			$updates[] = "`{$field}`=VALUES(`{$field}`)";
+		}
+		$updates = implode(',', $updates);
+
+		$sql = "INSERT INTO {$table} ({$fields}) VALUES {$values} ON DUPLICATE KEY UPDATE {$updates}";
+		return $this->db->execute($sql);
 	}
 
 	/**
