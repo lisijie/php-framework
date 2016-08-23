@@ -3,9 +3,17 @@ namespace Core;
 
 class Object
 {
-	public static function className()
+	public static function className($shortName = false)
 	{
-		return get_called_class();
+		$className = get_called_class();
+		if ($shortName) {
+			$className = explode('\\', $className);
+			for ($i = 0; $i < count($className) - 1; $i++) {
+				$className[$i] = $className[$i][0];
+			}
+			$className = implode('.', $className);
+		}
+		return $className;
 	}
 
 	public function __toString()
