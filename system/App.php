@@ -48,6 +48,7 @@ use Core\Bootstrap\BootstrapInterface;
 use Core\Container;
 use Core\Exception\HttpException;
 use Core\Object;
+use Core\Environment;
 
 class App extends Object
 {
@@ -239,7 +240,7 @@ class App extends Object
                 $bootstrap = new \Core\Bootstrap\Bootstrap();
             }
         }
-	    self::$container->setSingleton('config', new \Core\Config(CONFIG_PATH, RUN_ENV));
+	    self::$container->setSingleton('config', new \Core\Config(CONFIG_PATH, Environment::getEnvironment()));
 
         $class = new ReflectionClass($bootstrap);
         $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
@@ -438,33 +439,6 @@ class App extends Object
     public static function container()
     {
         return self::$container;
-    }
-
-    /**
-     * 当前是否生产环境
-     *
-     * @return bool
-     */
-    public static function isProduction(){
-        return RUN_ENV == 'production';
-    }
-
-    /**
-     * 当前是否开发环境
-     *
-     * @return bool
-     */
-    public static function isDevelopment(){
-        return RUN_ENV == 'development';
-    }
-
-    /**
-     * 当前是否测试环境
-     *
-     * @return bool
-     */
-    public static function isTesting(){
-        return RUN_ENV == 'testing';
     }
 
     /**
