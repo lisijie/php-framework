@@ -7,8 +7,6 @@ define('DATA_PATH', dirname(__DIR__) .'/data/');
 
 require dirname(__DIR__) .'/system/App.php';
 
-if (!\Core\Environment::isProduction()) {
-	define('DEBUG', true);
-}
+App::setDebug(\Core\Environment::isProduction() == false);
 App::bootstrap();
 App::run();

@@ -5,7 +5,6 @@ namespace Core\Exception;
 use Exception;
 use Core\Http\Response;
 use Core\Logger\LoggerInterface;
-use Core\Exception\HttpException;
 
 /**
  * 异常处理器
@@ -20,13 +19,6 @@ class Handler
      * @var static
      */
     protected static $instance;
-
-    /**
-     * 是否debug
-     *
-     * @var bool
-     */
-    protected $debug;
 
     /**
      * 日志记录器
@@ -44,16 +36,15 @@ class Handler
         'Core\Exception\HttpException',
     );
 
-    private function __construct(LoggerInterface $logger, $debug = false)
+    private function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->debug = $debug;
     }
 
-    public static function factory(LoggerInterface $logger, $debug = false)
+    public static function factory(LoggerInterface $logger)
     {
         if (!static::$instance) {
-            static::$instance = new static($logger, $debug);
+            static::$instance = new static($logger);
         }
         return static::$instance;
     }
@@ -116,11 +107,13 @@ class Handler
     protected function render(Exception $e)
     {
         if ($this->isHttpException($e)) {
-            return $this->renderHttpException($e);
+	        $this->renderHttpException($e);
+	        return;
         }
 
-        if ($this->debug) {
-            return $this->renderDebugInfo($e);
+        if (\App::isDebug()) {
+	        $this->renderDebugInfo($e);
+	        return;
         }
 
         exit('系统发生异常: '.get_class($e).'('.$e->getCode().')');

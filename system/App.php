@@ -20,6 +20,8 @@ foreach (array('APP_PATH', 'DATA_PATH') as $name) {
 
 //设置错误报告级别, 使用最严格的标准
 error_reporting(E_ALL | E_STRICT);
+//关闭显示错误消息, 所有错误已经转换成异常, 并注册了默认异常处理器
+ini_set('display_errors', 0);
 
 //系统常量定义
 require __DIR__ . '/Const.php';
@@ -31,9 +33,6 @@ require __DIR__ . '/Core/Common.php';
 if (is_file(VENDOR_PATH . 'autoload.php')) {
     require VENDOR_PATH . 'autoload.php';
 }
-
-//关闭显示错误消息, 所有错误已经转换成异常, 并注册了默认异常处理器
-ini_set('display_errors', DEBUG);
 
 //注册自动加载
 ClassLoader::getInstance()
@@ -58,14 +57,20 @@ class App extends Object
      *
      * @var Container;
      */
-    protected static $container;
+    private static $container;
 
     /**
      * 控制器命名空间
      * 
      * @var string|array
      */
-    protected static $controllerNamespace = 'App\\Controller';
+	private static $controllerNamespace = 'App\\Controller';
+
+	/**
+	 * 是否调试模式
+	 * @var bool
+	 */
+	private static $debug = false;
 
     /**
      * 运行应用并输出结果
@@ -105,6 +110,26 @@ class App extends Object
     {
         return PHP_SAPI == 'cli';
     }
+
+	/**
+	 * 设置调试模式
+     * 
+	 * @param $bool
+	 */
+	public static function setDebug($bool)
+	{
+		self::$debug = (bool) $bool;
+	}
+
+	/**
+	 * 返回是否调试模式
+     * 
+	 * @return bool
+	 */
+	public static function isDebug()
+	{
+		return self::$debug;
+	}
 
     /**
      * 处理请求

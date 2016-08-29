@@ -30,9 +30,9 @@ class Bootstrap implements BootstrapInterface
 
         //注册异常处理器
         if (class_exists('\\App\\Exception\\Handler')) {
-            \App\Exception\Handler::factory(App::logger(), DEBUG)->register();
+            \App\Exception\Handler::factory(App::logger())->register();
         } else {
-            \Core\Exception\Handler::factory(App::logger(), DEBUG)->register();
+            \Core\Exception\Handler::factory(App::logger())->register();
         }
 	}
 

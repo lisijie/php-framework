@@ -5,10 +5,6 @@ define('VERSION', '1.1.5');
 define('RELEASE', '20160413');
 //用于访问检查
 define('IN_APP', TRUE);
-//运行模式: development:开发环境, production:生产环境, testing:测试环境
-defined('RUN_ENV') or define('RUN_ENV', 'production');
-//默认关闭Debug模式
-defined('DEBUG') or define('DEBUG', FALSE);
 //目录分隔符
 define('DS', DIRECTORY_SEPARATOR);
 //定义当前时间戳常量
