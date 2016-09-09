@@ -1,6 +1,7 @@
 <?php
 
 namespace Core;
+use Core\Event\DbEvent;
 
 /**
  * 数据库操作类
@@ -8,11 +9,12 @@ namespace Core;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Db extends Object
+class Db extends Component
 {
-
-	const TAG_BEFORE_QUERY = 'before_query';
-	const TAG_AFTER_QUERY = 'after_query';
+	/**
+	 * 数据查询事件
+	 */
+	const EVENT_QUERY = 'query';
 
 	/**
 	 * 写模式
@@ -30,18 +32,11 @@ class Db extends Object
 	const MODE_AUTO = 'auto';
 
 	/**
-	 * 慢查询次数
-	 *
-	 * @var int
-	 */
-	static $slowCount = 0;
-
-	/**
 	 * 查询次数
 	 *
 	 * @var int
 	 */
-	static $queryCount = 0;
+	private static $queryCount = 0;
 
 	/**
 	 * 事务数量
@@ -63,51 +58,10 @@ class Db extends Object
 	 */
 	private $connections = array();
 
-	/**
-	 * hooks
-	 *
-	 * @var array
-	 */
-	private $hooks = array();
-
 	public function __construct($options)
 	{
 		if (!isset($options['charset'])) $options['charset'] = 'utf8';
 		$this->options = $options;
-	}
-
-	/**
-	 * 添加钩子函数
-	 *
-	 * @param string $tag
-	 * @param callable $func
-	 */
-	public function addHook($tag, $func)
-	{
-		$this->hooks[$tag][] = $func;
-	}
-
-	/**
-	 * 执行钩子函数
-	 *
-	 * @param string $tag
-	 * @param array $data
-	 */
-	private function runHook($tag, array $data)
-	{
-		static::$queryCount++;
-		if (isset($this->options['slow_log']) && $data['time'] > $this->options['slow_log']) {
-			static::$slowCount++;
-		}
-		if (isset($this->hooks[$tag]) && !empty($this->hooks[$tag])) {
-			foreach ($this->hooks[$tag] as $func) {
-				if ($func instanceof \Closure) {
-					$func($data);
-				} elseif (is_callable($func)) {
-					call_user_func($func, $data);
-				}
-			}
-		}
 	}
 
 	/**
@@ -195,20 +149,14 @@ class Db extends Object
 	 */
 	public function query($sql, $data = [], $fromMaster = false)
 	{
+		self::$queryCount ++;
 		$st = microtime(true);
 		$sql = $this->sql($sql);
 		$conn = $fromMaster ? $this->getConnect(self::MODE_WRITE) : $this->autoConn($sql);
 		$stm = $conn->prepare($sql);
 		$this->bindValue($stm, $data);
 		$stm->execute();
-		$this->runHook(static::TAG_AFTER_QUERY, [
-			'sql' => $sql,
-			'data' => $data,
-			'method' => 'query',
-			'from_master' => $fromMaster,
-			'time' => microtime(true) - $st,
-			'result' => $stm
-		]);
+		$this->trigger(self::EVENT_QUERY, new DbEvent($sql, $data, $fromMaster, microtime(true) - $st, $stm));
 		return $stm;
 	}
 
@@ -288,6 +236,7 @@ class Db extends Object
 	 */
 	public function insert($table, $data, $replace = false, $multi = false, $ignore = false)
 	{
+		self::$queryCount ++;
 		if (!$multi) $data = array($data);
 		$st = microtime(true);
 		$fields = '`' . implode('`,`', array_keys($data[0])) . '`'; //字段
@@ -302,14 +251,7 @@ class Db extends Object
 			$stm->execute(array_values($row));
 			$ids[] = $conn->lastInsertId();
 		}
-		$this->runHook(static::TAG_AFTER_QUERY, array(
-			'sql' => $sql,
-			'data' => $data,
-			'method' => 'insert',
-			'mode' => 'write',
-			'time' => microtime(true) - $st,
-			'result' => $ids
-		));
+		$this->trigger(self::EVENT_QUERY, new DbEvent($sql, $data, true, microtime(true) - $st, $stm));
 		return $multi ? $ids : array_shift($ids);
 	}
 

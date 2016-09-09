@@ -72,6 +72,12 @@ class App extends Object
 	 */
 	private static $debug = false;
 
+	/**
+	 * SQL调试
+	 * @var bool
+	 */
+	private static $sqlDebug = false;
+
     /**
      * 运行应用并输出结果
      */
@@ -131,7 +137,28 @@ class App extends Object
 		return self::$debug;
 	}
 
-    /**
+	/**
+	 * 设置调试模式
+	 *
+	 * @param $bool
+	 */
+	public static function setSqlDebug($bool)
+	{
+		self::$sqlDebug = (bool) $bool;
+	}
+
+	/**
+	 * 返回是否调试模式
+	 *
+	 * @return bool
+	 */
+	public static function isSqlDebug()
+	{
+		return self::$sqlDebug;
+	}
+
+
+	/**
      * 处理请求
      * 
      * @param  Request $request

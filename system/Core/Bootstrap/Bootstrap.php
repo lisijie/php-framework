@@ -2,6 +2,8 @@
 namespace Core\Bootstrap;
 
 use App;
+use Core\Event\DbEvent;
+use Core\Event\Event;
 use Core\Router\Router;
 use Core\Logger\Logger;
 use Core\Db;
@@ -45,7 +47,12 @@ class Bootstrap implements BootstrapInterface
         }
         $config = $config[$name];
         $db = new Db($config);
-        if (isset($config['slow_log']) && $config['slow_log']) { // 慢查询日志
+		$db->on(Db::EVENT_QUERY, function (DbEvent $event) use ($name) {
+			if (App::isSqlDebug()) {
+				$logger = App::logger("DB.{$name}");
+			}
+		});
+       /* if (isset($config['slow_log']) && $config['slow_log']) { // 慢查询日志
             $db->addHook(Db::TAG_AFTER_QUERY, function($data) use($config) {
                 if ($data['time'] > $config['slow_log']) {
                     $logger = App::logger('database');
@@ -56,7 +63,7 @@ class Bootstrap implements BootstrapInterface
                     $logger->warn($msg);
                 }
             });
-        }
+        }*/
         return $db;
 	}
 
