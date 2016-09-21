@@ -12,13 +12,6 @@ interface CacheInterface
 {
 
     /**
-     * 构造方法
-     *
-     * @param array $options 参数
-     */
-    public function __construct($options);
-
-    /**
      * 增加一个元素，如果元素已存在将返回false
      *
      * @param string $key

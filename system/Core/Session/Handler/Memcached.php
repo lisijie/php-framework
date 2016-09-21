@@ -22,7 +22,7 @@ class Memcached implements HandlerInterface
     private $handler;
     private $ttl;
 
-    public function __construct($options)
+    public function __construct(array $options)
     {
         if (empty($options['servers'])) {
             throw new \InvalidArgumentException('缺少Memcached服务器配置');

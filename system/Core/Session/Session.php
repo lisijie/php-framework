@@ -30,9 +30,9 @@ class Session
      * session cookie参数
      * @var array
      */
-    protected $cookieParams = array(
+    protected $cookieParams = [
         'httponly' => true,
-    );
+    ];
 
     protected $flashParam = '__flash__';
 
@@ -43,7 +43,7 @@ class Session
      */
     public function setHandler($handler)
     {
-        if ($handler instanceof \SessionHandlerInterface && $handler instanceof HandlerInterface) {
+        if (!($handler instanceof \SessionHandlerInterface || $handler instanceof HandlerInterface)) {
             throw new \InvalidArgumentException('session处理器必须实现SessionHandlerInterface或Core\\Session\\Handler\\HandlerInterface接口');
         }
         $this->handler = $handler;
@@ -229,6 +229,7 @@ class Session
      */
     public function has($name)
     {
+        $this->start();
         return isset($_SESSION[$name]);
     }
 
@@ -246,7 +247,7 @@ class Session
     public function setFlash($name, $value = null, $removeAfterAccess = true)
     {
         $this->start();
-        $counters = $this->get($this->flashParam, array());
+        $counters = $this->get($this->flashParam, []);
         $counters[$name] = $removeAfterAccess ? -1 : 0;
         $_SESSION[$name] = $value;
         $_SESSION[$this->flashParam] = $counters;
@@ -262,7 +263,7 @@ class Session
      */
     public function getFlash($name, $default = null, $delete = false)
     {
-        $counters = $this->get($this->flashParam, array());
+        $counters = $this->get($this->flashParam, []);
         if (isset($counters[$name])) {
             $value = $this->get($name, $default);
             if ($delete) {
@@ -287,7 +288,7 @@ class Session
     public function removeFlash($name)
     {
         $this->start();
-        $counters = $this->get($this->flashParam, array());
+        $counters = $this->get($this->flashParam, []);
         if (isset($counters[$name])) {
             $value = isset($_SESSION[$name]) ? $_SESSION[$name] : null;
             unset($_SESSION[$name], $counters[$name]);
@@ -303,7 +304,7 @@ class Session
     public function removeAllFlash()
     {
         $this->start();
-        $counters = $this->get($this->flashParam, array());
+        $counters = $this->get($this->flashParam, []);
         foreach ($counters as $name => $count) {
             unset($_SESSION[$name]);
         }
@@ -326,7 +327,7 @@ class Session
      */
     protected function updateFlashCounters()
     {
-        $counters = $this->get($this->flashParam, array());
+        $counters = $this->get($this->flashParam, []);
         if (is_array($counters)) {
             foreach ($counters as $name => $count) {
                 if ($count == 0) {
