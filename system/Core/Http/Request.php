@@ -2,13 +2,15 @@
 
 namespace Core\Http;
 
+use Core\Component;
+
 /**
  * Request 类
  *
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Request
+class Request extends Component
 {
     /**
      * 参数过滤器
@@ -443,7 +445,7 @@ class Request
 
     /**
      * 返回是否HTTPS连接
-     * 
+     *
      * @return bool
      */
     public function isHttps()

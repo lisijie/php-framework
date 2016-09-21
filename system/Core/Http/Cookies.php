@@ -2,22 +2,28 @@
 namespace Core\Http;
 
 use \App;
+use Core\Component;
+use Core\Event\Event;
 use Core\Lib\Cipher;
 
-class Cookies implements \IteratorAggregate, \Countable
+class Cookies extends Component implements \IteratorAggregate, \Countable
 {
-    protected $data = array();
+	const EVENT_SET_COOKIE = 'set_cookie';
+
+	const EVENT_SET_SECURE_COOKIE = 'set_secure_cookie';
+
+    protected $data = [];
 
     protected $cipher;
 
-    protected $defaults = array(
+    protected $defaults = [
         'value'    => '',    // cookie值
         'expire'   => 0,     // 过期时间戳
         'domain'   => null,  // 作用域名
         'path'     => '/',  // cookie目录
         'secure'   => false, // 是否使用https安全连接
         'httponly' => true  // 设为true可防止cookies被js读取，提高安全性
-    );
+    ];
 
     public function __construct(array $cookies = null)
     {
@@ -57,6 +63,7 @@ class Cookies implements \IteratorAggregate, \Countable
     {
         if (is_string($value)) $value = array('value' => $value);
         $this->data[$name] = array_merge($this->defaults, $value);
+	    $this->trigger(self::EVENT_SET_COOKIE);
     }
 
     /**
@@ -119,6 +126,7 @@ class Cookies implements \IteratorAggregate, \Countable
         if (is_string($value)) $value = array('value' => $value);
         $value['value'] = $this->getCipher()->encrypt($value['value'], $secret);
         $this->set($name, $value);
+	    $this->trigger(self::EVENT_SET_SECURE_COOKIE);
     }
 
     /**

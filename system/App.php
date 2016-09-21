@@ -46,10 +46,10 @@ use Core\Exception\HttpNotFoundException;
 use Core\Bootstrap\BootstrapInterface;
 use Core\Container;
 use Core\Exception\HttpException;
-use Core\Object;
+use Core\Events;
 use Core\Environment;
 
-class App extends Object
+class App extends Events
 {
 
     /**

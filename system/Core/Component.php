@@ -89,5 +89,6 @@ class Component extends Object
 				}
 			}
 		}
+		Events::trigger(get_class($this), $name, $event);
 	}
 }

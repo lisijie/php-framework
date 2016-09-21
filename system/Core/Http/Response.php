@@ -2,6 +2,7 @@
 
 namespace Core\Http;
 
+use Core\Component;
 
 /**
  * Response 输出类
@@ -9,8 +10,16 @@ namespace Core\Http;
  * @author lisijie <lsj86@qq.com>
  * @package Http
  */
-class Response
+class Response extends Component
 {
+	const EVENT_SET_CONTENT = 'set_content';
+
+	const EVENT_APPEND_CONTENT = 'append_content';
+
+	const EVENT_BEFORE_SEND = 'before_send';
+
+	const EVENT_AFTER_SEND = 'after_send';
+
     /**
      * 头信息
      * @var Headers
@@ -265,6 +274,7 @@ class Response
     public function setContent($content)
     {
         $this->content = $content;
+	    $this->trigger(self::EVENT_SET_CONTENT);
         return $this;
     }
 
@@ -307,6 +317,7 @@ class Response
      */
     public function send()
     {
+	    $this->trigger(self::EVENT_BEFORE_SEND);
         if (!headers_sent($filename, $line)) {
             $this->sendHeaders();
             $this->sendCookies();
@@ -314,6 +325,7 @@ class Response
             throw new \RuntimeException("Headers already sent in $filename on line $line");
         }
         $this->sendBody();
+	    $this->trigger(self::EVENT_AFTER_SEND);
     }
 
     protected function sendHeaders()

@@ -17,8 +17,8 @@ class Event extends Object
 	private $name = '';
 
 	/**
-	 * 事件产生对象
-	 * @var object
+	 * 事件产生对象，在静态方法触发的类全局事件该值为触发的类名字符串
+	 * @var object|string
 	 */
 	private $sender = null;
 
