@@ -16,22 +16,47 @@ class Response
      * @var Headers
      */
     protected $headers = null;
+
     /**
      * cookies
      * @var Cookies
      */
     protected $cookies = null;
-    //内容
+
+	/**
+	 * 输出内容
+	 * @var string
+	 */
     protected $content = '';
-    //状态码
+
+	/**
+	 * 响应状态码
+	 * @var int
+	 */
     protected $status = 200;
-    //状态文本
+
+	/**
+	 * 状态文本
+	 * @var string
+	 */
     protected $statusText = '';
-    //协议
-    protected $protocol;
-    //字符集
+
+	/**
+	 * 协议名称
+	 * @var string
+	 */
+	protected $protocol;
+
+	/**
+	 * 字符集
+	 * @var string
+	 */
     protected $charset;
-    //http状态码
+
+	/**
+	 * http状态码
+	 * @var array
+	 */
     protected static $httpCodes = array(
         //Informational 1xx
         100 => '100 Continue',
@@ -116,6 +141,46 @@ class Response
         }
         return $this->headers;
     }
+
+	/**
+	 * 设置cookie
+	 *
+	 * @param $name
+	 * @param $value
+	 * @return $this
+	 */
+	public function setCookie($name, $value)
+	{
+		$this->cookies()->set($name, $value);
+		return $this;
+	}
+
+	/**
+	 * 设置安全cookie
+	 *
+	 * @param $name
+	 * @param $value
+	 * @param null $secret
+	 * @return $this
+	 */
+	public function setSecureCookie($name, $value, $secret = null)
+	{
+		$this->cookies()->setSecure($name, $value, $secret);
+		return $this;
+	}
+
+	/**
+	 * 设置头信息
+	 *
+	 * @param $name
+	 * @param $value
+	 * @return $this
+	 */
+	public function setHeader($name, $value)
+	{
+		$this->headers()->set($name, $value);
+		return $this;
+	}
 
     /**
      * URL重定向

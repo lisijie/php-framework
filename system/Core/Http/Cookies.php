@@ -106,34 +106,39 @@ class Cookies implements \IteratorAggregate, \Countable
      *
      * @param string $name
      * @param string $value
+     * @param string $secret
      */
-    public function setEncrypt($name, $value)
+    public function setSecure($name, $value, $secret = null)
     {
-        $key = App::config()->get('app', 'secret_key');
-        if (empty($key)) {
+        if ($secret === null) {
+            $secret = App::config()->get('app', 'secret_key');    
+        }
+        if (empty($secret)) {
             throw new \RuntimeException("请先到app配置文件设置密钥: secret_key");
         }
         if (is_string($value)) $value = array('value' => $value);
-        $value['value'] = $this->getCipher()->encrypt($value['value'], $key);
+        $value['value'] = $this->getCipher()->encrypt($value['value'], $secret);
         $this->set($name, $value);
     }
 
     /**
      * 获取并解密cookie
      *
-     * @param $name
+     * @param string $name
+     * @param string $secret
      * @return null|string
      */
-    public function getDecrypt($name)
+    public function getSecure($name, $secret = null)
     {
-        $key = App::config()->get('app', 'secret_key');
-        if (empty($key)) {
+        if ($secret === null) {
+            $secret = App::config()->get('app', 'secret_key');    
+        }
+        if (empty($secret)) {
             throw new \RuntimeException("请先到app配置文件设置密钥: secret_key");
         }
-
         $value = $this->get($name);
         if ($value) {
-            $value = $this->getCipher()->decrypt($value, $key);
+            $value = $this->getCipher()->decrypt($value, $secret);
         }
         return $value;
     }

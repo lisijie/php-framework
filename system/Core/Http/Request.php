@@ -10,21 +10,46 @@ namespace Core\Http;
  */
 class Request
 {
-    // 参数过滤器
-    protected $filters = array();
+    /**
+     * 参数过滤器
+     * @var array
+     */
+    protected $filters = [];
 
-    // http头
+    /**
+     * http头对象
+     * @var Headers
+     */
     protected $headers;
 
-    // cookies
+    /**
+     * cookies对象
+     * @var Cookies
+     */
     protected $cookies;
 
+    /**
+     * 当前请求脚本的URL
+     * @var string
+     */
     protected $scriptUrl;
 
+    /**
+     * 当前客户端IP地址
+     * @var string
+     */
     protected $clientIP;
 
+    /**
+     * 当前访问主机名
+     * @var string
+     */
     protected $hostName;
 
+    /**
+     * 当前访问主机URL
+     * @var string
+     */
     protected $hostInfo;
 
     public function __construct(Headers $header = null, Cookies $cookie = null)
@@ -100,7 +125,7 @@ class Request
     /**
      * 获取请求的端口
      *
-     * @return string
+     * @return int
      */
     public function getPort()
     {
@@ -217,7 +242,7 @@ class Request
      * @param string $name 键名
      * @param mixed $default 默认值
      * @param bool $filter 是否应用过滤器
-     * @return mixed 值`
+     * @return mixed
      */
     public function getServer($name = null, $default = null, $filter = true)
     {
@@ -253,14 +278,23 @@ class Request
      * 获取cookie
      *
      * @param $name
-     * @return bool|string
+     * @return null|string
      */
-    public function getCookie($name = null)
+    public function getCookie($name)
     {
-        if (is_null($name)) {
-            return $this->cookies;
-        }
         return $this->cookies->get($name);
+    }
+
+    /**
+     * 获取安全cookie
+     *
+     * @param string $name
+     * @param string $secret
+     * @return null|string
+     */
+    public function getSecureCookie($name, $secret = null)
+    {
+        return $this->cookies->getSecure($name, $secret);
     }
 
     /**
@@ -407,7 +441,11 @@ class Request
         return isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '';
     }
 
-    //返回是否HTTPS连接
+    /**
+     * 返回是否HTTPS连接
+     * 
+     * @return bool
+     */
     public function isHttps()
     {
         return isset($_SERVER['HTTPS']) && (strcasecmp($_SERVER['HTTPS'], 'on') === 0 || $_SERVER['HTTPS'] == 1)
@@ -429,6 +467,8 @@ class Request
 
     /**
      * 获取http原始请求内容
+     *
+     * @return string
      */
     public function getRawBody()
     {
