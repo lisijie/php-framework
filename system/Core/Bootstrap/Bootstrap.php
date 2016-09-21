@@ -10,6 +10,7 @@ use Core\Db;
 use Core\Session\Session;
 use Core\Session\Handler\Memcached;
 use Core\View\ViewFactory;
+use Core\Lib\VarDumper;
 
 /**
  * 默认引导程序
@@ -48,22 +49,18 @@ class Bootstrap implements BootstrapInterface
         $config = $config[$name];
         $db = new Db($config);
 		$db->on(Db::EVENT_QUERY, function (DbEvent $event) use ($name) {
+			$time = number_format($event->getTime(), 3) . 's';
+			$params = VarDumper::export($event->getParams());
+			$sql = $event->getSql();
 			if (App::isSqlDebug()) {
-				$logger = App::logger("DB.{$name}");
-			}
-		});
-       /* if (isset($config['slow_log']) && $config['slow_log']) { // 慢查询日志
-            $db->addHook(Db::TAG_AFTER_QUERY, function($data) use($config) {
-                if ($data['time'] > $config['slow_log']) {
-                    $logger = App::logger('database');
-	                $msg = CUR_ROUTE . " 发生慢查询，耗时 ".round($data['time'],4)."s, 查询方法: {$data['method']}, SQL:\n{$data['sql']}";
-	                if (!empty($data['data'])) {
-		                $msg .= "\n参数: " . json_encode($data['data']);
-	                }
-                    $logger->warn($msg);
+				App::logger('database')->debug("[".CUR_ROUTE."] [{$name}] [{$time}] [{$sql}] {$params}");
+			} else {
+				$logSlow = $event->getSender()->getOption('log_slow');
+                if ($logSlow && $event->getTime() >= $logSlow) {
+	                App::logger('database')->warn("[".CUR_ROUTE."] [$name] [{$time}] [{$sql}] {$params}");
                 }
-            });
-        }*/
+            }
+		});
         return $db;
 	}
 

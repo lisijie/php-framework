@@ -65,6 +65,17 @@ class Db extends Component
 	}
 
 	/**
+	 * 获取配置信息
+	 *
+	 * @param $name
+	 * @return null
+	 */
+	public function getOption($name)
+	{
+		return isset($this->options[$name]) ? $this->options[$name] : null;
+	}
+
+	/**
 	 * 获取数据库PDO连接
 	 *
 	 * $reload 参数用于重新创建PDO对象，相当于重新连接数据库。当你的程序作为命令行脚本运行时，有时可能会由于

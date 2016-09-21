@@ -1,6 +1,8 @@
 <?php
 namespace Core;
 
+use Core\Event\Event;
+
 /**
  * 组件类
  * @package Core
@@ -15,6 +17,7 @@ class Component extends Object
 
 	/**
 	 * 添加一个事件处理器到某个事件
+	 * 
 	 * @param string $name 事件名称
 	 * @param callable $handler 事件处理器
 	 * @param null $data 附加数据
@@ -33,6 +36,7 @@ class Component extends Object
 
 	/**
 	 * 移除事件处理器
+	 * 
 	 * @param string $name 事件名称
 	 * @param null $handler 需要移除的事件处理器，默认移除所有
 	 * @return bool
@@ -62,6 +66,7 @@ class Component extends Object
 
 	/**
 	 * 触发事件
+	 * 
 	 * @param $name
 	 * @param Event|null $event
 	 */

@@ -11,7 +11,7 @@ return array(
     //默认数据库
     'default' => array(
         //是否开启慢查询日志，0为关闭
-        'slow_log' => 0.1,
+        'log_slow' => 0.1,
         //表前缀
         'prefix' => 't_',
         //字符集
@@ -35,7 +35,7 @@ return array(
     //用户中心
     'user' => array(
 	    //是否开启慢查询日志，0为关闭
-	    'slow_log' => 0.1,
+	    'log_slow' => 0.1,
         //表前缀
         'prefix' => 't_',
         //字符集
