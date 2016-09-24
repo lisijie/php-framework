@@ -1,5 +1,6 @@
 <?php
 namespace Core;
+
 use Core\Exception\CoreException;
 
 /**
@@ -114,7 +115,7 @@ class Environment
 	{
 		if (!self::$environment) {
 			// 指定环境变量文件
-			if (isset(self::$envFile) && is_file(self::$envFile)
+			if (!empty(self::$envFile) && is_file(self::$envFile)
 				&& self::isValid($env = file_get_contents(self::$envFile))) {
 				self::$environment = $env;
 			}
@@ -133,7 +134,7 @@ class Environment
 	 * 返回默认环境名称
 	 * @return string
 	 */
-	public static function getDefaultEnvironment()
+	private static function getDefaultEnvironment()
 	{
 		return self::PRODUCTION;
 	}

@@ -492,26 +492,4 @@ class App extends Events
     {
         return self::$container;
     }
-
-    /**
-     * 静态魔术方法
-     *
-     * @param string $method
-     * @param array $params
-     * @return mixed
-     * @throws InvalidArgumentException
-     */
-    public static function __callStatic($method, $params)
-    {
-        if (substr($method, 0, 3) == 'get') {
-            $name = strtolower(substr($method, 3));
-            if (self::$container->has($name)) {
-                array_unshift($params, $name);
-                return call_user_func_array([self::$container, 'get'], $params);
-            }
-        } elseif ($method === 'conf') { // 兼容旧版的获取配置方法
-	        return call_user_func_array([self::config(), 'get'], $params);
-        }
-        throw new InvalidArgumentException("方法不存在: " . __CLASS__ . "::{$method}");
-    }
 }
