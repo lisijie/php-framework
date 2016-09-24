@@ -11,7 +11,7 @@ if (version_compare(PHP_VERSION, '5.4.0', '<')) {
 }
 
 //检查目录常量
-foreach (array('APP_PATH', 'DATA_PATH') as $name) {
+foreach (['APP_PATH', 'DATA_PATH'] as $name) {
     if (!defined($name)) {
         header('Content-Type:text/html; charset=UTF-8;');
         die("常量 [{$name}] 未定义！");
@@ -80,11 +80,18 @@ class App extends Events
 
     /**
      * 运行应用并输出结果
+     *
+     * 流程：
+     * 1. 实例化 Request 对象
+     * 2. 路由解析，解析出路由地址和路由参数
+     * 3. 根据路由地址解析出控制器类名和方法名
+     * 4. 执行控制器方法，返回 Response 对象
+     * 5. 执行 Response::send() 方法输出结果
      */
     public static function run()
     {
         if (self::isCli()) {
-            self::$controllerNamespace = array('App\\Command', 'Core\\Console\\Controller');
+            self::$controllerNamespace = ['App\\Command', 'Core\\Console\\Controller'];
         }
         $config = self::config()->get('app', 'profiler', []);
         if ($config && $config['enabled']) {
@@ -171,7 +178,7 @@ class App extends Events
         //当前路由地址
         define('CUR_ROUTE', $router->getRoute());
         $request->addParams($router->getParams());
-        static::set('request', $request);
+        self::set('request', $request);
 
         return self::runRoute(CUR_ROUTE, $router->getParams());
     }
@@ -184,7 +191,7 @@ class App extends Events
     public static function getControllerPaths()
     {
         $paths = [];
-        foreach ((array)static::$controllerNamespace as $ns) {
+        foreach ((array)self::$controllerNamespace as $ns) {
             $ps = ClassLoader::getInstance()->getNamespacePaths(strstr($ns, '\\', true));
             foreach ($ps as &$v) {
                 $v .= strtr(strstr($ns, '\\'), '\\', DS);
@@ -208,7 +215,7 @@ class App extends Events
             throw new HttpNotFoundException();
         }
 
-        list($controllerName, $actionName) = static::parseRoute($route);
+        list($controllerName, $actionName) = self::parseRoute($route);
 
         if (!class_exists($controllerName)) {
             throw new HttpNotFoundException();
@@ -253,15 +260,15 @@ class App extends Events
             $value = str_replace(' ', '', ucwords(str_replace('-', ' ', $value)));
         }
 	    $controllerName = $actionName = '';
-        if (is_array(static::$controllerNamespace)) {
-            foreach (static::$controllerNamespace as $ns) {
+        if (is_array(self::$controllerNamespace)) {
+            foreach (self::$controllerNamespace as $ns) {
                 $controllerName = $ns . "\\{$value}Controller";
                 if (class_exists($controllerName)) {
                     break;
                 }
             }
         } else {
-            $controllerName = static::$controllerNamespace . "\\{$value}Controller";
+            $controllerName = self::$controllerNamespace . "\\{$value}Controller";
         }
         if ($pos) {
             $actionName = substr($route, strrpos($route, '/') + 1);
@@ -286,7 +293,7 @@ class App extends Events
     {
         self::$container = new Container();
         if (!is_object($bootstrap)) {
-            if (static::isCli()) {
+            if (self::isCli()) {
                 $bootstrap = new \Core\Bootstrap\Console();
             } else {
                 $bootstrap = new \Core\Bootstrap\Bootstrap();
@@ -480,7 +487,8 @@ class App extends Events
      */
     public static function get($name)
     {
-        return call_user_func_array(array(self::$container, 'get'), func_get_args());
+        return call_user_func_array(
+	        [self::$container, 'get'], func_get_args());
     }
 
     /**

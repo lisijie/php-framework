@@ -12,7 +12,7 @@ namespace Core\Logger\Handler;
  */
 class NullHandler extends AbstractHandler
 {
-    public function __construct(array $config = array())
+    public function __construct(array $config = [])
     {
 
     }

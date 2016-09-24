@@ -21,14 +21,14 @@ class Object
 		$vars = [];
 		foreach (get_object_vars($this) as $key => $val) {
 			if (is_string($val)) {
-				$vars[] = "{$key}=\"".strval($val)."\"";
+				$vars[] = "{$key}=\"" . strval($val) . "\"";
 			} elseif (is_array($val)) {
-				$vars[] = "{$key}=".json_encode($val);
+				$vars[] = "{$key}=" . json_encode($val);
 			} else {
-				$vars[] = "{$key}=".strval($val);
+				$vars[] = "{$key}=" . strval($val);
 			}
 		}
 
-		return get_class($this) . '{'.implode(', ', $vars).'}';
+		return get_class($this) . '{' . implode(', ', $vars) . '}';
 	}
 }

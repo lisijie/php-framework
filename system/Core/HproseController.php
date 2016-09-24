@@ -19,7 +19,7 @@ class HproseController extends Controller
 	 * @return Response|mixed
 	 * @throws AppException
 	 */
-	public function runActionWithParams($actionName, $params = array())
+	public function runActionWithParams($actionName, $params = [])
 	{
 		$server = new HproseServer();
 		$server->addFilter(new ServiceFilter());

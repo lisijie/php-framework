@@ -57,7 +57,7 @@ class Db extends Component
 	 *
 	 * @var array
 	 */
-	private $connections = array();
+	private $connections = [];
 
 	public function __construct($options)
 	{
@@ -161,7 +161,7 @@ class Db extends Component
 	 */
 	public function query($sql, $data = [], $fromMaster = false)
 	{
-		self::$queryCount ++;
+		self::$queryCount++;
 		$st = microtime(true);
 		$sql = $this->sql($sql);
 		$conn = $fromMaster ? $this->getConnect(self::MODE_WRITE) : $this->autoConn($sql);
@@ -248,8 +248,8 @@ class Db extends Component
 	 */
 	public function insert($table, $data, $replace = false, $multi = false, $ignore = false)
 	{
-		self::$queryCount ++;
-		if (!$multi) $data = array($data);
+		self::$queryCount++;
+		if (!$multi) $data = [$data];
 		$st = microtime(true);
 		$fields = '`' . implode('`,`', array_keys($data[0])) . '`'; //字段
 		$values = '(' . str_repeat('?,', count($data[0]) - 1) . '?)';
@@ -258,7 +258,7 @@ class Db extends Component
 		$sql = $this->sql("{$method} {$ignore} INTO {$table} ({$fields}) VALUES {$values}");
 		$conn = $this->getConnect();
 		$stm = $conn->prepare($sql);
-		$ids = array();
+		$ids = [];
 		foreach ($data as $row) {
 			$stm->execute(array_values($row));
 			$ids[] = $conn->lastInsertId();
@@ -315,9 +315,9 @@ class Db extends Component
 	 */
 	public function getTables($pattern = null)
 	{
-		$tables = array();
+		$tables = [];
 		$sql = "SHOW TABLES" . ($pattern ? " LIKE '%{$pattern}%'" : '');
-		$result = $this->select($sql, array(), true);
+		$result = $this->select($sql, [], true);
 		foreach ($result as $r) {
 			foreach ($r as $table) $tables[] = $table;
 		}

@@ -18,11 +18,11 @@ class Upload
     // 上传目录
     private $savePath = 'upload/';
     // 允许类型
-    private $allowTypes = array();
+    private $allowTypes = [];
     // 文件大小上限
     private $maxsize = 0;
     //错误消息
-    private $message = array(
+    private $message = [
         0 => '上传成功',
         1 => '上传的文件超过了 php.ini 中 upload_max_filesize 选项限制的值',
         2 => '上传文件的大小超过了 HTML 表单中 MAX_FILE_SIZE 选项指定的值',
@@ -32,9 +32,9 @@ class Upload
         6 => '文件写入失败',
         -1 => '文件大小超出限制',
         -2 => '文件类型不允许',
-    );
+    ];
 
-    public function __construct($options = array())
+    public function __construct($options = [])
     {
         if (isset($options['allow_types'])) {
             if (!is_array($options['allow_types'])) {

@@ -35,7 +35,7 @@ class Model extends Object
 	 * 字段列表
 	 * @var array
 	 */
-	protected $fields = array();
+	protected $fields = [];
 
 	private final function __construct()
 	{
@@ -73,7 +73,7 @@ class Model extends Object
 	 * @param array $filter
 	 * @return int
 	 */
-	public function count(array $filter = array())
+	public function count(array $filter = [])
 	{
 		$sql = "SELECT COUNT(*) FROM " . $this->db->table($this->tableName);
 		if (!empty($filter)) $sql .= " WHERE " . $this->parseFilter($filter);
@@ -99,7 +99,7 @@ class Model extends Object
 			$sql .= " WHERE " . $this->parseFilter($filter);
 		}
 		if (!empty($order)) {
-			$orderSql = array();
+			$orderSql = [];
 			foreach ($order as $key => $val) {
 				$orderSql[] = "{$key} " . (strtolower($val) == 'asc' ? 'ASC' : 'DESC');
 			}
@@ -165,7 +165,7 @@ class Model extends Object
 	public function insertOrUpdate(array $data, $multi = false)
 	{
 		if (empty($data)) return 0;
-		if (!$multi) $data = array($data);
+		if (!$multi) $data = [$data];
 		$table = $this->db->table($this->tableName);
 		$fields = '`' . implode('`,`', array_keys($data[0])) . '`'; //字段
 		// 插入值列表
@@ -191,7 +191,7 @@ class Model extends Object
 	 * @param array $fields 字段
 	 * @return array
 	 */
-	public function getRow(array $filter = null, array $fields = array())
+	public function getRow(array $filter = null, array $fields = [])
 	{
 		if ($fields) {
 			$fields = '`' . implode('`,`', $fields) . '`';
@@ -296,7 +296,7 @@ class Model extends Object
 		if (empty($data) || !isset($data[0][$idx])) {
 			return $data;
 		}
-		$tmp = array();
+		$tmp = [];
 		foreach ($data as $row) {
 			$tmp[$row[$idx]] = $row;
 		}
@@ -311,7 +311,7 @@ class Model extends Object
 	 */
 	protected function parseFilter(array $filter)
 	{
-		$where = array();
+		$where = [];
 		foreach ($filter as $field => $val) {
 			if (($pos = strrpos($field, '__')) > 0) {
 				$op = substr($field, $pos + 2);
@@ -342,14 +342,14 @@ class Model extends Object
 						$where[] = "`{$field}` BETWEEN " . $this->db->quote($val[0]) . " AND " . $this->db->quote($val[1]);
 						break;
 					case 'in': // IN (1,2,3)
-						if (!is_array($val)) $val = array($val);
+						if (!is_array($val)) $val = [$val];
 						foreach ($val as $k => $v) {
 							$val[$k] = $this->db->quote($v);
 						}
 						$where[] = "`{$field}` IN (" . implode(',', $val) . ")";
 						break;
 					case 'notin': // NOT IN (1,2,3)
-						if (!is_array($val)) $val = array($val);
+						if (!is_array($val)) $val = [$val];
 						foreach ($val as $k => $v) {
 							$val[$k] = $this->db->quote($v);
 						}

@@ -12,7 +12,7 @@ class JsonFormatter extends AbstractFormatter
 	public function format(array $record)
 	{
 		if (false !== strpos($record['message'], '{')) {
-			$replacements = array();
+			$replacements = [];
 			foreach ($record['context'] as $key => $val) {
 				if (is_null($val) || is_scalar($val) || (is_object($val) && method_exists($val, "__toString"))) {
 					$replacements['{' . $key . '}'] = $val;
@@ -25,12 +25,12 @@ class JsonFormatter extends AbstractFormatter
 			$record['message'] = strtr($record['message'], $replacements);
 		}
 
-		$message = array(
+		$message = [
 			'datetime' => $record['datetime']->format($this->getDateFormat()),
 			'channel' => strtoupper($record['channel']),
 			'level' => $record['level_name'],
 			'message' => $record['message'],
-		);
+		];
 
 		return json_encode($message);
 	}

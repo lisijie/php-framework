@@ -12,15 +12,6 @@ use Core\Logger\Formatter\FormatterInterface;
  */
 interface HandlerInterface
 {
-
-    /**
-     * 构造函数
-     *
-     * @param array $config 配置信息
-     */
-    public function __construct(array $config = array());
-
-
     /**
      * 获取默认格式器
      *

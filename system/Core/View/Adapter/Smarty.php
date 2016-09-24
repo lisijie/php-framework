@@ -20,12 +20,12 @@ class Smarty extends ViewAbstract
         if (!isset($this->options['ext'])) {
             $this->options['ext'] = '.html';
         }
-        $defaults = array(
+        $defaults = [
             'template_dir' => VIEW_PATH,
             'config_dir' => VIEW_PATH . 'config' . DIRECTORY_SEPARATOR,
             'compile_dir' => DATA_PATH . 'cache/smarty_complied',
             'cache_dir' => DATA_PATH . 'cache/smarty_cache',
-        );
+        ];
         $this->options = array_merge($defaults, $this->options);
         if (!class_exists('\Smarty')) {
             throw new ViewException('Smarty 类不存在，请使用composer安装');
@@ -36,8 +36,8 @@ class Smarty extends ViewAbstract
         }
 
 	    // 注册smarty模板函数，以支持布局模板
-        $this->smarty->registerPlugin('function', 'layout_section', array($this, 'section'));
-        $this->smarty->registerPlugin('function', 'layout_content', array($this, 'content'));
+        $this->smarty->registerPlugin('function', 'layout_section', [$this, 'section']);
+        $this->smarty->registerPlugin('function', 'layout_content', [$this, 'content']);
     }
 
     public function section($params)
@@ -59,6 +59,6 @@ class Smarty extends ViewAbstract
 
     public function __call($method, $args)
     {
-        return call_user_func_array(array($this->smarty, $method), $args);
+        return call_user_func_array([$this->smarty, $method], $args);
     }
 }
