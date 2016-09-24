@@ -1,6 +1,12 @@
 <?php
 namespace Core\Event;
 
+/**
+ * 数据库事件
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core\Event;
+ */
 class DbEvent extends Event
 {
 	/**

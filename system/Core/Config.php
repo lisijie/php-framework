@@ -1,5 +1,6 @@
 <?php
 namespace Core;
+
 /**
  * 配置信息读写类
  *

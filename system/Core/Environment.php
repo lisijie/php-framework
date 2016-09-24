@@ -5,6 +5,8 @@ use Core\Exception\CoreException;
 
 /**
  * 运行环境
+ * 
+ * @author lisijie <lsj86@qq.com>
  * @package Core
  */
 class Environment

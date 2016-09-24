@@ -1,6 +1,7 @@
 <?php
 
 namespace Core;
+
 use Core\Event\DbEvent;
 
 /**

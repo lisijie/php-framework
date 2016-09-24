@@ -6,6 +6,8 @@ use Core\Event\Event;
 
 /**
  * 类级别的事件处理
+ * 
+ * @author lisijie <lsj86@qq.com>
  * @package Core
  */
 class Events extends Object
