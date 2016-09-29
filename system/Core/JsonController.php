@@ -2,8 +2,6 @@
 
 namespace Core;
 
-use App;
-
 /**
  * JSON控制器
  *
@@ -31,7 +29,7 @@ class JsonController extends Controller
 		];
 		if ($redirect) $data['redirect'] = $redirect;
 		$charset = $this->response->getCharset();
-		$this->response->headers()->set('content-type', "application/json; charset={$charset}");
+		$this->response->setHeader('content-type', "application/json; charset={$charset}");
 		$this->response->setContent($this->jsonEncode($data));
 		return $this->response;
 	}
@@ -43,7 +41,7 @@ class JsonController extends Controller
 			'data' => $this->getData()
 		];
 		$charset = $this->response->getCharset();
-		$this->response->headers()->set('content-type', "application/json; charset={$charset}");
+		$this->response->setHeader('content-type', "application/json; charset={$charset}");
 
 		$json = $this->jsonEncode($data);
 		$jsonpCallback = $this->get($this->jsonpCallback);

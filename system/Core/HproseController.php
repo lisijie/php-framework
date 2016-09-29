@@ -2,7 +2,6 @@
 
 namespace Core;
 
-
 use Core\Http\Response;
 use Core\Exception\AppException;
 use Hprose\Http\Server as HproseServer;
