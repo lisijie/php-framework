@@ -6,7 +6,7 @@ use Core\Http\Response;
 use Core\Exception\AppException;
 use Core\Lib\Console;
 
-class CliController extends Controller
+class Command extends Controller
 {
 
 	protected function stdout($string)
@@ -32,6 +32,7 @@ class CliController extends Controller
 		if (empty($actionName)) {
 			$actionName = $this->defaultAction;
 		}
+		$actionName .= 'Action';
 		if (!method_exists($this, $actionName)) {
 			throw new \BadMethodCallException("方法不存在: {$actionName}");
 		}

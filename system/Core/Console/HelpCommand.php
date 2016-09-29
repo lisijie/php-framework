@@ -1,17 +1,17 @@
 <?php
-namespace Core\Console\Controller;
+namespace Core\Console;
 
 use App;
-use Core\CliController as Controller;
+use Core\Command;
 use Core\Lib\FileHelper;
 use Core\Lib\Console;
 
 /**
  * 显示帮助
  *
- * @package Core\Console\Controller
+ * @package Core\Console
  */
-class HelpController extends Controller
+class HelpCommand extends Command
 {
 
 	/**
@@ -39,7 +39,7 @@ class HelpController extends Controller
 			$actions = $this->getControllerActions($controller);
 			if (count($actions) > 0) {
 				foreach ($actions as $name => $action) {
-					$command = str_replace(array_keys(\App::getControllerPaths()), '', substr($controller, 0, -10));
+					$command = str_replace(array_keys(\App::getControllerPaths()), '', substr($controller, 0, -7));
 					$command = ltrim(strtr($command, '\\', '/'), '/') . '/' . $name;
 					$commands[$controller][$command] = $this->parseCommentSummary($action->getDocComment());
 					if (strlen($command) > $len) {
@@ -51,7 +51,7 @@ class HelpController extends Controller
 
 		foreach ($commands as $controller => $actions) {
 			$class = $this->getReflectionClass($controller);
-			$string = str_replace(array_keys(\App::getControllerPaths()), '', substr($controller, 0, -10));
+			$string = str_replace(array_keys(\App::getControllerPaths()), '', substr($controller, 0, -7));
 			$string = ltrim(strtr($string, '\\', '/'), '/');
 			$this->stdout(Console::ansiFormat("- {$string}", Console::FG_YELLOW));
 			$this->stdout(str_repeat(' ', $len - strlen($string) + 10));
@@ -69,7 +69,7 @@ class HelpController extends Controller
 	/**
 	 * 获取控制器列表
 	 */
-	protected function getControllers()
+	private function getControllers()
 	{
 		$controllers = [];
 		$paths = App::getControllerPaths();
@@ -77,7 +77,7 @@ class HelpController extends Controller
 			foreach ($nsPaths as $path) {
 				$files = FileHelper::scanDir($path);
 				foreach ($files as $file) {
-					if (substr_compare($file, 'Controller.php', -14, 14) !== 0) {
+					if (substr_compare($file, 'Command.php', -11, 11) !== 0) {
 						continue;
 					}
 					$file = substr($file, strlen($path), -4);
@@ -94,7 +94,7 @@ class HelpController extends Controller
 	 * @param string $controller
 	 * @return array
 	 */
-	protected function getControllerActions($controller)
+	private function getControllerActions($controller)
 	{
 		$actions = [];
 		$class = $this->getReflectionClass($controller);
@@ -113,7 +113,7 @@ class HelpController extends Controller
 	 * @param $class
 	 * @return \ReflectionClass
 	 */
-	protected function getReflectionClass($class)
+	private function getReflectionClass($class)
 	{
 		static $objects = [];
 		if (!isset($objects[$class])) {
@@ -128,7 +128,7 @@ class HelpController extends Controller
 	 * @param $comment
 	 * @return string
 	 */
-	protected function parseCommentSummary($comment)
+	private function parseCommentSummary($comment)
 	{
 		// \R 可以匹配 \r,\n,\r\n 三种换行符
 		$comments = preg_split('|\R|u', $comment);

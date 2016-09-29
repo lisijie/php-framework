@@ -1,9 +1,9 @@
 <?php
 namespace App\Command;
 
-use Core\CliController as Controller;
+use Core\Command;
 
-class DemoController extends Controller
+class DemoCommand extends Command
 {
     public function testAction($name)
     {
