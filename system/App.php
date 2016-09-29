@@ -67,6 +67,12 @@ class App extends Events
 	private static $controllerNamespace = 'App\\Controller';
 
 	/**
+	 * 控制器名后缀
+	 * @var string
+	 */
+	private static $controllerSuffix = 'Controller';
+
+	/**
 	 * 是否调试模式
 	 * @var bool
 	 */
@@ -91,7 +97,8 @@ class App extends Events
 	public static function run()
 	{
 		if (self::isCli()) {
-			self::$controllerNamespace = ['App\\Command', 'Core\\Console\\Controller'];
+			self::$controllerNamespace = ['App\\Command', 'Core\\Console'];
+			self::$controllerSuffix = 'Command';
 		}
 		$config = self::config()->get('app', 'profiler', []);
 		if ($config && $config['enabled']) {
@@ -219,7 +226,6 @@ class App extends Events
 
 		// 将路由地址解析为对应的控制器名和方法名
 		list($controllerName, $actionName) = self::parseRoute($route);
-
 		// 控制器不存在抛出404异常
 		if (!class_exists($controllerName)) {
 			throw new HttpNotFoundException();
@@ -260,7 +266,6 @@ class App extends Events
 	 */
 	public static function parseRoute($route)
 	{
-		$route = strtolower($route);
 		$pos = strrpos($route, '/');
 		if ($pos !== false) {
 			// 转换成首字母大写+反斜杠形式
@@ -275,7 +280,8 @@ class App extends Events
 		$controllerName = $actionName = '';
 		$namespaces = is_array(self::$controllerNamespace) ? self::$controllerNamespace : [self::$controllerNamespace];
 		foreach ($namespaces as $ns) {
-			$tmpName = $ns . "\\{$route}Controller";
+			$tmpName = $ns . "\\{$route}" . self::$controllerSuffix;
+
 			if (class_exists($tmpName)) {
 				$controllerName = $tmpName;
 				break;
@@ -286,7 +292,7 @@ class App extends Events
 			$pos = strrpos($route, '\\');
 			$tmpControl = substr($route, 0, $pos);
 			foreach ($namespaces as $ns) {
-				$tmpName = $ns . "\\{$tmpControl}Controller";
+				$tmpName = $ns . "\\{$tmpControl}" . self::$controllerSuffix;
 				if (class_exists($tmpName)) {
 					$controllerName = $tmpName;
 					$actionName = lcfirst(substr($route, $pos + 1));
