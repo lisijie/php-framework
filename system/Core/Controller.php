@@ -25,7 +25,7 @@ class Controller extends Object
 	 * 默认动作
 	 * @var string
 	 */
-	protected $defaultAction = 'indexAction';
+	protected $defaultAction = 'index';
 
 	/**
 	 * 请求对象
@@ -277,13 +277,14 @@ class Controller extends Object
 		if (empty($actionName)) {
 			$actionName = $this->defaultAction;
 		}
+		$actionName .= 'Action';
 		if (!method_exists($this, $actionName)) {
-			throw new \BadMethodCallException("方法不存在: {$actionName}");
+			throw new \BadMethodCallException("方法不存在: " . get_class($this) . "::{$actionName}");
 		}
 
 		$method = new \ReflectionMethod($this, $actionName);
 		if (!$method->isPublic()) {
-			throw new \BadMethodCallException("调用非公有方法: {$actionName}");
+			throw new \BadMethodCallException("调用非公有方法: " . get_class($this) . "::{$actionName}");
 		}
 
 		$args = [];
@@ -331,7 +332,7 @@ class Controller extends Object
 		}
 		$content = $this->jsonEncode($data);
 		$charset = $this->response->getCharset();
-		$this->response->headers()->set('content-type', "application/json; charset={$charset}");
+		$this->response->setHeader('content-type', "application/json; charset={$charset}");
 		$this->response->setContent($content);
 		return $this->response;
 	}
