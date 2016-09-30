@@ -74,14 +74,14 @@ class FileHandler extends AbstractHandler
 
 		$fileName = str_replace(
 			['{level}', '{Y}', '{m}', '{d}', '{H}'],
-			[$record['level_name'], date('Y'), date('m'), date('d'), date('H')],
+			[strtolower($record['level_name']), date('Y'), date('m'), date('d'), date('H')],
 			$this->fileName);
 
 		$fileName = $this->savePath . DIRECTORY_SEPARATOR . $fileName;
 
 		if ($this->fileSize > 0 && is_file($fileName) && filesize($fileName) > $this->fileSize) {
 			$info = pathinfo($fileName);
-			$newName = $info['dirname'] . DIRECTORY_SEPARATOR . $info['filename'] . '_' . time() . '.' . $info['extension'];
+			$newName = $info['dirname'] . DIRECTORY_SEPARATOR . $info['filename'] . '_' . date('YmdH:i:s') . '.' . $info['extension'];
 			rename($fileName, $newName);
 		}
 
