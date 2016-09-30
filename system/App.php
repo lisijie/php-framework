@@ -241,6 +241,8 @@ class App extends Events
 			if ($controller->before() === true) {
 				$response = $controller->runActionWithParams($actionName, $params);
 				$controller->after();
+			} else {
+				throw new HttpException(403);
 			}
 			return $response;
 		} catch (BadMethodCallException $e) {

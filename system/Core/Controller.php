@@ -63,7 +63,8 @@ class Controller extends Object
 	/**
 	 * 动作执行前置方法
 	 *
-	 * 该方法会在Action方法被执行前调用，只有在本方法返回true时，才会执行接下来的Action方法，否则将跳过进入after()方法。
+	 * 该方法会在Action方法被执行前调用，只有在本方法返回true时，才会执行接下来的Action方法，否则将返回403错误页面。
+	 * 可以用来做功能开关、访问控制等。
 	 */
 	public function before()
 	{
