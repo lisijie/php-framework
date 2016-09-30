@@ -11,7 +11,7 @@ use Core\Logger\LoggerInterface;
  *
  * @package Core\Exception
  */
-class Handler
+class ErrorHandler
 {
 	/**
 	 * 当前类的实例
