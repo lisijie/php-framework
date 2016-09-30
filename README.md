@@ -1,16 +1,10 @@
-# 我的PHP框架 #
+# 一个轻量级PHP框架 #
 
-一个优雅、简洁、高效的PHP框架，用于快速开发各种类型的PHP项目，零学习成本。
+一个优雅、简洁、高效的PHP框架，用于快速开发扩展性强、可维护性强的PHP项目，零学习成本。
 
-### 特点
+## 使用说明
 
-- 符合PSR编码规范，支持composer
-- 简单的路由配置
-- 清晰的代码结构，方便开发可维护性好的大型项目
-
-### 实践指南
-
-###### 1. 目录结构
+### 一、目录结构
 
 一个基本的应用目录结构如下：
 
@@ -18,31 +12,40 @@
 	|  |- Command 命令行脚本控制器（可选）
 	|  |- Config 配置文件
 	|  |- Controller Web控制器
-	|  |- Exception 自定义异常类型和异常处理器 (可选)
-	|  |- Model 数据模型，提供数据的读写接口，一张表对应一个类 (可选)
+	|  |- Exception 自定义异常类型和异常处理器（可选）
+	|  |- Model 数据模型，提供数据的读写接口，一张表对应一个类（可选）
+	|  |- Service Service模块，封装业务逻辑，操作Model（可选）
 	|  |- View 视图模板文件
 	|- data 运行时数据目录（日志、缓存文件等）
-	|- public 发布目录
+	|- public 发布目录，存放外部可访问的资源和index.php入口文件
 	|- system 框架目录
 	|- vendor composer第三方包目录
 
-在开发功能简单的小型项目时，app目录下保留必要的目录即可，所有业务逻辑和数据库读写操作可以直接在Controller里面进行。
+框架使用符合PSR规范的自动加载机制，可以在 `app` 目录下创建其他包。如工具包 `Util`，使用的命名空间为 `App\Util`。
 
-对于稍微大点的项目，以上的开发方式可能会让代码变得难以维护，通常会在数据库之上再增加一个Model层，将每个表的读写操作进行封装，外部控制器不再直接使用SQL查询，未来进行分库分表甚至更换数据库时，直接修改Model层的代码即可。
+### 二、配置文件
 
-对于较大型的项目，或者需要提供多端接口的应用（如手机APP），建议在 Controller 和 Model 之间再增加一个 Service 层，用于封装业务逻辑，便于重用业务代码，最终调用关系为 Controller -> Service -> Model。
+配置文件统一放置在 `app/Config` 目录下，其下又分了 development、testing、pre_release、production 子目录，分别用于开发环境、测试环境、预发布环境、生产环境的配置。放在 Config 根目录下的配置文件表示全局配置，如路由配置。放在环境目录下的为差异配置。加载方式是：首先读取全局配置，然后读取差异配置，然后将差异配置的配置项覆盖到全局配置。
 
-###### 2. 命令行脚本
+配置的获取方式为：
 
-很多项目都会有在命令行模式下执行PHP脚本的需求，例如结合crontab做定时数据统计、数据清理等。在本框架中，命令行脚本控制器统一放在Command目录下，需要继承自 Core\CliController，如果需要参数，则必须在方法中声明。示例代码：
+```
+\App::config()->get('app', 'varname', 'default');
+```
+
+其中 app 表示配置文件名，varname 表示配置项， default 表示当不存在该配置项时，使用它作为返回值。
+
+### 三、命令行脚本
+
+很多项目都会有在命令行模式下执行PHP脚本的需求，例如结合crontab做定时数据统计、数据清理等。在本框架中，命令行脚本控制器统一放在Command目录下，需要继承自 Core\Command，如果需要参数，则必须在方法中声明。示例代码：
 
 ```php
 <?php
 namespace App\Command;
 
-use Core\CliController as Controller;
+use Core\Command;
 
-class DemoController extends Controller
+class DemoCommand extends Command
 {
     public function testAction($name)
     {
@@ -64,25 +67,6 @@ hello, world
 ```
 
 如果你需要定时执行以上命令，把它添加到crontab配置中即可。
-
-另一个更好的方式是单独写一个命令行脚本的入口文件，放到public以外的目录，并加上可执行权限，然后像执行二进制程序一样去执行它。
-
-```php
-#!/usr/local/php/bin/php
-<?php
-define('APP_PATH',  dirname(__DIR__) .'/app/');
-define('DATA_PATH', dirname(__DIR__) .'/data/');
-
-define('DEBUG', true);
-define('RUN_MODE', 'dev');
-
-require dirname(__DIR__) .'/system/App.php';
-
-App::bootstrap();
-App::run();
-```
-
-把以上代码保存到名为 app 的文件中，然后加上可执行权限。之后就可以直接使用 ./app 运行了。几处路径请自行修改。
 
 ### 服务器配置
 
