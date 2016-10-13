@@ -114,7 +114,7 @@ class Controller extends Object
 	 * @param bool $filter
 	 * @return mixed|null
 	 */
-	protected function getQuery($name, $default = null, $filter = true)
+	protected function getQuery($name = null, $default = null, $filter = true)
 	{
 		return $this->request->getQuery($name, $default, $filter);
 	}
@@ -127,7 +127,7 @@ class Controller extends Object
 	 * @param bool $filter
 	 * @return mixed|null
 	 */
-	protected function getPost($name, $default = null, $filter = true)
+	protected function getPost($name = null, $default = null, $filter = true)
 	{
 		return $this->request->getPost($name, $default, $filter);
 	}
