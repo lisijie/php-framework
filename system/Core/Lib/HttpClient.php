@@ -34,7 +34,7 @@ class HttpClient
 	 * @var array
 	 */
 	private $settings = [
-		'connect_timeout' => 30, // 连接超时时间
+		'connect_timeout' => 10, // 连接超时时间
 		'timeout' => 30, // curl执行超时时间
 		'user_agent' => 'HttpClient', // 请求的UserAgent
 	];
@@ -313,6 +313,11 @@ class HttpClient
 			CURLOPT_USERAGENT => $this->settings['user_agent'],
 			// CURLOPT_VERBOSE => true,
 		];
+		// https不进行证书验证
+		if (substr($url, 0, 6) == 'https:') {
+			$options[CURLOPT_SSL_VERIFYPEER] = false;
+			$options[CURLOPT_SSL_VERIFYHOST] = false;
+		}
 		// 处理自定义http请求头
 		if (!empty($this->headers)) {
 			$headers = [];
