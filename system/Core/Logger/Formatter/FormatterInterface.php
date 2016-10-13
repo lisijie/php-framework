@@ -9,12 +9,12 @@ namespace Core\Logger\Formatter;
  */
 interface FormatterInterface
 {
-	// 设置日期格式
-	public function setDateFormat($format);
+    // 设置日期格式
+    public function setDateFormat($format);
 
-	// 获取日期格式
-	public function getDateFormat();
+    // 获取日期格式
+    public function getDateFormat();
 
-	// 格式化日志
+    // 格式化日志
     public function format(array $record);
 }

@@ -4,12 +4,12 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?php echo $title?></title>
-    <?php $this->section('header')?>
+    <title><?php echo $title ?></title>
+    <?php $this->section('header') ?>
 </head>
 <body>
 
-<?php $this->content()?>
+<?php $this->content() ?>
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>

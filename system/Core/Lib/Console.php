@@ -8,36 +8,36 @@ namespace Core\Lib;
  */
 class Console
 {
-    const FG_BLACK  = 30;
-    const FG_RED    = 31;
-    const FG_GREEN  = 32;
+    const FG_BLACK = 30;
+    const FG_RED = 31;
+    const FG_GREEN = 32;
     const FG_YELLOW = 33;
-    const FG_BLUE   = 34;
+    const FG_BLUE = 34;
     const FG_PURPLE = 35;
-    const FG_CYAN   = 36;
-    const FG_GREY   = 37;
+    const FG_CYAN = 36;
+    const FG_GREY = 37;
 
-    const BG_BLACK  = 40;
-    const BG_RED    = 41;
-    const BG_GREEN  = 42;
+    const BG_BLACK = 40;
+    const BG_RED = 41;
+    const BG_GREEN = 42;
     const BG_YELLOW = 43;
-    const BG_BLUE   = 44;
+    const BG_BLUE = 44;
     const BG_PURPLE = 45;
-    const BG_CYAN   = 46;
-    const BG_GREY   = 47;
+    const BG_CYAN = 46;
+    const BG_GREY = 47;
 
-    const RESET       = 0;
-    const NORMAL      = 0;
-    const BOLD        = 1;
-    const ITALIC      = 3;
-    const UNDERLINE   = 4;
-    const BLINK       = 5;
-    const NEGATIVE    = 7;
-    const CONCEALED   = 8;
+    const RESET = 0;
+    const NORMAL = 0;
+    const BOLD = 1;
+    const ITALIC = 3;
+    const UNDERLINE = 4;
+    const BLINK = 5;
+    const NEGATIVE = 7;
+    const CONCEALED = 8;
     const CROSSED_OUT = 9;
-    const FRAMED      = 51;
-    const ENCIRCLED   = 52;
-    const OVERLINED   = 53;
+    const FRAMED = 51;
+    const ENCIRCLED = 52;
+    const OVERLINED = 53;
 
     /**
      * Clears the line, the cursor is currently on by sending ANSI control code EL with argument 2 to the terminal.
@@ -151,7 +151,8 @@ class Console
      * @param string $string the string to measure
      * @return integer the length of the string not counting ANSI format characters
      */
-    public static function ansiStrlen($string) {
+    public static function ansiStrlen($string)
+    {
         return mb_strlen(static::stripAnsiFormat($string));
     }
 
@@ -305,7 +306,7 @@ class Console
             $output = array();
             exec('mode con', $output);
             if (isset($output, $output[1]) && strpos($output[1], 'CON') !== false) {
-                return $size = array((int) preg_replace('~[^0-9]~', '', $output[3]), (int) preg_replace('~[^0-9]~', '', $output[4]));
+                return $size = array((int)preg_replace('~[^0-9]~', '', $output[3]), (int)preg_replace('~[^0-9]~', '', $output[4]));
             }
         } else {
             // try stty if available
@@ -315,12 +316,12 @@ class Console
             }
 
             // fallback to tput, which may not be updated on terminal resize
-            if (($width = (int) exec('tput cols 2>&1')) > 0 && ($height = (int) exec('tput lines 2>&1')) > 0) {
+            if (($width = (int)exec('tput cols 2>&1')) > 0 && ($height = (int)exec('tput lines 2>&1')) > 0) {
                 return $size = array($width, $height);
             }
 
             // fallback to ENV variables, which may not be updated on terminal resize
-            if (($width = (int) getenv('COLUMNS')) > 0 && ($height = (int) getenv('LINES')) > 0) {
+            if (($width = (int)getenv('COLUMNS')) > 0 && ($height = (int)getenv('LINES')) > 0) {
                 return $size = array($width, $height);
             }
         }
@@ -358,7 +359,7 @@ class Console
         $pad = str_repeat(' ', $indent);
         $lines = explode("\n", wordwrap($text, $size[0] - $indent, "\n", true));
         $first = true;
-        foreach($lines as $i => $line) {
+        foreach ($lines as $i => $line) {
             if ($first) {
                 $first = false;
                 continue;
@@ -458,15 +459,15 @@ class Console
     {
         $options = array_merge(
             array(
-                'required'  => false,
-                'default'   => null,
-                'pattern'   => null,
+                'required' => false,
+                'default' => null,
+                'pattern' => null,
                 'validator' => null,
-                'error'     => 'Invalid input.',
+                'error' => 'Invalid input.',
             ),
             $options
         );
-        $error   = null;
+        $error = null;
 
         top:
         $input = $options['default']
@@ -510,11 +511,11 @@ class Console
                 return $default;
             }
 
-            if (!strcasecmp ($input, 'y') || !strcasecmp ($input, 'yes') ) {
+            if (!strcasecmp($input, 'y') || !strcasecmp($input, 'yes')) {
                 return true;
             }
 
-            if (!strcasecmp ($input, 'n') || !strcasecmp ($input, 'no') ) {
+            if (!strcasecmp($input, 'n') || !strcasecmp($input, 'no')) {
                 return false;
             }
         }

@@ -8,9 +8,9 @@
 
 return array(
 
-	'profiler' => array(
-		'enabled' => true,
-		'xhprof_url' => '',
-		'data_path' => DATA_PATH . 'xhprof/',
-	),
+    'profiler' => array(
+        'enabled' => true,
+        'xhprof_url' => '',
+        'data_path' => DATA_PATH . 'xhprof/',
+    ),
 );

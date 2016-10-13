@@ -28,13 +28,13 @@ class Rewrite extends Router
     protected function parse()
     {
         $requestUri = $this->request->getRequestUri();
-	    $parts      = parse_url($requestUri);
-	    $path       = $parts['path'];
-	    $query      = isset($parts['query']) ? $parts['query'] : '';
-	    // 去掉项目目录
-	    $baseUrl = $this->request->getBaseUrl();
+        $parts = parse_url($requestUri);
+        $path = $parts['path'];
+        $query = isset($parts['query']) ? $parts['query'] : '';
+        // 去掉项目目录
+        $baseUrl = $this->request->getBaseUrl();
         if ($baseUrl && ($pos = strpos($path, $baseUrl)) === 0) {
-	        $path = substr($path, strlen($baseUrl));
+            $path = substr($path, strlen($baseUrl));
         }
         $path = trim($path, '/');
         if (!empty($query)) {

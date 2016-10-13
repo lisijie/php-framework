@@ -2,13 +2,11 @@
 
 return array(
 
-	'type' => 'file',
+    'type' => 'file',
 
-	'file' => array(
-		'save_path' => '',
-	),
+    'file' => array(
+        'save_path' => '',
+    ),
 
-	'memcached' => array(
-
-	),
+    'memcached' => array(),
 );

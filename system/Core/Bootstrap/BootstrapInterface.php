@@ -8,17 +8,17 @@ namespace Core\Bootstrap;
  */
 interface BootstrapInterface
 {
-	public function startup();
+    public function startup();
 
-	public function initDb($name);
+    public function initDb($name);
 
-	public function initCache($name);
+    public function initCache($name);
 
-	public function initLogger($name);
+    public function initLogger($name);
 
-	public function initSession();
+    public function initSession();
 
-	public function initRouter();
+    public function initRouter();
 
-	public function initView();
+    public function initView();
 }

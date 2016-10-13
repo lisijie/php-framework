@@ -14,21 +14,21 @@ use Core\Db;
  */
 class MysqlMutex extends MutexAbstract
 {
-	public $db;
+    public $db;
 
-	public function setDb(Db $db)
-	{
-		$this->db = $db;
-	}
+    public function setDb(Db $db)
+    {
+        $this->db = $db;
+    }
 
-	protected function doLock($name, $timeout)
-	{
-		return (bool)$this->db->getOne("SELECT GET_LOCK(?, ?)", [$name, $timeout], 0, true);
-	}
+    protected function doLock($name, $timeout)
+    {
+        return (bool)$this->db->getOne("SELECT GET_LOCK(?, ?)", [$name, $timeout], 0, true);
+    }
 
-	protected function doUnlock($name)
-	{
-		return (bool)$this->db->getOne("SELECT RELEASE_LOCK(?)", [$name], 0, true);
-	}
+    protected function doUnlock($name)
+    {
+        return (bool)$this->db->getOne("SELECT RELEASE_LOCK(?)", [$name], 0, true);
+    }
 
 }

@@ -19,14 +19,14 @@ interface ViewInterface
      */
     public function getOption($name);
 
-	/**
-	 * 设置配置项的值
-	 *
-	 * @param $name
-	 * @param $value
-	 * @return mixed
-	 */
-	public function setOption($name, $value);
+    /**
+     * 设置配置项的值
+     *
+     * @param $name
+     * @param $value
+     * @return mixed
+     */
+    public function setOption($name, $value);
 
     /**
      * 渲染模板
@@ -45,34 +45,34 @@ interface ViewInterface
      */
     public function getViewFile($filename);
 
-	/**
-	 * 设置布局文件
-	 * @param $filename
-	 * @return mixed
-	 */
+    /**
+     * 设置布局文件
+     * @param $filename
+     * @return mixed
+     */
     public function setLayout($filename);
 
-	/**
-	 * 设置子布局文件
-	 * @param $name
-	 * @param $filename
-	 * @return mixed
-	 */
+    /**
+     * 设置子布局文件
+     * @param $name
+     * @param $filename
+     * @return mixed
+     */
     public function setLayoutSection($name, $filename);
 
-	/**
-	 * 重置
-	 * @return mixed
-	 */
+    /**
+     * 重置
+     * @return mixed
+     */
     public function reset();
 
-	public function registerCssFile($url, $options = []);
+    public function registerCssFile($url, $options = []);
 
-	public function registerJsFile($url, $options = [], $head = true);
+    public function registerJsFile($url, $options = [], $head = true);
 
-	public function requireCssFile($url, $options = []);
+    public function requireCssFile($url, $options = []);
 
-	public function requireJsFile($url, $options = []);
+    public function requireJsFile($url, $options = []);
 
-	public function getAssetUrl($url);
+    public function getAssetUrl($url);
 }

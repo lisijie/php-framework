@@ -12,12 +12,12 @@ class Console extends Router
 
     protected function parse()
     {
-    	$argv = $_SERVER['argv'];
-    	array_shift($argv);
-    	if (!empty($argv)) {
-    		$this->routeName = array_shift($argv);
-    	}
-    	$this->params = $argv;
+        $argv = $_SERVER['argv'];
+        array_shift($argv);
+        if (!empty($argv)) {
+            $this->routeName = array_shift($argv);
+        }
+        $this->params = $argv;
     }
 
     public function makeUrl($route, $params = [])

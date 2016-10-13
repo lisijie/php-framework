@@ -71,7 +71,7 @@ class Cipher
         if ($this->mode != MCRYPT_MODE_ECB) { // ECB模式不需要创建向量
             $iv = mcrypt_create_iv(mcrypt_get_iv_size($this->algo, $this->mode), MCRYPT_RAND);
         }
-        $key  = hash($this->hashAlgo, $key, true);
+        $key = hash($this->hashAlgo, $key, true);
         $text = mcrypt_encrypt($this->algo, $key, $text, $this->mode, $iv) . $iv;
         if (!$raw) {
             $text = unpack('H*0', $text);

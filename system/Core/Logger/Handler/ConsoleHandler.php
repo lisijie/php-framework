@@ -11,11 +11,11 @@ use Core\Logger\Formatter\ConsoleFormatter;
  */
 class ConsoleHandler extends AbstractHandler
 {
-	private $isCli = false;
+    private $isCli = false;
 
     public function __construct(array $config = [])
     {
-	    $this->isCli = (php_sapi_name() == 'cli');
+        $this->isCli = (php_sapi_name() == 'cli');
     }
 
     public function getDefaultFormatter()
@@ -25,10 +25,10 @@ class ConsoleHandler extends AbstractHandler
 
     public function handle(array $record)
     {
-	    if ($this->isCli) {
-		    $message = $this->getFormatter()->format($record);
-		    fwrite(STDOUT, $message . "\n");
-	    }
+        if ($this->isCli) {
+            $message = $this->getFormatter()->format($record);
+            fwrite(STDOUT, $message . "\n");
+        }
     }
 
 }

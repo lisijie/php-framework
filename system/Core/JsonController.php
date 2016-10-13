@@ -17,40 +17,40 @@ namespace Core;
 class JsonController extends Controller
 {
 
-	protected $jsonpEnabled = true;
-	protected $jsonpCallback = 'jsoncallback';
+    protected $jsonpEnabled = true;
+    protected $jsonpCallback = 'jsoncallback';
 
-	protected function message($message, $msgno = MSG_ERR, $redirect = NULL, $template = '')
-	{
-		$data = [
-			'code' => $msgno,
-			'msg' => $message,
-			'data' => $this->getData(),
-		];
-		if ($redirect) $data['redirect'] = $redirect;
-		$charset = $this->response->getCharset();
-		$this->response->setHeader('content-type', "application/json; charset={$charset}");
-		$this->response->setContent($this->jsonEncode($data));
-		return $this->response;
-	}
+    protected function message($message, $msgno = MSG_ERR, $redirect = NULL, $template = '')
+    {
+        $data = [
+            'code' => $msgno,
+            'msg' => $message,
+            'data' => $this->getData(),
+        ];
+        if ($redirect) $data['redirect'] = $redirect;
+        $charset = $this->response->getCharset();
+        $this->response->setHeader('content-type', "application/json; charset={$charset}");
+        $this->response->setContent($this->jsonEncode($data));
+        return $this->response;
+    }
 
-	protected function display($filename = '')
-	{
-		$data = [
-			'code' => MSG_NONE,
-			'data' => $this->getData()
-		];
-		$charset = $this->response->getCharset();
-		$this->response->setHeader('content-type', "application/json; charset={$charset}");
+    protected function display($filename = '')
+    {
+        $data = [
+            'code' => MSG_NONE,
+            'data' => $this->getData()
+        ];
+        $charset = $this->response->getCharset();
+        $this->response->setHeader('content-type', "application/json; charset={$charset}");
 
-		$json = $this->jsonEncode($data);
-		$jsonpCallback = $this->get($this->jsonpCallback);
-		if ($this->jsonpEnabled && $jsonpCallback != '') {
-			$func = $jsonpCallback{0} == '?' ? '' : $jsonpCallback;
-			$this->response->setContent("{$func}($json)");
-		} else {
-			$this->response->setContent($json);
-		}
-		return $this->response;
-	}
+        $json = $this->jsonEncode($data);
+        $jsonpCallback = $this->get($this->jsonpCallback);
+        if ($this->jsonpEnabled && $jsonpCallback != '') {
+            $func = $jsonpCallback{0} == '?' ? '' : $jsonpCallback;
+            $this->response->setContent("{$func}($json)");
+        } else {
+            $this->response->setContent($json);
+        }
+        return $this->response;
+    }
 }

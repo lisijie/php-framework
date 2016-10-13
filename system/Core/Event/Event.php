@@ -12,91 +12,91 @@ use Core\Object;
  */
 class Event extends Object
 {
-	/**
-	 * 事件名称
-	 * @var string
-	 */
-	private $name = '';
+    /**
+     * 事件名称
+     * @var string
+     */
+    private $name = '';
 
-	/**
-	 * 事件产生对象，在静态方法触发的类全局事件该值为触发的类名字符串
-	 * @var object|string
-	 */
-	private $sender = null;
+    /**
+     * 事件产生对象，在静态方法触发的类全局事件该值为触发的类名字符串
+     * @var object|string
+     */
+    private $sender = null;
 
-	/**
-	 * 附加数据
-	 * @var null
-	 */
-	private $data = null;
+    /**
+     * 附加数据
+     * @var null
+     */
+    private $data = null;
 
-	/**
-	 * 已处理标识，设为true的话则忽略掉后面的事件
-	 * @var bool
-	 */
-	private $handled = false;
+    /**
+     * 已处理标识，设为true的话则忽略掉后面的事件
+     * @var bool
+     */
+    private $handled = false;
 
-	/**
-	 * @return string
-	 */
-	public function getName()
-	{
-		return $this->name;
-	}
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
 
-	/**
-	 * @param string $name
-	 */
-	public function setName($name)
-	{
-		$this->name = $name;
-	}
+    /**
+     * @param string $name
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
 
-	/**
-	 * @return object
-	 */
-	public function getSender()
-	{
-		return $this->sender;
-	}
+    /**
+     * @return object
+     */
+    public function getSender()
+    {
+        return $this->sender;
+    }
 
-	/**
-	 * @param object $sender
-	 */
-	public function setSender($sender)
-	{
-		$this->sender = $sender;
-	}
+    /**
+     * @param object $sender
+     */
+    public function setSender($sender)
+    {
+        $this->sender = $sender;
+    }
 
-	/**
-	 * @return null
-	 */
-	public function getData()
-	{
-		return $this->data;
-	}
+    /**
+     * @return null
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
 
-	/**
-	 * @param null $data
-	 */
-	public function setData($data)
-	{
-		$this->data = $data;
-	}
+    /**
+     * @param null $data
+     */
+    public function setData($data)
+    {
+        $this->data = $data;
+    }
 
-	/**
-	 * @return boolean
-	 */
-	public function isHandled()
-	{
-		return $this->handled;
-	}
+    /**
+     * @return boolean
+     */
+    public function isHandled()
+    {
+        return $this->handled;
+    }
 
-	/**
-	 * @param boolean $handled
-	 */
-	public function setHandled($handled)
-	{
-		$this->handled = $handled;
-	}
+    /**
+     * @param boolean $handled
+     */
+    public function setHandled($handled)
+    {
+        $this->handled = $handled;
+    }
 }

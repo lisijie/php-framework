@@ -35,7 +35,7 @@ class Smarty extends ViewAbstract
             $this->smarty->{$key} = $this->options[$key];
         }
 
-	    // 注册smarty模板函数，以支持布局模板
+        // 注册smarty模板函数，以支持布局模板
         $this->smarty->registerPlugin('function', 'layout_section', [$this, 'section']);
         $this->smarty->registerPlugin('function', 'layout_content', [$this, 'content']);
     }

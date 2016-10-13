@@ -10,13 +10,13 @@ use Core\Router\Router;
  */
 class Console extends Bootstrap
 {
-	public function initRouter()
-	{
-		$options = [
-			'type' => 'Console',
-			'default_route' => 'help/index', //默认路由
-		];
-		$router = Router::factory($options);
-		return $router;
-	}
+    public function initRouter()
+    {
+        $options = [
+            'type' => 'Console',
+            'default_route' => 'help/index', //默认路由
+        ];
+        $router = Router::factory($options);
+        return $router;
+    }
 }

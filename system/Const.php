@@ -32,8 +32,8 @@ defined('PUBLIC_PATH') or define('PUBLIC_PATH', (isset($_SERVER['SCRIPT_FILENAME
 defined('CHARSET') or define('CHARSET', 'utf-8');
 
 /************* 消息码 ****************/
-define('MSG_NONE',     0x0); //无提示(默认)
-define('MSG_OK',       0x1); //提示成功
-define('MSG_ERR',      0x2); //提示失败
-define('MSG_LOGIN',    0x3); //尚未登录
+define('MSG_NONE', 0x0); //无提示(默认)
+define('MSG_OK', 0x1); //提示成功
+define('MSG_ERR', 0x2); //提示失败
+define('MSG_LOGIN', 0x3); //尚未登录
 define('MSG_REDIRECT', 0x4); //跳转
