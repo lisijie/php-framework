@@ -76,6 +76,12 @@ class HttpClient
 	private $postFiles = [];
 
 	/**
+	 * http基础验证帐号密码信息
+	 * @var array
+	 */
+	private $baseAuth = [];
+
+	/**
 	 * 原始输出内容
 	 * @var string
 	 */
@@ -143,6 +149,16 @@ class HttpClient
 	{
 		$this->settings['user_agent'] = $userAgent;
 		return $this;
+	}
+
+	/**
+	 * 设置http基础验证的帐号密码
+	 * @param string $username
+	 * @param string $password
+	 */
+	public function setBasicAuth($username, $password)
+	{
+		$this->baseAuth = [$username, $password];
 	}
 
 	/**
@@ -317,6 +333,11 @@ class HttpClient
 		if (substr($url, 0, 6) == 'https:') {
 			$options[CURLOPT_SSL_VERIFYPEER] = false;
 			$options[CURLOPT_SSL_VERIFYHOST] = false;
+		}
+		// http base auth
+		if (!empty($this->baseAuth)) {
+			$options[CURLOPT_HTTPAUTH] = CURLAUTH_BASIC;
+			$options[CURLOPT_USERPWD] = implode(':', $this->baseAuth);
 		}
 		// 处理自定义http请求头
 		if (!empty($this->headers)) {

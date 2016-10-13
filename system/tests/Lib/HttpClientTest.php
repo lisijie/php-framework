@@ -76,4 +76,11 @@ class HttpClientTest extends \Core\TestCase
 		$this->assertArrayHasKey('k2', $cookies);
 		unlink($tmpFile);
 	}
+
+	public function testBaseAuth()
+	{
+		$request = new HttpClient('http://httpbin.org/basic-auth/user/passwd');
+		$request->setBasicAuth('user', 'passwd');
+		$this->assertTrue($request->getResponseCode() == 200);
+	}
 }
