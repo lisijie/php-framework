@@ -18,7 +18,19 @@ class HttpClient
     const HTTP_PATCH = 'PATCH';
 	const HTTP_DELETE = 'DELETE';
 
-	/**
+    /**
+     * 是否调试模式
+     * @var bool
+     */
+    private $debug = false;
+
+    /**
+     * 调试信息
+     * @var resource
+     */
+    private $debugInfo = null;
+
+    /**
 	 * 请求URL
 	 * @var string
 	 */
@@ -116,6 +128,24 @@ class HttpClient
 	{
 		$this->setUrl($url, $method);
 	}
+
+    /**
+     * 设置调试开关
+     * @param bool|true $bool
+     */
+    public function setDebug($bool = true)
+    {
+        $this->debug = (bool) $bool;
+    }
+
+    /**
+     * 获取调试信息
+     * @return string
+     */
+    public function getDebugInfo()
+    {
+        return $this->debugInfo;
+    }
 
 	/**
 	 * 设置请求url和方法
@@ -328,8 +358,12 @@ class HttpClient
 			CURLOPT_CONNECTTIMEOUT => $this->settings['connect_timeout'],
 			CURLOPT_TIMEOUT => $this->settings['timeout'],
 			CURLOPT_USERAGENT => $this->settings['user_agent'],
-			// CURLOPT_VERBOSE => true,
 		];
+        // 调试模式
+        if ($this->debug) {
+            $options[CURLOPT_VERBOSE] = true;
+            $options[CURLOPT_STDERR] = fopen('php://temp', 'w+');
+        }
 		// https不进行证书验证
 		if (substr($url, 0, 6) == 'https:') {
 			$options[CURLOPT_SSL_VERIFYPEER] = false;
@@ -396,6 +430,11 @@ class HttpClient
 		$ch = curl_init($url);
 		curl_setopt_array($ch, $options);
 		$this->response = curl_exec($ch);
+        if (isset($options[CURLOPT_STDERR])) {
+            rewind($options[CURLOPT_STDERR]);
+            $this->debugInfo = stream_get_contents($options[CURLOPT_STDERR]);
+
+        }
 		if ($errno = curl_errno($ch)) {
 			throw new \RuntimeException("curl error: " . curl_error($ch) . "(" . $errno . ")");
 		}
@@ -492,6 +531,7 @@ class HttpClient
 		$this->responseHeaders = [];
 		$this->responseCookies = [];
 		$this->responseBody = '';
+        $this->debugInfo = '';
 	}
 
 	public function __clone()
