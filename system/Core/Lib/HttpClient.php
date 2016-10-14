@@ -4,6 +4,53 @@ namespace Core\Lib;
 /**
  * http客户端工具
  *
+ * 使用示例：
+ * ```php
+ * // get请求
+ * $request = new HttpClient('http://httpbin.org/get', HttpClient::HTTP_GET);
+ * $request->setParams(['foo' => 'bar']);
+ * $result = $request->getJsonBody();
+ *
+ * // post请求
+ * $request = new HttpClient('http://httpbin.org/post', HttpClient::HTTP_POST);
+ * $postData = ['username' => 'test'];
+ * $request->setParams($postData);
+ * $result = $request->getJsonBody();
+ *
+ * // 上传文件
+ * $tmpFile = tempnam(sys_get_temp_dir(), 'test_');
+ * $content = 'hello world';
+ * file_put_contents($tmpFile, $content);
+ * $request = new HttpClient($this->testUrl, HttpClient::HTTP_POST);
+ * $request->setFile('file', $tmpFile);
+ * $body = $request->getBody();
+ *
+ * // 获取返回cookies
+ * $request = new HttpClient('http://httpbin.org/cookies/set?k2=v2&k1=v1');
+ * $cookies = $request->getCookies();
+ *
+ * // cookie jar
+ * $tmpFile = tempnam(sys_get_temp_dir(), 'test_');
+ * $request = new HttpClient('http://httpbin.org/cookies/set?k2=v2&k1=v1');
+ * $request->setCookieJar($tmpFile);
+ * $request->getResponse();
+ * $request->reset();
+ * $request->setUrl('http://httpbin.org/cookies');
+ * $cookies = $request->getJsonBody()['cookies'];
+ *
+ * // http base auth
+ * $request = new HttpClient('http://httpbin.org/basic-auth/user/passwd');
+ * $request->setBasicAuth('user', 'passwd');
+ * $request->getResponseCode();
+ *
+ * // debug
+ * $request = new HttpClient('http://httpbin.org/basic-auth/user/passwd');
+ * $request->setDebug();
+ * $request->setBasicAuth('user', 'passwd');
+ * $request->getResponse();
+ * echo $request->getDebugInfo();
+ * ```
+ *
  * @author sijie.li
  * @package Core\Lib
  */
@@ -154,6 +201,9 @@ class HttpClient
      */
     public function setUrl($url, $method = self::HTTP_GET)
     {
+        if (!in_array($method, [self::HTTP_GET, self::HTTP_PUT, self::HTTP_POST, self::HTTP_DELETE, self::HTTP_PATCH])) {
+            throw new \InvalidArgumentException("method '{$method}' not allowed.");
+        }
         $this->url = $url;
         $this->method = $method;
     }
@@ -233,17 +283,12 @@ class HttpClient
      */
     public function setBody($data)
     {
-        if ($this->method != self::HTTP_POST) {
-            throw new \RuntimeException(__FUNCTION__ . " not allowed in '{$this->method}' method.");
-        }
         if (is_resource($data)) {
-            fseek($data, 0);
-            while (!feof($data)) {
-                $this->body .= fread($data, 4096);
-            }
+            rewind($data);
+            $this->body = stream_get_contents($data);
             fclose($data);
         } elseif ($data instanceof \SplFileObject) {
-            $data->fseek(0);
+            $data->rewind();
             $this->body = $data->fread($data->getSize());
         } else {
             $this->body = (string)$data;
