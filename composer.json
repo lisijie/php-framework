@@ -6,7 +6,7 @@
         "framework"
     ],
     "homepage": "https://github.com/lisijie/php-framework",
-    "type": "library",
+    "type": "framework",
     "license": "BSD-3-Clause",
     "authors": [
         {
