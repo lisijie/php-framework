@@ -386,6 +386,17 @@ class HttpClient
     }
 
     /**
+     * 将结果保存到文件
+     * @param $file
+     * @return int
+     */
+    public function saveToFile($file)
+    {
+        $this->doRequest();
+        return file_put_contents($file, $this->responseBody);
+    }
+
+    /**
      * 执行请求
      * @throws \RuntimeException
      */
