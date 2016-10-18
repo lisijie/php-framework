@@ -1,5 +1,4 @@
 .idea
 .data
-data/logs/*
 vendor
 composer.lock

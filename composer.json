@@ -1,11 +1,32 @@
 {
-	"require": {
-		"smarty/smarty": "~3.1"
-	},
-	"require-dev": {
+    "name": "lisijie/framework",
+    "description": "",
+    "keywords": [
+        "php",
+        "framework"
+    ],
+    "homepage": "https://github.com/lisijie/php-framework",
+    "type": "library",
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "lisijie",
+            "email": "lsj86@qq.com",
+            "homepage": "https://github.com/lisijie"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "ext-mbstring": "*",
+        "smarty/smarty": "~3.1"
+    },
+    "require-dev": {
 		"phpunit/phpunit": "~4.0"
 	},
-	"autoload-dev": {
+    "autoload": {
+        "files": ["src/App.php"]
+    },
+    "autoload-dev": {
 		"classmap": [
 			"tests/"
 		]

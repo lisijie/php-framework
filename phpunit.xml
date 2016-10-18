@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit backupGlobals="false"
          backupStaticAttributes="false"
-         bootstrap="system/App.php"
+         bootstrap="App.php"
          colors="true"
          convertErrorsToExceptions="true"
          convertNoticesToExceptions="true"
@@ -10,12 +10,12 @@
          stopOnFailure="false"
          syntaxCheck="false">
     <testsuites>
-        <testsuite name="App Test Suite">
+        <testsuite name="Framework Test Suite">
             <directory>./tests/</directory>
         </testsuite>
     </testsuites>
     <php>
-        <const name="APP_PATH" value="./app/"/>
-        <const name="DATA_PATH" value="./data/"/>
+        <const name="APP_PATH" value="./example"/>
+        <const name="DATA_PATH" value="/tmp"/>
     </php>
 </phpunit>
