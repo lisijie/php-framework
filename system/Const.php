@@ -1,8 +1,8 @@
 <?php
 //版本号
-define('VERSION', '1.1.5');
+define('VERSION', '1.2.0');
 //发布时间
-define('RELEASE', '20160413');
+define('RELEASE', '20161018');
 //用于访问检查
 define('IN_APP', TRUE);
 //目录分隔符
