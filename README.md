@@ -32,7 +32,6 @@ $ composer create-project lisijie/framework-app
 	|  |- View 视图模板文件
 	|- data 运行时数据目录（日志、缓存文件等）
 	|- public 发布目录，存放外部可访问的资源和index.php入口文件
-	|- system 框架目录
 	|- vendor composer第三方包目录
 
 框架使用符合PSR规范的自动加载机制，可以在 `app` 目录下创建其他包。如工具包 `Util`，使用的命名空间为 `App\Util`。
