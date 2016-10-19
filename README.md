@@ -2,6 +2,20 @@
 
 一个优雅、简洁、高效的PHP框架，用于快速开发扩展性强、可维护性强的PHP项目，零学习成本。
 
+## 安装说明
+
+只安装框架：
+
+```bash
+$ composer require lisijie/framework
+```
+
+创建一个带有基本应用程序模板的项目**（推荐）**：
+
+```bash
+$ composer create-project lisijie/framework-app
+```
+
 ## 使用说明
 
 ### 一、目录结构
@@ -29,7 +43,7 @@
 
 配置的获取方式为：
 
-```
+```php
 \App::config()->get('app', 'varname', 'default');
 ```
 
@@ -56,8 +70,11 @@ class DemoCommand extends Command
 
 执行命令行脚本方法：
 
-可以直接在终端使用 
-> php index.php 路由地址 参数1 参数2... 
+直接在终端使用以下命令执行 
+
+```bash
+php index.php 路由地址 参数1 参数2... 
+```
 
 例如以上代码的执行命令为
 
@@ -68,9 +85,37 @@ hello, world
 
 如果你需要定时执行以上命令，把它添加到crontab配置中即可。
 
-### 服务器配置
+### 四、控制器
 
-##### Nginx
+控制器位于 `app\Controller` 目录下，可以在该目录下创建多个包，每个控制器类的名称以 `Controller` 为后缀。如：MainController.php。一个控制器类大致如下：
+
+```php
+<?php
+namespace App\Controller;
+
+class MainController extends Controller
+{
+
+    public function init()
+    {
+        // 初始化方法
+    }
+
+    public function indexAction()
+    {
+        $this->assign('foo', 'bar');
+        return $this->display();
+    }
+
+}
+```
+
+每个动作方法必须加上 `Action` 后缀。对应的访问地址为：http://domain.com/?r=main/index。其中 `r` 参数为路由变量，路由地址是 `main/index`。路由地址为全小写形式，多个单词将被转换成`小写+减号`的形式，例如 UserInfoController::indexAction() 对应的路由地址为 `user-info/index`。为了让url看起来更加美观，建议在web服务器配置url rewrite。
+
+
+### 五、服务器配置
+
+#### Nginx
 
 要启用Url重写，请在Nginx网站配置中增加以下配置：
 
@@ -78,7 +123,3 @@ hello, world
 	    try_files $uri $uri/ /index.php?$args;
 	}
 
-
-### 演示项目
-
-- [www.lampnotes.com](http://www.lampnotes.com "Web开发技术分享平台") (Web开发技术分享平台)
