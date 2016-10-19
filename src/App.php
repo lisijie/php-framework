@@ -29,10 +29,6 @@ require __DIR__ . '/Const.php';
 require __DIR__ . '/ClassLoader.php';
 //加载公共函数库
 require __DIR__ . '/Core/Common.php';
-//加载composer自动加载类
-if (is_file(VENDOR_PATH . 'autoload.php')) {
-    require VENDOR_PATH . 'autoload.php';
-}
 
 //注册自动加载
 ClassLoader::getInstance()
