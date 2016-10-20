@@ -6,6 +6,12 @@ use Core\Http\Response;
 use Core\Exception\AppException;
 use Core\Lib\Console;
 
+/**
+ * 命令行控制器基类
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core
+ */
 class Command extends Controller
 {
 

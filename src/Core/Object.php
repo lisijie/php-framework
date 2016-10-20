@@ -1,6 +1,14 @@
 <?php
 namespace Core;
 
+/**
+ * 对象基类
+ *
+ * 用于扩展对象的功能。
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core
+ */
 class Object
 {
     public static function className($shortName = false)

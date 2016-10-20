@@ -9,6 +9,7 @@ use Core\Logger\LoggerInterface;
 /**
  * 异常处理器
  *
+ * @author lisijie <lsj86@qq.com>
  * @package Core\Exception
  */
 class ErrorHandler

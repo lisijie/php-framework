@@ -6,6 +6,7 @@ use Core\Event\Event;
 /**
  * 组件类
  *
+ * @author lisijie <lsj86@qq.com>
  * @package Core
  */
 class Component extends Object

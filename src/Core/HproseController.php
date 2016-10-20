@@ -7,6 +7,12 @@ use Core\Exception\AppException;
 use Hprose\Http\Server as HproseServer;
 use Hprose\Filter\JSONRPC\ServiceFilter;
 
+/**
+ * HproseRPC控制器基类
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core
+ */
 class HproseController extends Controller
 {
 
