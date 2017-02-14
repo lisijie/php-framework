@@ -36,14 +36,14 @@ ClassLoader::getInstance()
     ->registerNamespace('App', rtrim(APP_PATH, DIRECTORY_SEPARATOR))
     ->register();
 
-use Core\Http\Request;
-use Core\Http\Response;
-use Core\Exception\HttpNotFoundException;
 use Core\Bootstrap\BootstrapInterface;
 use Core\Container;
-use Core\Exception\HttpException;
-use Core\Events;
 use Core\Environment;
+use Core\Events;
+use Core\Exception\HttpException;
+use Core\Exception\HttpNotFoundException;
+use Core\Http\Request;
+use Core\Http\Response;
 
 class App extends Events
 {
@@ -507,8 +507,7 @@ class App extends Events
      */
     public static function get($name)
     {
-        return call_user_func_array(
-            [self::$container, 'get'], func_get_args());
+        return call_user_func_array([self::$container, 'get'], func_get_args());
     }
 
     /**
