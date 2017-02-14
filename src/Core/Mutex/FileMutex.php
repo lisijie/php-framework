@@ -19,7 +19,7 @@ class FileMutex extends MutexAbstract
 
     protected function init()
     {
-        $this->path = DATA_PATH . 'mutex/';
+        $this->path = DATA_PATH . '/mutex';
         if (!is_dir($this->path)) {
             FileHelper::makeDir($this->path);
         }
@@ -31,9 +31,9 @@ class FileMutex extends MutexAbstract
         $fp = fopen($lockFile, 'w+');
         $waitTime = 0;
         while (!flock($fp, LOCK_EX | LOCK_NB)) {
-            if (++$waitTime > $timeout) {
+            if ($timeout && ++$waitTime > $timeout) {
                 fclose($fp);
-                return false;
+                throw new GetLockTimeoutException($name, $timeout);
             }
             sleep(1);
         }
@@ -53,6 +53,6 @@ class FileMutex extends MutexAbstract
 
     private function getLockFile($name)
     {
-        return $this->path . md5($name) . '.lock';
+        return $this->path . '/'. md5($name) . '.lock';
     }
 }

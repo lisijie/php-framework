@@ -2,6 +2,8 @@
 namespace Core\Mutex;
 
 use App;
+use Core\Cache\CacheInterface;
+use Core\Db;
 
 /**
  * 工厂类
@@ -26,17 +28,15 @@ class MutexFactory
     /**
      * 创建基于内存的锁
      *
-     * @param string $cacheType 缓存类型
+     * @param CacheInterface $cacheObject cache对象
      * @param bool|true $autoUnlock 是否自动释放锁
      * @return MemMutex
      */
-    public static function createMemMutex($cacheType = '', $autoUnlock = true)
+    public static function createMemMutex(CacheInterface $cacheObject = null, $autoUnlock = true)
     {
         $mu = new MemMutex($autoUnlock);
-        if (empty($cacheType)) {
-            $mu->setCache(App::cache());
-        } else {
-            $mu->setCache(App::cache($cacheType));
+        if (null !== $cacheObject) {
+            $mu->setCache($cacheObject);
         }
         return $mu;
     }
@@ -44,17 +44,15 @@ class MutexFactory
     /**
      * 创建基于MySQL的锁
      *
-     * @param string $dbNode 数据节点
+     * @param Db $db
      * @param bool|true $autoUnlock 是否自动释放锁
      * @return MysqlMutex
      */
-    public static function createMysqlMutex($dbNode = '', $autoUnlock = true)
+    public static function createMysqlMutex(Db $db, $autoUnlock = true)
     {
         $mu = new MysqlMutex($autoUnlock);
-        if (empty($dbNode)) {
-            $mu->setDb(App::db());
-        } else {
-            $mu->setDb(App::db($dbNode));
+        if (null !== $db) {
+            $mu->setDb($db);
         }
         return $mu;
     }

@@ -42,6 +42,7 @@ abstract class MutexAbstract implements MutexInterface
      *
      * @param string $name 锁名称
      * @param int $timeout 等待时间
+     * @throws GetLockTimeoutException
      * @return bool
      */
     public function lock($name, $timeout = 0)

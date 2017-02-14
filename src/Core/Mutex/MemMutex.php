@@ -22,9 +22,9 @@ class MemMutex extends MutexAbstract
     protected function doLock($name, $timeout)
     {
         $waitTime = 0;
-        while (!$this->cache->add($this->prefix . $name, 1, $this->lockTime)) {
-            if (++$waitTime > $timeout) {
-                return false;
+        while (!$this->cache->add($this->prefix . $name, time(), $this->lockTime)) {
+            if ($timeout && ++$waitTime > $timeout) {
+                throw new GetLockTimeoutException($name, $timeout);
             }
             sleep(1);
         }
