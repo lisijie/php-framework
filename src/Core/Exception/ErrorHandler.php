@@ -76,7 +76,7 @@ class ErrorHandler
                 $errTypes = [E_ERROR => 'E_ERROR', E_PARSE => 'E_PARSE', E_USER_ERROR => 'E_USER_ERROR'];
                 if (isset($errTypes[$error['type']])) {
                     $info = $errTypes[$error['type']] . ": {$error['message']} in {$error['file']} on line {$error['line']}";
-                    $this->logger->error($info);
+                    $this->logger->fatal($info);
                 }
             }
         });
