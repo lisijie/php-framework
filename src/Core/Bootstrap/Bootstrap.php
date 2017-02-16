@@ -93,7 +93,7 @@ class Bootstrap implements BootstrapInterface
         if (!isset($config[$name])) {
             throw new \InvalidArgumentException("缓存配置不存在: {$name}");
         }
-        return \Core\Cache\Cache::factory($name, $config[$name]);
+        return \Core\Cache\CacheFactory::create($name, $config[$name]);
     }
 
     //注册路由
