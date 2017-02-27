@@ -70,7 +70,7 @@ class FileHandler extends AbstractHandler
 
     public function handle(array $record)
     {
-        $message = $this->getFormatter()->format($record);
+        $message = $this->getFormatter()->format($record) . "\n";
 
         $fileName = str_replace(
             ['{level}', '{Y}', '{m}', '{d}', '{H}'],

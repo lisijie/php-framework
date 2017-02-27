@@ -4,7 +4,7 @@ namespace Core\Logger\Formatter;
 /**
  * 日志格式器接口
  *
- * @package Core\Logger
+ * @package Core\Logger\Formatter
  * @author lisijie <lsj86@qq.com>
  */
 interface FormatterInterface

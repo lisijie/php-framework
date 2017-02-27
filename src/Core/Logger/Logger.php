@@ -34,10 +34,10 @@ class Logger implements LoggerInterface
     ];
 
     /**
-     * 日志名称
+     * 日志通道名称
      * @var string
      */
-    protected $name;
+    protected $channel;
 
     /**
      * 时区
@@ -53,7 +53,7 @@ class Logger implements LoggerInterface
 
     public function __construct($name)
     {
-        $this->name = $name;
+        $this->channel = $name;
     }
 
     /**
@@ -63,7 +63,7 @@ class Logger implements LoggerInterface
      */
     public function getName()
     {
-        return $this->name;
+        return $this->channel;
     }
 
     /**
@@ -186,15 +186,23 @@ class Logger implements LoggerInterface
         if (is_array($message)) {
             $message = VarDumper::dumpAsString($message);
         }
-
+        $file = '???';
+        $line = 0;
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 2);
+        if (isset($backtrace[1]) && isset($backtrace[1]['file'])) {
+            $file = basename($backtrace[1]['file']);
+            $line = $backtrace[1]['line'];
+        }
         $record = [
             'message' => (string)$message,
             'context' => $context,
             'level' => $level,
             'level_name' => $this->levels[$level],
-            'channel' => $this->name,
+            'channel' => $this->channel,
             'datetime' => \DateTime::createFromFormat('U.u', sprintf('%.6F', microtime(true)), $this->timeZone)->setTimezone($this->timeZone),
             'extra' => [],
+            'file' => $file,
+            'line' => $line,
         ];
 
         foreach ($this->handlers as $value) {

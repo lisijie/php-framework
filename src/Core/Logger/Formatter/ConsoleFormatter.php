@@ -4,28 +4,16 @@ namespace Core\Logger\Formatter;
 /**
  * 控制台输出的日志格式器
  *
- * @package core\logger\formatter
+ * @package Core\Logger\Formatter
  * @author lisijie <lsj86@qq.com>
  */
 class ConsoleFormatter extends AbstractFormatter
 {
     public function format(array $record)
     {
-        if (false !== strpos($record['message'], '{')) {
-            $replacements = [];
-            foreach ($record['context'] as $key => $val) {
-                if (is_null($val) || is_scalar($val) || (is_object($val) && method_exists($val, "__toString"))) {
-                    $replacements['{' . $key . '}'] = $val;
-                } elseif (is_object($val)) {
-                    $replacements['{' . $key . '}'] = '[object ' . get_class($val) . ']';
-                } else {
-                    $replacements['{' . $key . '}'] = '[' . gettype($val) . ']';
-                }
-            }
-            $record['message'] = strtr($record['message'], $replacements);
-        }
+        $this->parseContext($record);
 
-        $message = "[" . $record['datetime']->format($this->getDateFormat()) . "] [{$record['channel']}] [" . $this->colorLevelName($record['level_name']) . "] {$record['message']}";
+        $message = $record['datetime']->format($this->getDateFormat()) . " [{$record['channel']}] [" . $this->colorLevelName($record['level_name'][0]) . "] [{$record['file']}:{$record['line']}] {$record['message']}";
 
         return $message;
     }
