@@ -461,8 +461,11 @@ class App extends Events
      * @param string $name 节点名称
      * @return Core\Logger\LoggerInterface
      */
-    public static function logger($name = 'default')
+    public static function logger($name = '')
     {
+        if (empty($name)) {
+            $name = PHP_SAPI == 'cli' ? 'console' : 'default';
+        }
         return self::get('logger', $name);
     }
 
