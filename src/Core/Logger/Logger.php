@@ -78,7 +78,12 @@ class Logger implements LoggerInterface
         if (!isset($this->levels[$level])) {
             throw new InvalidArgumentException('日志级别无效');
         }
-        $this->handlers[] = [$level, $handler];
+        if (!isset($this->handlers[$level])) {
+            $this->handlers[$level] = [$handler];
+        } else {
+            $this->handlers[$level][] = $handler;
+        }
+        ksort($this->handlers);
     }
 
     /**
@@ -205,10 +210,13 @@ class Logger implements LoggerInterface
             'line' => $line,
         ];
 
-        foreach ($this->handlers as $value) {
-            list($lv, $handler) = $value;
+        foreach ($this->handlers as $lv => $handlers) {
             if ($lv <= $level) {
-                $handler->handle($record);
+                foreach ($handlers as $handler) {
+                    if ($handler->handle($record)) {
+                        break 2;
+                    }
+                }
             }
         }
     }

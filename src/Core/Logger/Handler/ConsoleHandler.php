@@ -29,6 +29,7 @@ class ConsoleHandler extends AbstractHandler
             $message = $this->getFormatter()->format($record);
             fwrite(STDOUT, $message . "\n");
         }
+        return false;
     }
 
 }
