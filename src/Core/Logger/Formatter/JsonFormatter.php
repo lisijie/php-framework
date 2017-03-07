@@ -22,6 +22,6 @@ class JsonFormatter extends AbstractFormatter
             'line' => $record['line'],
         ];
 
-        return json_encode($message);
+        return json_encode($message, JSON_UNESCAPED_UNICODE);
     }
 }
