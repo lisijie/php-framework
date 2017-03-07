@@ -15,9 +15,11 @@ class JsonFormatter extends AbstractFormatter
 
         $message = [
             'datetime' => $record['datetime']->format($this->getDateFormat()),
-            'channel' => strtoupper($record['channel']),
+            'channel' => $record['channel'],
             'level' => $record['level_name'],
             'message' => $record['message'],
+            'file' => $record['file'],
+            'line' => $record['line'],
         ];
 
         return json_encode($message);

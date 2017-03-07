@@ -2,7 +2,6 @@
 
 namespace Core\Logger;
 
-use Core\Lib\VarDumper;
 use Core\Logger\Handler\HandlerInterface;
 use Core\Logger\Handler\NullHandler;
 
@@ -189,7 +188,7 @@ class Logger implements LoggerInterface
             $this->timeZone = new \DateTimeZone(date_default_timezone_get() ?: 'UTC');
         }
         if (is_array($message)) {
-            $message = VarDumper::dumpAsString($message);
+            $message = json_encode($message, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         }
         $file = '???';
         $line = 0;
@@ -213,7 +212,7 @@ class Logger implements LoggerInterface
         foreach ($this->handlers as $lv => $handlers) {
             if ($lv <= $level) {
                 foreach ($handlers as $handler) {
-                    if ($handler->handle($record)) {
+                    if ($handler->handle($record) !== false) {
                         break 2;
                     }
                 }
