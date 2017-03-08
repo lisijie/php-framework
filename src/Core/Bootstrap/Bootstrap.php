@@ -99,9 +99,17 @@ class Bootstrap implements BootstrapInterface
     //注册路由
     public function initRouter()
     {
-        $options = App::config()->get('app', 'router', []);
-        $router = Router::factory($options);
-        $router->setConfig(App::config()->get('route'));
+        if (PHP_SAPI == 'cli') {
+            $options = [
+                'type' => 'Console',
+                'default_route' => 'help/index', //默认路由
+            ];
+            $router = Router::factory($options);
+        } else {
+            $options = App::config()->get('app', 'router', []);
+            $router = Router::factory($options);
+            $router->setConfig(App::config()->get('route'));
+        }
         return $router;
     }
 

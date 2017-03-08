@@ -312,12 +312,8 @@ class App extends Events
     public static function bootstrap(BootstrapInterface $bootstrap = null)
     {
         self::$container = new Container();
-        if (!is_object($bootstrap)) {
-            if (self::isCli()) {
-                $bootstrap = new \Core\Bootstrap\Console();
-            } else {
-                $bootstrap = new \Core\Bootstrap\Bootstrap();
-            }
+        if (!$bootstrap) {
+            $bootstrap = new \Core\Bootstrap\Bootstrap();
         }
         self::$container->setSingleton('config', new \Core\Config(CONFIG_PATH, Environment::getEnvironment()));
 
