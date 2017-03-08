@@ -85,10 +85,10 @@ class ErrorHandler
     /**
      * 异常信息上报
      *
-     * @param Exception $e
+     * @param Exception|\ErrorException $e
      * @return bool
      */
-    protected function report(Exception $e)
+    protected function report($e)
     {
         foreach ($this->dontReport as $className) {
             if ($e instanceof $className) {
@@ -103,9 +103,9 @@ class ErrorHandler
     /**
      * 输出异常信息
      *
-     * @param Exception $e
+     * @param Exception|\ErrorException $e
      */
-    protected function render(Exception $e)
+    protected function render($e)
     {
         if ($this->isHttpException($e)) {
             $this->renderHttpException($e);
@@ -123,10 +123,11 @@ class ErrorHandler
     /**
      * 输出debug信息
      *
-     * @param Exception $e
+     * @param Exception|\ErrorException $e
      */
-    protected function renderDebugInfo(Exception $e)
+    protected function renderDebugInfo($e)
     {
+        ob_clean();
         $errType = get_class($e);
 
         if (PHP_SAPI == 'cli') {
@@ -176,10 +177,10 @@ class ErrorHandler
     /**
      * 是否http异常
      *
-     * @param Exception $e
+     * @param Exception|\ErrorException $e
      * @return bool
      */
-    protected function isHttpException(Exception $e)
+    protected function isHttpException($e)
     {
         return ($e instanceof HttpException);
     }
@@ -187,9 +188,9 @@ class ErrorHandler
     /**
      * 处理异常
      *
-     * @param Exception $e
+     * @param Exception|\ErrorException $e
      */
-    public function handle(Exception $e)
+    public function handle($e)
     {
         $this->report($e);
         $this->render($e);
