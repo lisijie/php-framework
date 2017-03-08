@@ -38,7 +38,7 @@ abstract class AbstractService extends Component
 
     /**
      * 获取实例
-     * @return mixed
+     * @return static
      */
     public static function getInstance()
     {
