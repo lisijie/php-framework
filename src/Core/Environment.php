@@ -47,6 +47,9 @@ class Environment
     // 环境文件名
     private static $envFile = '';
 
+    // 自定义环境
+    private static $customEnvs = [];
+
     /**
      * 设置环境配置文件
      * @param $filename
@@ -63,6 +66,15 @@ class Environment
     public static function setEnvVar($varName)
     {
         self::$envVar = $varName;
+    }
+
+    /**
+     * 添加自定义环境名称
+     * @param $envName
+     */
+    public static function addEnvironment($envName)
+    {
+        self::$customEnvs[] = $envName;
     }
 
     /**
@@ -114,14 +126,14 @@ class Environment
     /**
      * 设置当前环境
      * @param $env
-     * @throws CoreException
      */
     public static function setEnvironment($env)
     {
         if (self::isValid($env)) {
             self::$environment = $env;
+        } else {
+            exit('invalid env: ' . $env);
         }
-        throw new CoreException('invalid env: ' . $env);
     }
 
     /**
@@ -170,6 +182,7 @@ class Environment
     private static function isValid($env)
     {
         $ref = new \ReflectionClass(get_called_class());
-        return in_array($env, array_values($ref->getConstants()));
+        $environments = array_merge(array_values($ref->getConstants()), self::$customEnvs);
+        return in_array($env, $environments);
     }
 }
