@@ -1,8 +1,6 @@
 <?php
 namespace Core;
 
-use Core\Exception\CoreException;
-
 /**
  * 运行环境控制
  *
@@ -152,9 +150,8 @@ class Environment
                 && self::isValid($env = file_get_contents(self::$envFile))
             ) {
                 self::$environment = $env;
-            }
             // 检查$_SERVER环境变量
-            if (!self::$environment && isset($_SERVER[self::$envVar])
+            } elseif (!self::$environment && isset($_SERVER[self::$envVar])
                 && self::isValid($_SERVER[self::$envVar])
             ) {
                 self::$environment = $_SERVER[self::$envVar];
