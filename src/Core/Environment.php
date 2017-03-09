@@ -145,18 +145,12 @@ class Environment
     public static function getEnvironment()
     {
         if (!self::$environment) {
-            // 指定环境变量文件
-            if (!empty(self::$envFile) && is_file(self::$envFile)
-                && self::isValid($env = file_get_contents(self::$envFile))
-            ) {
-                self::$environment = $env;
-            // 检查$_SERVER环境变量
-            } elseif (!self::$environment && isset($_SERVER[self::$envVar])
-                && self::isValid($_SERVER[self::$envVar])
-            ) {
-                self::$environment = $_SERVER[self::$envVar];
-            } else {
-                self::$environment = self::getDefaultEnvironment();
+            if (!empty(self::$envFile) && is_file(self::$envFile)) { // 指定环境变量文件
+                self::setEnvironment(trim(file_get_contents(self::$envFile)));
+            } elseif (isset($_SERVER[self::$envVar]) && !empty($_SERVER[self::$envVar])) { // 检查$_SERVER环境变量
+                self::setEnvironment($_SERVER[self::$envVar]);
+            } else { // 默认环境
+                self::setEnvironment(self::getDefaultEnvironment());
             }
         }
         return self::$environment;
