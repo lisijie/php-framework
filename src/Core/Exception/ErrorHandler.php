@@ -127,7 +127,6 @@ class ErrorHandler
      */
     protected function renderDebugInfo($e)
     {
-        ob_clean();
         $errType = get_class($e);
 
         if (PHP_SAPI == 'cli') {
