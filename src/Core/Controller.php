@@ -13,7 +13,7 @@ use Core\Exception\AppException;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Controller extends Object
+class Controller extends Component
 {
     /**
      * 输出的数据
