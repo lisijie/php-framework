@@ -146,7 +146,14 @@ class Model extends Object
     {
         if (empty($data)) return false;
         $table = $this->db->table($this->tableName);
-        return $this->db->insert($table, $data, $replace, $multi, $ignore);
+        if ($multi) { // 批量查询使用事务提高插入性能
+            $this->db->beginTransaction();
+            $result = $this->db->insert($table, $data, $replace, $multi, $ignore);
+            $this->db->commit();
+        } else {
+            $result = $this->db->insert($table, $data, $replace, $multi, $ignore);
+        }
+        return $result;
     }
 
     /**
