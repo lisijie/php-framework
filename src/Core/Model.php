@@ -283,7 +283,7 @@ class Model extends Object
      */
     public function getTable()
     {
-        return $this->tableName;
+        return $this->db->table($this->tableName);
     }
 
     public function __toString()
