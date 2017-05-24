@@ -210,8 +210,9 @@ class App extends Events
      *
      * @param string $route 路由地址
      * @param array $params 路由参数
-     * @throws HttpNotFoundException
      * @return Response
+     * @throws HttpException
+     * @throws HttpNotFoundException
      */
     public static function runRoute($route, $params = [])
     {

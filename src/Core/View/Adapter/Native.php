@@ -1,5 +1,4 @@
 <?php
-
 namespace Core\View\Adapter;
 
 use Core\View\ViewAbstract;
@@ -51,6 +50,9 @@ class Native extends ViewAbstract
 
     /**
      * 输出布局下的子模板占位符
+     *
+     * @param string $name 名称
+     * @return string|void
      */
     public function section($name)
     {

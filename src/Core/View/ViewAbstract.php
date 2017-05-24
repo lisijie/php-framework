@@ -72,7 +72,7 @@ abstract class ViewAbstract implements ViewInterface
     public final function __construct(array $options)
     {
         // 静态资源基础URL，需要以斜杠结尾
-        if (!isset($options['static_url'])) {
+        if (empty($options['static_url'])) {
             $options['static_url'] = '/';
         }
         // 静态资源版本号,如: 1.0.0
@@ -80,7 +80,7 @@ abstract class ViewAbstract implements ViewInterface
             $options['static_version'] = '';
         }
         // 版本号变量名
-        if (!isset($options['static_version_var'])) {
+        if (empty($options['static_version_var'])) {
             $options['static_version_var'] = 'v';
         }
         $this->options = $options;
@@ -259,7 +259,7 @@ abstract class ViewAbstract implements ViewInterface
     }
 
     /**
-     * 注册CSS文件
+     * 注册CSS文件（在控制器中使用）
      *
      * 在当前的模板对象注册一个CSS文件，用于在控制器中预先设置模板需要依赖的资源文件，或者在模板头部中统一设置引入的资源文件。
      * 后面需要在HTML模板中使用 <?=$this->head() ?> 进行渲染。
@@ -282,7 +282,7 @@ abstract class ViewAbstract implements ViewInterface
     }
 
     /**
-     * 引入CSS文件
+     * 引入CSS文件（在模板中使用）
      *
      * 用于在模板中引入CSS文件，返回包含css文件的link标签。使用方法：
      * <?=$this->requireCssFile('css/base.css')?>
@@ -304,7 +304,7 @@ abstract class ViewAbstract implements ViewInterface
     }
 
     /**
-     * 注册JS文件
+     * 注册JS文件（在控制器中使用）
      *
      * 在当前的模板对象注册一个JS文件，用于在控制器中预先设置模板需要依赖的资源文件，或者在模板头部中统一设置引入的资源文件。
      * 后面需要在HTML模板中使用 <?=$this->head() ?> 和 <?=$this->foot()?> 进行渲染。
@@ -325,7 +325,7 @@ abstract class ViewAbstract implements ViewInterface
     }
 
     /**
-     * 引入JS文件
+     * 引入JS文件（在模板中使用）
      *
      * 用于在模板中引入JS文件，返回包含JS文件的script标签，在模板中使用方法：
      * <?=$this->requireJsFile('js/base.js')?>
@@ -406,6 +406,7 @@ abstract class ViewAbstract implements ViewInterface
 
     /**
      * 渲染模板
+     *
      * @param string $_file_ 模板文件名_
      * @return string
      */
