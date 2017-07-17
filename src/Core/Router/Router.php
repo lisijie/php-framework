@@ -1,5 +1,4 @@
 <?php
-
 namespace Core\Router;
 
 use Core\Http\Request;
@@ -8,27 +7,29 @@ use Core\Http\Request;
  * 路由解析器
  *
  * 路由解析器提供 URI 到控制器方法的转换，配置说明：
- *  - 每条路由配置都是一个数组，格式为 array('URI规则', '对应的控制器方法', array(附加参数))
- *  - URI规则中的变量由大括号包含，格式为 {var:type} ，var 为变量名称，type 为匹配类型，可以是内置的类型(int,str,date,year)，或正则表达式,
- *    类型部分可以省略，默认为匹配字符串，例如 {name}
+ *  - 每条路由配置都是一个数组，格式为 ['URI规则', '对应的控制器方法', 'HTTP方法']
+ *  - URI规则中的可以使用变量或者通配符，变量语法是`:var`，如: /user/:id，使用通配符如：/home/*。
  *  - 路由对应的控制器方法根据控制器的类名转换而来，格式为: 类名/方法名，省略Controller和Action，例如： Admin/User/UserList 表示 App\Controller\Admin\UserController::UserListAction()
  *    你也可以使用全小写的方式 admin/user/user-list，不管用哪种，最终都统一转换为全小写的地址。
- *  - 如果配置了附加参数，路由规则匹配后使用 getParams() 方法获取到的参数列表将包含路由参数和附加参数，这项配置是可选的，没有的话可以省略
  *
  * 示例：
- * array(
- *     array('list/{cat_id:int}/{page:int}', 'Main/Article/List'),
- *     array('article/{id:int}', 'Main/Article/Show'),
- *     array('login', 'Main/User/Login'),
- *     array('register', 'Main/User/Register'),
- *     array('users', 'Main/User/UserList'),
- * );
+ * [
+ *     ['/', 'Home/index'],
+ *     ['/article/:id', 'Article/Show'],
+ *     ['/login', 'User/Login'],
+ *     ['/register', 'user/register', 'POST'],
+ *     ['/users/*', 'User/UserList', 'GET'],
+ * ];
  *
  * @author lisijie <lsj86@qq.com>
  * @package Core\Router
  */
 abstract class Router implements RouterInterface
 {
+    /**
+     * 原始路由配置表
+     * @var array
+     */
     protected $config = [];
 
     /**
@@ -41,20 +42,7 @@ abstract class Router implements RouterInterface
      * URI规则到控制器的映射
      * @var array
      */
-    protected $uriMap = [];
-
-    /**
-     * 变量对应正则
-     *
-     * @var array
-     */
-    protected $typeRegexp = [
-        'int' => '(\d+)',
-        'string' => '([^/\#]*)',
-        'str' => '([^/\#]*)',
-        'date' => '(\d{8})',
-        'year' => '(\d{4})',
-    ];
+    protected $pathMap = [];
 
     /**
      * 当前路由参数
@@ -71,18 +59,18 @@ abstract class Router implements RouterInterface
     protected $routeName;
 
     /**
-     * 默认路由
-     *
-     * @var string
-     */
-    protected $defaultRoute = '';
-
-    /**
      * 请求对象
      *
      * @var \Core\Http\Request
      */
     protected $request;
+
+    /**
+     * 默认路由
+     *
+     * @var string
+     */
+    protected $defaultRoute = '';
 
     /**
      * 路由变量
@@ -150,61 +138,69 @@ abstract class Router implements RouterInterface
      */
     protected function parseConfig()
     {
-        foreach ($this->config as $conf) {
-            list($url, $route) = $conf;
+        foreach ($this->config as $item) {
+            list($path, $route) = $item;
+            $method = isset($item[2]) ? strtoupper($item[2]) : '*';
             $route = $this->normalizeRoute($route);
-            $params = [];
-            if (strpos($url, '{') !== false) {
-                $re = preg_replace_callback('#{[^}]+}#', function ($matches) use (&$params) {
-                    $string = trim($matches[0], '{}');
-                    if (strpos($string, ':') !== false) {
-                        list($name, $rule) = explode(':', $string);
-                    } else {
-                        $name = $string;
-                        $rule = 'str';
-                    }
-                    $params[] = $name;
-                    return isset($this->typeRegexp[$rule]) ? $this->typeRegexp[$rule] : $rule;
-                }, $url);
-            } else {
-                $re = $url;
+            $parts = explode('/', $path);
+            $pk = 0;
+            foreach ($parts as $key => $part) {
+                if (empty($part)) {
+                    continue;
+                }
+                if ($part[0] == ':') {
+                    $parts[$key] = '(?<' . substr($part, 1) . '>[^/]+?)'; // 换成正则
+                } elseif ($part == '*') {
+                    $parts[$key] = '(?<idx' . $pk . '>.*?)';
+                    $pk++;
+                }
             }
-            $this->uriMap[$re] = ['route' => $route, 'params' => (isset($conf[2]) && is_array($conf[2]) ? array_merge($params, $conf[2]) : $params)];
-            $this->routeMap[$route][] = ['url' => $url, 'params' => array_flip($params)];
+            $re = implode('/', $parts);
+            $this->pathMap[$re] = ['route' => $route, 'method' => $method];
+            $this->routeMap[$route] = ['path' => $path];
         }
     }
 
     /**
-     * 解析URL
+     * 解析URI
      *
-     * 将URL解析为对应的路由地址和参数。
+     * 将URI解析为对应的路由地址和参数。
      *
-     * @param string $url
+     * @param string $uri
      * @return bool
+     * @throws MethodNotAllowedException
      */
-    protected function parseUrl($url)
+    public function parseRoute($uri)
     {
-        if (empty($url)) return false;
+        if (empty($uri)) return false;
+        if ($uri[0] != '/') {
+            $uri = '/' . $uri;
+        }
         $match = false;
-        foreach ($this->uriMap as $re => $value) {
-            if (preg_match('#^' . $re . '$#i', $url, $matches)) {
-                $routeParams = [];
-                foreach ($value['params'] as $k => $v) {
-                    if (is_int($k) && isset($matches[$k + 1])) {
-                        $routeParams[$v] = $matches[$k + 1];
-                    } else {
-                        $routeParams[$k] = $v;
-                    }
+        foreach ($this->pathMap as $re => $value) {
+            if (preg_match('#^' . $re . '$#i', $uri, $matches)) {
+                $match = true;
+                if ($value['method'] != '*' && $value['method'] != $this->request->getMethod()) {
+                    throw new MethodNotAllowedException();
                 }
                 $this->routeName = $value['route'];
-                $this->params = $routeParams;
-                $match = true;
+                foreach ($matches as $k => $v) {
+                    if (is_numeric($k)) {
+                        continue;
+                    }
+                    if (substr($k, 0, 3) == 'idx') {
+                        $this->params[substr($k, 3)] = $v;
+                    } else {
+                        $this->params[$k] = $v;
+                    }
+                }
                 break;
             }
         }
         if (!$match) {
-            $this->routeName = trim($url, '/');
+            $this->routeName = trim($uri, '/');
         }
+        return $match;
     }
 
     /**
@@ -214,68 +210,72 @@ abstract class Router implements RouterInterface
      * @param array $params
      * @return array('path'=>路径, 'params'=>参数)
      */
-    protected function makeUrlPath($route, $params)
+    protected function makeUrlPath($route, array $params)
     {
         $route = $this->normalizeRoute($route);
         $path = '';
         if (isset($this->routeMap[$route])) {
-            $map = [];
-            $n = -1;
-            foreach ($this->routeMap[$route] as $value) {
-                //参数完全匹配
-                if (count($value['params']) == count($params) && !array_diff_key($value['params'], $params)) {
-                    $map = $value;
-                    break;
+            $path = $this->routeMap[$route]['path'];
+            $parts = explode('/', $path);
+            $pk = 0;
+            foreach ($parts as $key => $val) {
+                if (empty($val)) {
+                    continue;
                 }
-                //寻找最佳匹配
-                $count = count(array_intersect_key($value['params'], $params)); // 相同参数数量
-                if ($count >= count($value['params']) && $count > $n) {
-                    $map = $value;
-                    $n = $count;
+                if ($val == '*') {
+                    $parts[$key] = isset($params[$pk]) ? rawurlencode($params[$pk]) : '';
+                    $pk++;
+                    unset($params[$pk]);
+                } elseif ($val[0] == ':') {
+                    $pName = substr($val, 1);
+                    $parts[$key] = isset($params[$pName]) ? rawurlencode($params[$pName]) : '';
+                    unset($params[$pName]);
                 }
             }
-            if ($map) {
-                $path = preg_replace_callback('#{[^}]+}#', function ($matches) use (&$params) {
-                    $name = trim($matches[0], '{}');
-                    if (strpos($name, ':') !== false) {
-                        list($name) = explode(':', $name);
-                    }
-                    if (isset($params[$name])) {
-                        $v = $params[$name];
-                        unset($params[$name]);
-                        return rawurlencode($v);
-                    }
-                    return '';
-                }, $map['url']);
-            }
+            $path = implode('/', $parts);
         }
         if (!$path) {
             $path = $route;
         }
-
         return ['path' => $path, 'params' => $params];
     }
 
     /**
      * 获取路由地址
+     * @return string
      */
     public function getRoute()
     {
-        return $this->routeName ?: $this->getDefaultRoute();
+        return $this->routeName ?: $this->defaultRoute;
     }
 
     /**
      * 获取路由参数列表
+     * @return array
      */
     public function getParams()
     {
         return $this->params;
     }
 
+    /**
+     * 获取路由参数
+     * @param $key
+     * @return mixed|null
+     */
+    public function getParam($key)
+    {
+        return isset($this->params[$key]) ? $this->params[$key] : null;
+    }
+
+    /**
+     * 路由解析
+     * @param Request $request
+     */
     public function resolve(Request $request)
     {
         $this->request = $request;
-        $this->parse();
+        return $this->parse();
     }
 
     /**
@@ -296,16 +296,16 @@ abstract class Router implements RouterInterface
      * 工厂方法
      * 实例化指定类型路由器
      *
+     * @param $type
      * @param array $options
-     * @return \Core\Router\Router
-     * @throws \InvalidArgumentException
+     * @return Router
      */
-    public static function factory(array $options)
+    public static function factory($type, array $options = [])
     {
-        $className = '\\Core\\Router\\' . ucfirst($options['type']);
+        $className = '\\Core\\Router\\' . ucfirst($type);
         if (class_exists($className) && is_subclass_of($className, '\\Core\\Router\Router')) {
             return new $className($options);
         }
-        throw new \InvalidArgumentException("Unknown Router : {$options['type']}");
+        throw new \InvalidArgumentException("Unknown Router : {$type}");
     }
 }

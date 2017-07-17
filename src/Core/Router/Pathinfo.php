@@ -15,7 +15,7 @@ class Pathinfo extends Router
     protected function parse()
     {
         if (null !== ($pathInfo = $this->request->getPathInfo())) {
-            $this->parseUrl($pathInfo);
+            $this->parseRoute($pathInfo);
         }
     }
 

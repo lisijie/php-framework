@@ -54,6 +54,12 @@ class Request extends Component
      */
     protected $hostInfo;
 
+    /**
+     * 请求URI
+     * @var null
+     */
+    protected $requestUri = null;
+
     public function __construct(Headers $header = null, Cookies $cookie = null)
     {
         $this->headers = is_null($header) ? Headers::createFromEnv() : $header;
@@ -151,7 +157,19 @@ class Request extends Component
      */
     public function getRequestUri()
     {
-        return isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        if ($this->requestUri === null) {
+            $this->requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        }
+        return $this->requestUri;
+    }
+
+    /**
+     * 设置请求URI
+     * @param $uri
+     */
+    public function setRequestUri($uri)
+    {
+        $this->requestUri = $uri;
     }
 
     /**

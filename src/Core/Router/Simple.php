@@ -16,7 +16,7 @@ class Simple extends Router
     {
         $r = $this->request->getQuery($this->routeVar);
         if (!empty($r)) {
-            $this->parseUrl($r);
+            $this->parseRoute($r);
         }
     }
 

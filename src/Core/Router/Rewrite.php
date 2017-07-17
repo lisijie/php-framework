@@ -36,12 +36,11 @@ class Rewrite extends Router
         if ($baseUrl && ($pos = strpos($path, $baseUrl)) === 0) {
             $path = substr($path, strlen($baseUrl));
         }
-        $path = trim($path, '/');
         if (!empty($query)) {
             parse_str($query, $vars);
             $_GET = array_merge($_GET, (array)$vars);
         }
-        $this->parseUrl($path);
+        $this->parseRoute($path);
     }
 
     public function makeUrl($route, $params = [])

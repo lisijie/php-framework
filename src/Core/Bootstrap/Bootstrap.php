@@ -101,13 +101,12 @@ class Bootstrap implements BootstrapInterface
     {
         if (PHP_SAPI == 'cli') {
             $options = [
-                'type' => 'Console',
                 'default_route' => 'help/index', //默认路由
             ];
-            $router = Router::factory($options);
+            $router = Router::factory('Console', $options);
         } else {
-            $options = App::config()->get('app', 'router', []);
-            $router = Router::factory($options);
+            $config = App::config()->get('app', 'router', []);
+            $router = Router::factory($config['type'], $config['options']);
             $router->setConfig(App::config()->get('route'));
         }
         return $router;
