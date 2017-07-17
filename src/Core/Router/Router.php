@@ -194,6 +194,7 @@ abstract class Router implements RouterInterface
                         $this->params[$k] = $v;
                     }
                 }
+                $this->request->addParams($this->params);
                 break;
             }
         }

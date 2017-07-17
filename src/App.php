@@ -181,7 +181,6 @@ class App extends Events
         $router->resolve($request);
         //当前路由地址
         define('CUR_ROUTE', $router->getRoute());
-        $request->addParams($router->getParams());
         self::set('request', $request);
 
         return self::runRoute(CUR_ROUTE, $router->getParams());

@@ -60,6 +60,12 @@ class Request extends Component
      */
     protected $requestUri = null;
 
+    /**
+     * 额外参数
+     * @var array
+     */
+    protected $params = [];
+
     public function __construct(Headers $header = null, Cookies $cookie = null)
     {
         $this->headers = is_null($header) ? Headers::createFromEnv() : $header;
@@ -93,7 +99,26 @@ class Request extends Component
      */
     public function addParams(array $params)
     {
-        $_GET = array_merge($_GET, $params);
+        $this->params = array_merge($this->params, $params);
+    }
+
+    /**
+     * 获取请求参数
+     *
+     * @param $name
+     * @param null $default
+     * @param bool $filter
+     * @return mixed|null
+     */
+    public function getParam($name = null, $default = null, $filter = true)
+    {
+        if (null === $name) {
+            return $filter ? $this->applyFilter($this->params) : $this->params;
+        }
+        if (isset($this->params[$name])) {
+            return $filter ? $this->applyFilter($this->params[$name]) : $this->params[$name];
+        }
+        return $default;
     }
 
     /**
