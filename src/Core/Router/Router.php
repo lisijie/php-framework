@@ -27,10 +27,28 @@ use Core\Http\Request;
 abstract class Router implements RouterInterface
 {
     /**
-     * 原始路由配置表
-     * @var array
+     * 固定路径
      */
-    protected $config = [];
+    const TYPE_STATIC = 1;
+
+    /**
+     * 参数匹配
+     */
+    const TYPE_PARAM = 2;
+
+    /**
+     * 包含通配符
+     */
+    const TYPE_ANY = 3;
+
+    const METHOD_GET = 'GET';
+    const METHOD_POST = 'POST';
+    const METHOD_PUT = 'PUT';
+    const METHOD_HEAD = 'HEAD';
+    const METHOD_OPTIONS = 'OPTIONS';
+    const METHOD_PATCH = 'PATCH';
+    const METHOD_DELETE = 'DELETE';
+    const METHOD_ANY = '*';
 
     /**
      * 控制器到URI规则的映射
@@ -39,7 +57,7 @@ abstract class Router implements RouterInterface
     protected $routeMap = [];
 
     /**
-     * URI规则到控制器的映射
+     * 路由查找表
      * @var array
      */
     protected $pathMap = [];
@@ -90,16 +108,6 @@ abstract class Router implements RouterInterface
     }
 
     /**
-     * 设置路由配置
-     * @param array $config
-     */
-    public function setConfig(array $config)
-    {
-        $this->config = $config;
-        $this->parseConfig();
-    }
-
-    /**
      * 设置默认路由
      * @param $route
      */
@@ -118,90 +126,157 @@ abstract class Router implements RouterInterface
     }
 
     /**
-     * 标准化路由地址
-     *
-     * 全部转成小写，每个单词用"-"分隔，例如 Admin/UserList 转换为 admin/user-list
-     *
-     * @param $route
+     * 获取路由地址
      * @return string
      */
-    protected function normalizeRoute($route)
+    public function getRoute()
     {
-        $route = preg_replace_callback('#[A-Z]#', function ($m) {
-            return '-' . strtolower($m[0]);
-        }, $route);
-        return ltrim(strtr($route, ['/-' => '/']), '-');
+        return $this->routeName ?: $this->defaultRoute;
     }
 
     /**
-     * 解析配置
+     * 获取路由参数列表
+     * @return array
      */
-    protected function parseConfig()
+    public function getParams()
     {
-        foreach ($this->config as $item) {
-            list($path, $route) = $item;
-            $method = isset($item[2]) ? strtoupper($item[2]) : '*';
-            $route = $this->normalizeRoute($route);
-            $parts = explode('/', $path);
-            $pk = 0;
-            foreach ($parts as $key => $part) {
-                if (empty($part)) {
-                    continue;
+        return $this->params;
+    }
+
+    /**
+     * 获取路由参数
+     * @param $key
+     * @return mixed|null
+     */
+    public function getParam($key)
+    {
+        return isset($this->params[$key]) ? $this->params[$key] : null;
+    }
+
+    /**
+     * 路由解析
+     * @param Request $request
+     */
+    public function resolve(Request $request)
+    {
+        $this->request = $request;
+        return $this->parse();
+    }
+
+    /**
+     * 添加路由配置
+     *
+     * @param array $config
+     */
+    public function addConfig(array $config)
+    {
+        foreach ($config as $key => $value) {
+            if (is_string($key)) { // 组路由
+                foreach ((array)$value as $item) {
+                    $this->addRoute($key . $item[0], $item[1], isset($item[2]) ? strtoupper($item[2]) : self::METHOD_ANY);
                 }
-                if ($part[0] == ':') {
-                    $parts[$key] = '(?<' . substr($part, 1) . '>[^/]+?)'; // 换成正则
-                } elseif ($part == '*') {
-                    $parts[$key] = '(?<idx' . $pk . '>.*?)';
-                    $pk++;
-                }
+            } else {
+                $this->addRoute($value[0], $value[1], isset($value[2]) ? strtoupper($value[2]) : self::METHOD_ANY);
             }
-            $re = implode('/', $parts);
-            $this->pathMap[$re] = ['route' => $route, 'method' => $method];
-            $this->routeMap[$route] = ['path' => $path];
         }
     }
 
     /**
-     * 解析URI
+     * 添加路由规则
      *
-     * 将URI解析为对应的路由地址和参数。
+     * @param string $path 路径规则
+     * @param string $route 控制器地址
+     * @param string $method 允许的请求方法
+     */
+    public function addRoute($path, $route, $method = self::METHOD_ANY)
+    {
+        $route = $this->normalizeRoute($route);
+        // 必须以"/"开头
+        if ($path[0] != '/') {
+            $path = '/' . $path;
+        }
+        // 匹配类型
+        if (strpos($path, '*') !== false) {
+            $type = self::TYPE_ANY;
+        } elseif (strpos($path, ':') !== false) {
+            $type = self::TYPE_PARAM;
+        } else {
+            $type = self::TYPE_STATIC;
+        }
+        $parts = explode('/', $path);
+        $pk = 0;
+        foreach ($parts as $key => $part) {
+            if (empty($part)) {
+                continue;
+            }
+            if ($part[0] == ':') {
+                $parts[$key] = '(?<' . substr($part, 1) . '>[^/]+?)'; // 换成正则
+            } elseif ($part == '*') {
+                $parts[$key] = '(?<idx' . $pk . '>.*?)';
+                $pk++;
+            }
+        }
+        $re = implode('/', $parts);
+        if (!isset($this->pathMap[$type])) {
+            $this->pathMap[$type] = [];
+        }
+        $this->pathMap[$type][$re] = ['route' => $route, 'method' => $method];
+        $this->routeMap[$route] = ['path' => $path];
+    }
+
+    /**
+     * 路由解析
      *
-     * @param string $uri
+     * 将路径解析为对应的路由地址和参数。
+     *
+     * @param string $path
      * @return bool
      * @throws MethodNotAllowedException
      */
-    public function parseRoute($uri)
+    public function parseRoute($path)
     {
-        if (empty($uri)) return false;
-        if ($uri[0] != '/') {
-            $uri = '/' . $uri;
+        if (empty($path)) return false;
+        if ($path[0] != '/') {
+            $path = '/' . $path;
         }
-        $match = false;
-        foreach ($this->pathMap as $re => $value) {
-            if (preg_match('#^' . $re . '$#i', $uri, $matches)) {
-                $match = true;
-                if ($value['method'] != '*' && $value['method'] != $this->request->getMethod()) {
-                    throw new MethodNotAllowedException();
-                }
-                $this->routeName = $value['route'];
-                foreach ($matches as $k => $v) {
-                    if (is_numeric($k)) {
-                        continue;
+        foreach ([self::TYPE_STATIC, self::TYPE_PARAM, self::TYPE_ANY] as $type) {
+            if (!isset($this->pathMap[$type])) {
+                continue;
+            }
+            foreach ($this->pathMap[$type] as $re => $item) {
+                if (preg_match('#^' . $re . '$#i', $path, $matches)) {
+                    // 检查请求方法是否匹配
+                    if ($item['method'] != self::METHOD_ANY) {
+                        $ok = false;
+                        $reqMethod = $this->request->getMethod();
+                        foreach (explode(',', $item['method']) as $method) {
+                            if ($method == $reqMethod) {
+                                $ok = true;
+                                break;
+                            }
+                        }
+                        if (!$ok) {
+                            throw new MethodNotAllowedException();
+                        }
                     }
-                    if (substr($k, 0, 3) == 'idx') {
-                        $this->params[substr($k, 3)] = $v;
-                    } else {
-                        $this->params[$k] = $v;
+                    $this->routeName = $item['route'];
+                    foreach ($matches as $k => $v) {
+                        if (is_numeric($k)) {
+                            continue;
+                        }
+                        if (substr($k, 0, 3) == 'idx') {
+                            $this->params[substr($k, 3)] = $v;
+                        } else {
+                            $this->params[$k] = $v;
+                        }
                     }
+                    $this->request->addParams($this->params);
+                    return true;
                 }
-                $this->request->addParams($this->params);
-                break;
             }
         }
-        if (!$match) {
-            $this->routeName = trim($uri, '/');
-        }
-        return $match;
+        $this->routeName = trim($path, '/');
+        return false;
     }
 
     /**
@@ -242,41 +317,19 @@ abstract class Router implements RouterInterface
     }
 
     /**
-     * 获取路由地址
+     * 标准化路由地址
+     *
+     * 全部转成小写，每个单词用"-"分隔，例如 Admin/UserList 转换为 admin/user-list
+     *
+     * @param $route
      * @return string
      */
-    public function getRoute()
+    private function normalizeRoute($route)
     {
-        return $this->routeName ?: $this->defaultRoute;
-    }
-
-    /**
-     * 获取路由参数列表
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->params;
-    }
-
-    /**
-     * 获取路由参数
-     * @param $key
-     * @return mixed|null
-     */
-    public function getParam($key)
-    {
-        return isset($this->params[$key]) ? $this->params[$key] : null;
-    }
-
-    /**
-     * 路由解析
-     * @param Request $request
-     */
-    public function resolve(Request $request)
-    {
-        $this->request = $request;
-        return $this->parse();
+        $route = preg_replace_callback('#[A-Z]#', function ($m) {
+            return '-' . strtolower($m[0]);
+        }, $route);
+        return ltrim(strtr($route, ['/-' => '/']), '-');
     }
 
     /**

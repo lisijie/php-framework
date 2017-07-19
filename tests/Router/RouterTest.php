@@ -12,7 +12,7 @@ class RouterTest extends TestCase
             ['/register', 'user/register', 'post'],
         ];
         $router = Core\Router\Router::factory('rewrite');
-        $router->setConfig($config);
+        $router->addConfig($config);
         $request = new \Core\Http\Request();
 
         $request->setRequestUri('/');
@@ -38,7 +38,7 @@ class RouterTest extends TestCase
             ['/register', 'user/register', 'post'],
         ];
         $router = Core\Router\Router::factory('rewrite');
-        $router->setConfig($config);
+        $router->addConfig($config);
         $request = new \Core\Http\Request();
         $request->setRequestUri('/register');
         $router->resolve($request);
@@ -48,7 +48,7 @@ class RouterTest extends TestCase
     {
         $config = [];
         $router = Core\Router\Router::factory('rewrite', ['default_route' => 'home/index']);
-        $router->setConfig($config);
+        $router->addConfig($config);
         $request = new \Core\Http\Request();
         $request->setRequestUri('/not/exists/path');
         $router->resolve($request);

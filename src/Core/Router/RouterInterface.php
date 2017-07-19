@@ -12,7 +12,7 @@ use Core\Http\Request;
 interface RouterInterface
 {
     // 设置路由配置表
-    public function setConfig(array $config);
+    public function addConfig(array $config);
 
     // 设置默认路由地址
     public function setDefaultRoute($route);
