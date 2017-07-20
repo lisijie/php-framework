@@ -107,7 +107,7 @@ class Bootstrap implements BootstrapInterface
         } else {
             $config = App::config()->get('app', 'router', []);
             $router = Router::factory($config['type'], $config['options']);
-            $router->setConfig(App::config()->get('route'));
+            $router->addConfig(App::config()->get('route'));
         }
         return $router;
     }

@@ -2,6 +2,7 @@
 
 namespace Core\Exception;
 
+use Core\Lib\VarDumper;
 use Exception;
 use Core\Http\Response;
 use Core\Logger\LoggerInterface;
@@ -139,8 +140,11 @@ class ErrorHandler
             echo "\n----------------------------------------------------------------------------------------------------\n";
         } else {
             $errMsg = 'error: ' . $e->getMessage() . '<br />errno: ' . $e->getCode();
-            $errMsg .= '<br />file: ' . $e->getFile() . '<br />line: ' . $e->getLine();
-
+            $errMsg .= '<br />file: ' . $e->getFile() . '(' . $e->getLine() . ')<br />';
+            if ($e instanceof DBException) {
+                $errMsg .= 'sql: ' . $e->getSql();
+                $errMsg .= '<br />params: ' . VarDumper::export($e->getParams());
+            }
             echo '<div style="margin:20px;">';
             echo '<p style="color:red;font-family:Verdana;line-height:150%;">[' . $errType . ']</p>';
             echo '<p style="font-size:11px;font-family:Verdana; background:#ffffdd; border:1px solid #f0f0f0; padding:5px">';

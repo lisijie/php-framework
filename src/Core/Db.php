@@ -3,6 +3,7 @@
 namespace Core;
 
 use Core\Event\DbEvent;
+use Core\Exception\DBException;
 
 /**
  * 数据库操作类
@@ -62,6 +63,7 @@ class Db extends Component
     public function __construct($options)
     {
         if (!isset($options['charset'])) $options['charset'] = 'utf8';
+        if (!isset($options['timeout'])) $options['timeout'] = 1; // 连接超时时间
         $this->options = $options;
     }
 
@@ -94,11 +96,15 @@ class Db extends Component
         }
         if (!isset($this->connections[$mode]) || $reload) {
             $conf = $this->options[$mode];
-            $this->connections[$mode] = new \PDO($conf['dsn'], $conf['username'], $conf['password'], [
-                \PDO::ATTR_PERSISTENT => ($conf['pconnect'] ? true : false),
-                \PDO::ATTR_TIMEOUT => 1,
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-            ]);
+            try {
+                $this->connections[$mode] = new \PDO($conf['dsn'], $conf['username'], $conf['password'], [
+                    \PDO::ATTR_PERSISTENT => ($conf['pconnect'] ? true : false),
+                    \PDO::ATTR_TIMEOUT => $this->options['timeout'],
+                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                ]);
+            } catch (\PDOException $e) {
+                throw new DBException($e->getMessage() . ', DSN: ' . $conf['dsn'], $e->getCode());
+            }
         }
         return $this->connections[$mode];
     }
@@ -107,7 +113,7 @@ class Db extends Component
      * 根据SQL语句返回数据库连接
      *
      * @param string $sql
-     * @return resource
+     * @return \PDO
      */
     private function autoConn($sql = '')
     {
@@ -165,9 +171,13 @@ class Db extends Component
         $st = microtime(true);
         $sql = $this->sql($sql);
         $conn = $fromMaster ? $this->getConnect(self::MODE_WRITE) : $this->autoConn($sql);
-        $stm = $conn->prepare($sql);
-        $this->bindValue($stm, $data);
-        $stm->execute();
+        try {
+            $stm = $conn->prepare($sql);
+            $this->bindValue($stm, $data);
+            $stm->execute();
+        } catch (\PDOException $e) {
+            throw new DBException($e->getMessage(), $e->getCode(), $sql, $data);
+        }
         $this->trigger(self::EVENT_QUERY, new DbEvent($sql, $data, $fromMaster, microtime(true) - $st, $stm));
         return $stm;
     }
@@ -259,9 +269,13 @@ class Db extends Component
         $conn = $this->getConnect();
         $stm = $conn->prepare($sql);
         $ids = [];
-        foreach ($data as $row) {
-            $stm->execute(array_values($row));
-            $ids[] = $conn->lastInsertId();
+        try {
+            foreach ($data as $row) {
+                $stm->execute(array_values($row));
+                $ids[] = $conn->lastInsertId();
+            }
+        } catch (\PDOException $e) {
+            throw new DBException($e->getMessage(), $e->getCode(), $sql, array_values($row));
         }
         $this->trigger(self::EVENT_QUERY, new DbEvent($sql, $data, true, microtime(true) - $st, $stm));
         return $multi ? $ids : array_shift($ids);
