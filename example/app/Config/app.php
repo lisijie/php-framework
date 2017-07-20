@@ -25,7 +25,9 @@ return [
     //路由类型配置
     'router' => [
         'type' => 'simple',
-        'default_route' => 'main/main/index', //默认路由
+        'options' => [
+            'default_route' => 'home/index', //默认路由
+        ],
     ],
 
     //缓存配置
