@@ -71,17 +71,27 @@ return [
 
     //日志设置
     'logger' => [
-        //默认日志
+        //默认日志配置
         'default' => [
             //日志处理器1
             [
                 'level' => 1, //日志级别: 1-8
-                'handler' => 'FileHandler', //日志处理器
+                'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
+                'formatter' => \Core\Logger\Formatter\JsonFormatter::class,
                 'config' => [
                     'savepath' => DATA_PATH . '/logs/', //日志保存目录
                     'filesize' => 0, //文件分割大小
                     'filename' => '{level}-{Y}{m}{d}.log',
                 ],
+            ]
+        ],
+        // 控制台日志配置
+        'console' => [
+            [
+                'level' => 1, //日志级别: 1-8
+                'handler' => \Core\Logger\Handler\ConsoleHandler::class, //日志处理器
+                'formatter' => \Core\Logger\Formatter\ConsoleFormatter::class,
+                'config' => [],
             ]
         ],
     ],

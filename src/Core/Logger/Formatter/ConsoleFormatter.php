@@ -21,19 +21,19 @@ class ConsoleFormatter extends AbstractFormatter
     private function colorLevelName($levelName)
     {
         switch ($levelName) {
-            case 'DEBUG':
+            case 'D':
+                return "\033[1;32m{$levelName}\033[0m";
+                break;
+            case 'I':
                 return "\033[1;34m{$levelName}\033[0m";
                 break;
-            case 'INFO':
-                return "\033[1;34m{$levelName}\033[0m";
-                break;
-            case 'WARN':
+            case 'W':
                 return "\033[1;33m{$levelName}\033[0m";
                 break;
-            case 'ERROR':
+            case 'E':
                 return "\033[1;31m{$levelName}\033[0m";
                 break;
-            case 'FATAL':
+            case 'F':
                 return "\033[1;35m{$levelName}\033[0m";
                 break;
         }

@@ -46,13 +46,13 @@ class Logger implements LoggerInterface
 
     /**
      * 日志处理器
-     * @var object
+     * @var array
      */
     protected $handlers = [];
 
-    public function __construct($name)
+    public function __construct($channel)
     {
-        $this->channel = $name;
+        $this->channel = $channel;
     }
 
     /**

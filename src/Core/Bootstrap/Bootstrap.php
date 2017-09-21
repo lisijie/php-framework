@@ -122,24 +122,32 @@ class Bootstrap implements BootstrapInterface
     }
 
     //注册日志记录器
-    public function initLogger($name)
+    public function initLogger($channel)
     {
         $config = App::config()->get('app', 'logger', []);
         $timezone = App::config()->get('app', 'timezone', 'UTC');
-        $logger = new Logger($name);
+        $logger = new Logger($channel);
         $logger->setTimeZone(new \DateTimeZone($timezone));
-        if ($name != 'default' && !isset($config[$name])) {
-            $name = 'default';
+        if ($channel != 'default' && !isset($config[$channel])) {
+            $channel = 'default';
         }
-        if (isset($config[$name])) {
-            foreach ($config[$name] as $conf) {
-                $handlerClass = '\\Core\\Logger\\Handler\\' . $conf['handler'];
+        if (isset($config[$channel])) {
+            foreach ($config[$channel] as $conf) {
+                $handlerClass = $conf['handler'];
+                if (!class_exists($handlerClass)) {
+                    throw new \RuntimeException('找不到日志处理类: ' . $handlerClass);
+                }
                 $handler = new $handlerClass($conf['config']);
+                // 日志格式化器配置
                 if (!empty($conf['formatter'])) {
-                    $formatterClass = '\\Core\\Logger\\Formatter\\' . $conf['formatter'];
+                    $formatterClass = $conf['formatter'];
+                    if (!class_exists($formatterClass)) {
+                        throw new \RuntimeException('找不到日志格式化类: ' . $formatterClass);
+                    }
                     $formatter = new $formatterClass();
                     $handler->setFormatter($formatter);
                 }
+                // 设置日志时间格式
                 if (!empty($conf['date_format'])) {
                     $handler->getFormatter()->setDateFormat($conf['date_format']);
                 }

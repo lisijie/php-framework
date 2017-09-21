@@ -103,8 +103,7 @@ class App extends Events
             $profiler->setXhprofUrl($config['xhprof_url']);
             $profiler->start();
         }
-        $request = new Request();
-        $response = self::handleRequest($request);
+        $response = self::handleRequest(new Request());
         $response->send();
     }
 
@@ -167,7 +166,6 @@ class App extends Events
     {
         return self::$sqlDebug;
     }
-
 
     /**
      * 处理请求
@@ -491,11 +489,12 @@ class App extends Events
      * @param string $name 名称
      * @param mixed $definition 定义
      * @param bool $singleton 是否单一实例
-     * @return $this
+     * @return bool
      */
     public static function set($name, $definition, $singleton = true)
     {
-        return self::$container->set($name, $definition, $singleton);
+        self::$container->set($name, $definition, $singleton);
+        return true;
     }
 
     /**
