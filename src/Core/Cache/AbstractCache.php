@@ -12,6 +12,15 @@ use Core\Component;
  */
 abstract class AbstractCache extends Component implements CacheInterface
 {
+    const EVENT_ADD = 'add';
+    const EVENT_SET = 'set';
+    const EVENT_MSET = 'mset';
+    const EVENT_GET = 'get';
+    const EVENT_MGET = 'mget';
+    const EVENT_DEL = 'del';
+    const EVENT_INCREMENT = 'increment';
+    const EVENT_DECREMENT = 'decrement';
+
     /**
      * key前缀
      * @var string
@@ -60,6 +69,7 @@ abstract class AbstractCache extends Component implements CacheInterface
     public function add($key, $value, $ttl = 0)
     {
         $result = $this->doAdd($key, $value, $ttl);
+        $this->trigger(self::EVENT_ADD);
         return $result;
     }
 
@@ -74,6 +84,7 @@ abstract class AbstractCache extends Component implements CacheInterface
     public function set($key, $value, $ttl = 0)
     {
         $result = $this->doSet($key, $value, $ttl);
+        $this->trigger(self::EVENT_SET);
         return $result;
     }
 
@@ -87,6 +98,7 @@ abstract class AbstractCache extends Component implements CacheInterface
     public function mset(array $items, $ttl = 0)
     {
         $result = $this->doMSet($items, $ttl);
+        $this->trigger(self::EVENT_MSET);
         return $result;
     }
 
@@ -99,6 +111,7 @@ abstract class AbstractCache extends Component implements CacheInterface
     public function get($key)
     {
         $result = $this->doGet($key);
+        $this->trigger(self::EVENT_GET);
         return $result;
     }
 
@@ -111,6 +124,7 @@ abstract class AbstractCache extends Component implements CacheInterface
     public function mget(array $keys)
     {
         $result = $this->doMGet($keys);
+        $this->trigger(self::EVENT_MGET);
         return $result;
     }
 
@@ -128,6 +142,7 @@ abstract class AbstractCache extends Component implements CacheInterface
             $keys = func_get_args();
         }
         $result = $this->doDel($keys);
+        $this->trigger(self::EVENT_DEL);
         return $result;
     }
 
@@ -141,6 +156,7 @@ abstract class AbstractCache extends Component implements CacheInterface
     public function increment($key, $step = 1)
     {
         $result = $this->doIncrement($key, $step);
+        $this->trigger(self::EVENT_INCREMENT);
         return $result;
     }
 
@@ -154,6 +170,7 @@ abstract class AbstractCache extends Component implements CacheInterface
     public function decrement($key, $step = 1)
     {
         $result = $this->doDecrement($key, $step);
+        $this->trigger(self::EVENT_DECREMENT);
         return $result;
     }
 
