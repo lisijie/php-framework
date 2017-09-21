@@ -32,12 +32,13 @@ return [
 
     //缓存配置
     'cache' => [
-        'default' => 'file',
-        'file' => [
-            //key前缀
-            'prefix' => '',
-            //缓存文件保存目录
-            'save_path' => DATA_PATH . 'cache/',
+        'default' => 'redis',
+        'redis' => [
+            'driver' => \Core\Cache\RedisCache::class,
+            'config' => [
+                'host' => '127.0.0.1',
+                'port' => 6379,
+            ],
         ],
     ],
 

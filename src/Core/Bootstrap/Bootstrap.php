@@ -2,15 +2,15 @@
 namespace Core\Bootstrap;
 
 use App;
-use Core\Event\DbEvent;
-use Core\Event\Event;
-use Core\Router\Router;
-use Core\Logger\Logger;
+use Core\Cache\CacheInterface;
 use Core\Db;
-use Core\Session\Session;
-use Core\Session\Handler\Memcached;
-use Core\View\ViewFactory;
+use Core\Event\DbEvent;
 use Core\Lib\VarDumper;
+use Core\Logger\Logger;
+use Core\Router\Router;
+use Core\Session\Handler\Memcached;
+use Core\Session\Session;
+use Core\View\ViewFactory;
 
 /**
  * 默认引导程序
@@ -93,7 +93,16 @@ class Bootstrap implements BootstrapInterface
         if (!isset($config[$name])) {
             throw new \InvalidArgumentException("缓存配置不存在: {$name}");
         }
-        return \Core\Cache\CacheFactory::create($name, $config[$name]);
+        $driver = isset($config[$name]['driver']) ? $config[$name]['driver'] : '';
+        $config = isset($config[$name]['config']) ? $config[$name]['config'] : [];
+        if (!class_exists($driver)) {
+            throw new \RuntimeException("找不到缓存驱动类: {$driver}");
+        }
+        $obj = new $driver($config);
+        if (!($obj instanceof CacheInterface)) {
+            throw new \RuntimeException("类 {$driver} 没有实现 CacheInterface 接口.");
+        }
+        return $obj;
     }
 
     //注册路由

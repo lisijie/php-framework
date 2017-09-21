@@ -6,10 +6,11 @@ namespace Core\Cache;
  *
  * 配置：
  * $config = array(
- *      'prefix' => 键名前缀
- *      'host' => 主机地址
- *      'port' => 端口
- *      'timeout' => 超时时间
+ *      'prefix' => 键名前缀,
+ *      'host' => 主机地址,
+ *      'port' => 端口,
+ *      'auth' => 密码,
+ *      'timeout' => 超时时间,
  *      'options' => [], // redis设置选项
  * )
  *
@@ -34,13 +35,14 @@ class RedisCache extends AbstractCache
 
         $this->handler = new \Redis();
         $this->handler->connect($host, $port, $timeout);
+        if (isset($this->config['auth'])) {
+            $this->handler->auth($this->config['auth']);
+        }
         if (!empty($this->config['options'])) {
             foreach ($this->config['options'] as $name => $val) {
                 $this->handler->setOption($name, $val);
             }
         }
-        // 值使用php序列化，方便直接存储数组，但这样set一个值后将无法自增、自减
-        $this->handler->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_PHP);
     }
 
     protected function doAdd($key, $value, $ttl = 0)
