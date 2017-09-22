@@ -1,15 +1,14 @@
 <?php
+namespace Core\Session;
+
+use Core\Session\Handler\HandlerInterface;
+
 /**
  * SESSION操作
  *
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-
-namespace Core\Session;
-
-use Core\Session\Handler\HandlerInterface;
-
 class Session
 {
     /**
@@ -52,6 +51,8 @@ class Session
     /**
      * 设置session文件保存目录
      *
+     * 默认值在 php.ini 中的 session.save_path 进行设置，如果要修改，需要在读写session值之前进行设置。
+     *
      * @param string $path
      * @return string
      * @throws \InvalidArgumentException
@@ -77,6 +78,22 @@ class Session
 
     /**
      * 设置cookie参数
+     *
+     * 设置 SessionID Cookie 的参数，本函数仅在当前脚本执行过程中有效，需要在读写session之前设置。
+     *
+     * 支持以下设置：
+     *  - lifetime: cookie 的生命周期，以秒为单位。
+     *  - path: cookie 的访问路径。
+     *  - domain:  cookie 的域。
+     *  - secure: 仅在使用安全连接时发送 cookie。
+     *  - httponly: 只能通过 http 协议访问 cookie。
+     *
+     * 默认值参考 php.ini 的相关配置项：
+     *  - session.cookie_lifetime
+     *  - session.cookie_path
+     *  - session.cookie_domain
+     *  - session.cookie_secure
+     *  - session.cookie_httponly
      *
      * @param array $params
      */
@@ -118,7 +135,13 @@ class Session
         }
 
         $cookieParams = array_merge(session_get_cookie_params(), $this->cookieParams);
-        session_set_cookie_params($cookieParams['lifetime'], $cookieParams['path'], $cookieParams['domain'], $cookieParams['secure'], $cookieParams['httponly']);
+        session_set_cookie_params(
+            $cookieParams['lifetime'],
+            $cookieParams['path'],
+            $cookieParams['domain'],
+            $cookieParams['secure'],
+            $cookieParams['httponly']
+        );
 
         session_start();
 
@@ -160,6 +183,9 @@ class Session
 
     /**
      * 设置session名称
+     *
+     * 默认的session名称在 php.ini 中的 session.name 设置，默认值是 PHPSESSID。
+     * 如果要在运行时改变名称，需要在读写session之前进行设置。
      *
      * @param $name
      * @return string
@@ -351,7 +377,7 @@ class Session
     }
 
     /**
-     * 销毁session回话
+     * 销毁session会话，删除session数据。
      */
     public function destroy()
     {

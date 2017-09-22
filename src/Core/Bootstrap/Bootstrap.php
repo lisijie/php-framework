@@ -80,7 +80,7 @@ class Bootstrap implements BootstrapInterface
                     break;
             }
         }
-        $session->start();
+        // $session->start();
         return $session;
     }
 
