@@ -8,7 +8,7 @@ namespace Core;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Model extends Object
+abstract class Model extends Object
 {
 
     /**
@@ -29,13 +29,7 @@ class Model extends Object
      * 表名
      * @var string
      */
-    protected $tableName = '';
-
-    /**
-     * 字段列表
-     * @var array
-     */
-    protected $fields = [];
+    protected $table = '';
 
     private final function __construct()
     {
@@ -73,9 +67,9 @@ class Model extends Object
      * @param array $filter
      * @return int
      */
-    public function count(array $filter = [])
+    public final function count(array $filter = [])
     {
-        $sql = "SELECT COUNT(*) FROM " . $this->db->table($this->tableName);
+        $sql = "SELECT COUNT(*) FROM " . $this->getTable();
         if (!empty($filter)) $sql .= " WHERE " . $this->parseFilter($filter);
         return intval($this->db->getOne($sql));
     }
@@ -90,9 +84,9 @@ class Model extends Object
      * @param int $offset 偏移量
      * @return array
      */
-    public function select(array $fields = null, array $filter = null, array $order = null, $limit = 0, $offset = 0)
+    public final function select(array $fields = null, array $filter = null, array $order = null, $limit = 0, $offset = 0)
     {
-        $table = $this->db->table($this->tableName);
+        $table = $this->getTable();
         $fields = empty($fields) ? '*' : implode(',', $fields);
         $sql = "SELECT {$fields} FROM {$table}";
         if (!empty($filter)) {
@@ -119,7 +113,7 @@ class Model extends Object
      * @param int $size 每页数量
      * @return array
      */
-    public function page(array $fields, array $filter, array $order, $page = 1, $size = 20)
+    public final function page(array $fields, array $filter, array $order, $page = 1, $size = 20)
     {
         $offset = 0;
         if ($page > 0 && $size > 0) {
@@ -142,10 +136,10 @@ class Model extends Object
      * @param bool $ignore 是否忽略重复
      * @return string|array 最后插入的自增ID，批量插入的话返回所有ID
      */
-    public function insert(array $data, $replace = false, $multi = false, $ignore = false)
+    public final function insert(array $data, $replace = false, $multi = false, $ignore = false)
     {
         if (empty($data)) return false;
-        $table = $this->db->table($this->tableName);
+        $table = $this->getTable();
         if ($multi) { // 批量查询使用事务提高插入性能
             $this->db->beginTransaction();
             $result = $this->db->insert($table, $data, $replace, $multi, $ignore);
@@ -169,11 +163,11 @@ class Model extends Object
      * @param bool|false $multi 是否批量操作
      * @return int 影响记录数
      */
-    public function insertOrUpdate(array $data, $multi = false)
+    public final function insertOrUpdate(array $data, $multi = false)
     {
         if (empty($data)) return 0;
         if (!$multi) $data = [$data];
-        $table = $this->db->table($this->tableName);
+        $table = $this->getTable();
         $fields = '`' . implode('`,`', array_keys($data[0])) . '`'; //字段
         // 插入值列表
         $values = [];
@@ -198,14 +192,14 @@ class Model extends Object
      * @param array $fields 字段
      * @return array
      */
-    public function getRow(array $filter = null, array $fields = [])
+    public final function getRow(array $filter = null, array $fields = [])
     {
         if ($fields) {
             $fields = '`' . implode('`,`', $fields) . '`';
         } else {
             $fields = '*';
         }
-        $sql = "SELECT {$fields} FROM " . $this->db->table($this->tableName);
+        $sql = "SELECT {$fields} FROM " . $this->getTable();
         if (!empty($filter)) {
             $sql .= " WHERE " . $this->parseFilter($filter);
         }
@@ -220,9 +214,9 @@ class Model extends Object
      * @param array $filter 更新条件
      * @return int
      */
-    public function update($data, array $filter)
+    public final function update(array $data, array $filter)
     {
-        $table = $this->db->table($this->tableName);
+        $table = $this->getTable();
         $sql = "UPDATE {$table} SET ";
         $split = '';
         foreach ($data as $key => $val) {
@@ -241,9 +235,9 @@ class Model extends Object
      * @param array $filter 条件
      * @return int 返回影响行数
      */
-    public function delete(array $filter)
+    public final function delete(array $filter)
     {
-        $table = $this->db->table($this->tableName);
+        $table = $this->getTable();
         $sql = "DELETE FROM {$table} ";
         if (!empty($filter)) {
             $sql .= " WHERE " . $this->parseFilter($filter);
@@ -261,9 +255,9 @@ class Model extends Object
      * @param array $filter 条件
      * @return int 影响行数
      */
-    public function increment(array $data, array $filter)
+    public final function increment(array $data, array $filter)
     {
-        $table = $this->db->table($this->tableName);
+        $table = $this->getTable();
         $sql = "UPDATE {$table} SET ";
         foreach ($data as $key => $val) {
             $sql .= " `{$key}` = `{$key}` + " . intval($val) . ",";
@@ -281,14 +275,14 @@ class Model extends Object
      *
      * @return string 表名
      */
-    public function getTable()
+    public final function getTable()
     {
-        return $this->db->table($this->tableName);
+        return $this->db->table($this->table);
     }
 
-    public function __toString()
+    public final function __toString()
     {
-        return $this->tableName;
+        return $this->table;
     }
 
     /**
@@ -298,7 +292,7 @@ class Model extends Object
      * @param $idx
      * @return array
      */
-    public function index(array $data, $idx)
+    public final static function index(array $data, $idx)
     {
         if (empty($data) || !isset($data[0][$idx])) {
             return $data;
