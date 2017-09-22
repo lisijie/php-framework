@@ -73,9 +73,9 @@ return [
     'logger' => [
         //默认日志配置
         'default' => [
-            //日志处理器1
+            // 写到文件日志
             [
-                'level' => 1, //日志级别: 1-8
+                'level' => \Core\Logger\Logger::WARN, //日志级别
                 'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
                 'formatter' => \Core\Logger\Formatter\JsonFormatter::class,
                 'config' => [
@@ -87,11 +87,23 @@ return [
         ],
         // 控制台日志配置
         'console' => [
+            // 输出到控制台
             [
-                'level' => 1, //日志级别: 1-8
+                'level' => \Core\Logger\Logger::DEBUG, //日志级别
                 'handler' => \Core\Logger\Handler\ConsoleHandler::class, //日志处理器
                 'formatter' => \Core\Logger\Formatter\ConsoleFormatter::class,
                 'config' => [],
+            ],
+            // 写到日志文件
+            [
+                'level' => \Core\Logger\Logger::WARN, //日志级别
+                'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
+                'formatter' => \Core\Logger\Formatter\JsonFormatter::class,
+                'config' => [
+                    'savepath' => DATA_PATH . '/logs/', //日志保存目录
+                    'filesize' => 0, //文件分割大小
+                    'filename' => '{level}-{Y}{m}{d}.log',
+                ],
             ]
         ],
     ],
