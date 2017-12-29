@@ -16,13 +16,6 @@ use Core\Logger\LoggerInterface;
 class ErrorHandler
 {
     /**
-     * 当前类的实例
-     *
-     * @var static
-     */
-    protected static $instance;
-
-    /**
      * 日志记录器
      *
      * @var LoggerInterface
@@ -38,17 +31,9 @@ class ErrorHandler
         'Core\Exception\HttpException',
     ];
 
-    private function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-    }
-
-    public static function factory(LoggerInterface $logger)
-    {
-        if (!static::$instance) {
-            static::$instance = new static($logger);
-        }
-        return static::$instance;
     }
 
     /**
@@ -91,12 +76,14 @@ class ErrorHandler
      */
     protected function report($e)
     {
+        if (!is_object($this->logger)) {
+            return false;
+        }
         foreach ($this->dontReport as $className) {
             if ($e instanceof $className) {
                 return false;
             }
         }
-
         $this->logger->error((string)$e);
         return true;
     }
