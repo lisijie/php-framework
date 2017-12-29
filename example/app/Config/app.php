@@ -75,7 +75,7 @@ return [
         'default' => [
             // 写到文件日志
             [
-                'level' => \Core\Logger\Logger::WARN, //日志级别
+                'level' => \Core\Logger\Logger::DEBUG, //日志级别
                 'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
                 'formatter' => \Core\Logger\Formatter\LineFormatter::class,
                 'config' => [
