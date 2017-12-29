@@ -35,7 +35,7 @@ class ClassLoader
     /**
      * 注册命名空间
      *
-     * @param string $namespace 命名空间
+     * @param string $namespace 命名空间前缀
      * @param array|string $paths 目录列表
      * @return ClassLoader
      */
@@ -48,7 +48,7 @@ class ClassLoader
     /**
      * 获取已注册的命名空间对应目录
      *
-     * @param string $namespace
+     * @param string $namespace 命名空间前缀
      * @return array
      */
     public function getNamespacePaths($namespace)
@@ -69,25 +69,6 @@ class ClassLoader
     public function registerClass($className, $path)
     {
         $this->classes[$className] = (string)$path;
-        return $this;
-    }
-
-    /**
-     * 注册目录
-     *
-     * 用于对某个前缀的类指定搜索目录。
-     *
-     * @param string $prefix 类前缀
-     * @param array|string $paths 目录列表
-     * @return ClassLoader
-     */
-    public function registerPath($prefix, $paths)
-    {
-        if (!isset($this->paths[$prefix])) {
-            $this->paths[$prefix] = (array)$paths;
-        } else {
-            $this->paths[$prefix] = array_merge($this->paths[$prefix], (array)$paths);
-        }
         return $this;
     }
 
@@ -148,19 +129,6 @@ class ClassLoader
                 }
             }
         }
-
-        foreach ($this->paths as $prefix => $paths) {
-            if ($prefix != '' && 0 !== strpos($class, $prefix)) {
-                continue;
-            }
-            foreach ($paths as $path) {
-                $file = $path . DIRECTORY_SEPARATOR . str_replace(['\\', '_'], DIRECTORY_SEPARATOR, $class) . '.php';
-                if (is_file($file)) {
-                    return $file;
-                }
-            }
-        }
-
         return false;
     }
 }
