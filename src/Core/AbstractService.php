@@ -40,7 +40,7 @@ abstract class AbstractService extends Component
      * 获取实例
      * @return static
      */
-    public static function getInstance()
+    public final static function getInstance()
     {
         $cls = get_called_class();
         if (!array_key_exists($cls, static::$instances)) {
@@ -53,7 +53,7 @@ abstract class AbstractService extends Component
      * 创建实例
      * @return static
      */
-    public static function create()
+    public final static function create()
     {
         return new static();
     }

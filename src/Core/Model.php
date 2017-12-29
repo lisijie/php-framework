@@ -8,7 +8,7 @@ namespace Core;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-abstract class Model extends Object
+abstract class Model extends Component
 {
 
     /**

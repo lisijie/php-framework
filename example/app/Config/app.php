@@ -77,7 +77,7 @@ return [
             [
                 'level' => \Core\Logger\Logger::WARN, //日志级别
                 'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
-                'formatter' => \Core\Logger\Formatter\JsonFormatter::class,
+                'formatter' => \Core\Logger\Formatter\LineFormatter::class,
                 'config' => [
                     'savepath' => DATA_PATH . '/logs/', //日志保存目录
                     'filesize' => 0, //文件分割大小
@@ -98,7 +98,7 @@ return [
             [
                 'level' => \Core\Logger\Logger::WARN, //日志级别
                 'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
-                'formatter' => \Core\Logger\Formatter\JsonFormatter::class,
+                'formatter' => \Core\Logger\Formatter\LineFormatter::class,
                 'config' => [
                     'savepath' => DATA_PATH . '/logs/', //日志保存目录
                     'filesize' => 0, //文件分割大小
