@@ -9,7 +9,7 @@ use Core\Event\Event;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Component extends Object
+class Component
 {
     /**
      * 保存当前对象各个事件对应的处理器列表

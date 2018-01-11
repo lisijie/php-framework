@@ -7,7 +7,7 @@ namespace Core;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Container extends Object
+class Container
 {
     protected $definitions = [];
 

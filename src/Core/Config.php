@@ -7,7 +7,7 @@ namespace Core;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Config extends Object
+class Config
 {
     private $data = [];
     private $configPath = '';

@@ -10,7 +10,7 @@ use Core\Event\Event;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Events extends Object
+class Events
 {
     private static $events = [];
 

@@ -1,8 +1,6 @@
 <?php
 namespace Core\Event;
 
-use Core\Object;
-
 /**
  * 事件类
  * 对于各种不同类型的事件，可以派生出不同的子类。如: DbEvent, MsgEvent
@@ -10,7 +8,7 @@ use Core\Object;
  * @author lisijie <lsj86@qq.com>
  * @package Core\Event
  */
-class Event extends Object
+class Event
 {
     /**
      * 事件名称
