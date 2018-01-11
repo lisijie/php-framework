@@ -20,14 +20,14 @@ class JsonController extends Controller
     protected $jsonpEnabled = true;
     protected $jsonpCallback = 'jsoncallback';
 
-    protected function message($message, $msgno = MSG_ERR, $redirect = NULL, $template = '')
+    protected function message($message, $code = MSG_ERR, $jumpUrl = NULL)
     {
         $data = [
-            'code' => $msgno,
+            'code' => $code,
             'msg' => $message,
             'data' => $this->getData(),
         ];
-        if ($redirect) $data['redirect'] = $redirect;
+        if ($jumpUrl) $data['goto'] = $jumpUrl;
         $charset = $this->response->getCharset();
         $this->response->setHeader('content-type', "application/json; charset={$charset}");
         $this->response->setContent($this->jsonEncode($data));

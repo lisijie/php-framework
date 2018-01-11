@@ -233,7 +233,7 @@ class App extends Events
             $controller->init();
             self::set('controller', $controller);
             if ($controller->before() === true) {
-                $response = $controller->runActionWithParams($actionName, $params);
+                $response = $controller->execute($actionName, $params);
                 $controller->after();
             } else {
                 throw new HttpException(403);

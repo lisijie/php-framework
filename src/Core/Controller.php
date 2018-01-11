@@ -2,10 +2,10 @@
 
 namespace Core;
 
-use \App;
+use App;
+use Core\Exception\AppException;
 use Core\Http\Request;
 use Core\Http\Response;
-use Core\Exception\AppException;
 
 /**
  * 控制器基类
@@ -38,6 +38,13 @@ class Controller extends Component
      * @var \Core\Http\Response
      */
     protected $response;
+
+    /**
+     * 提示消息的模板文件
+     *
+     * @var string
+     */
+    protected $messageTemplate = 'message';
 
     /**
      * 构造方法，不可重写
@@ -147,16 +154,32 @@ class Controller extends Component
         }
     }
 
+    /**
+     * 返回要输出的数据
+     *
+     * @return array
+     */
     protected function getData()
     {
         return $this->data;
     }
 
+    /**
+     * 设置视图的布局模板文件
+     *
+     * @param $filename
+     */
     protected function setLayout($filename)
     {
         App::view()->setLayout($filename);
     }
 
+    /**
+     * 设置视图的子布局模板文件
+     *
+     * @param $name
+     * @param $filename
+     */
     protected function setLayoutSection($name, $filename)
     {
         App::view()->setLayoutSection($name, $filename);
@@ -187,20 +210,19 @@ class Controller extends Component
      * 提示消息
      *
      * @param string $message 提示消息
-     * @param int $msgno 消息号
-     * @param string $redirect 跳转地址
-     * @param string $template 模板文件
+     * @param int $code 消息号
+     * @param string $jumpUrl 跳转地址
      * @return Response 输出对象
      */
-    protected function message($message, $msgno = MSG_ERR, $redirect = NULL, $template = 'message')
+    protected function message($message, $code = MSG_ERR, $jumpUrl = NULL)
     {
         $data = [
-            'ret' => $msgno,
+            'code' => $code,
             'msg' => $message,
-            'redirect' => $redirect,
+            'jumpUrl' => $jumpUrl,
         ];
         $this->assign($data);
-        $this->response->setContent(App::view()->render($template, $this->data));
+        $this->response->setContent(App::view()->render($this->messageTemplate, $this->data));
         return $this->response;
     }
 
@@ -213,8 +235,7 @@ class Controller extends Component
      */
     protected function redirect($url, $status = 302)
     {
-        $this->response->redirect($url, $status);
-        return $this->response;
+        return $this->response->redirect($url, $status);
     }
 
     /**
@@ -230,11 +251,50 @@ class Controller extends Component
     /**
      * 跳转到来源页面
      *
+     * 优先级：
+     * 1. URL中的refer参数
+     * 2. 存在名为refer的cookie
+     * 3. 使用HTTP_REFERER
+     *
+     * @param string $defaultUrl 默认URL
+     * @param bool $verifyHost 是否检查域名
      * @return Response
      */
-    protected function goBack()
+    protected function goBack($defaultUrl = '', $verifyHost = true)
     {
-        return $this->redirect($this->request->getReferrer());
+        $url = $this->get('refer');
+        if (empty($url)) {
+            $url = $this->request->getCookie('refer');
+        }
+        if (empty($url)) {
+            $url = $this->request->getReferrer();
+        }
+        if (empty($url)) {
+            $url = $defaultUrl;
+        }
+        $url = '/' . ltrim($url, '/');
+        if ($verifyHost) {
+            $host = parse_url($url, PHP_URL_HOST);
+            if (!empty($host) && $host != $this->request->getHostName()) {
+                $url = '';
+            }
+        }
+        // 如果没有来源页面，跳转到首页
+        if (empty($url)) {
+            return $this->goHome();
+        }
+        return $this->redirect($url);
+    }
+
+    /**
+     * 刷新当前页面
+     *
+     * @param string $anchor 附加url hash
+     * @return mixed
+     */
+    protected function refresh($anchor = '')
+    {
+        return $this->redirect($this->request->getRequestUri() . $anchor);
     }
 
     /**
@@ -266,14 +326,14 @@ class Controller extends Component
     }
 
     /**
-     * 执行当前控制器方法
+     * 执行控制器方法
      *
      * @param string $actionName 方法名
      * @param array $params 参数列表
      * @return Response|mixed
      * @throws AppException
      */
-    public function runActionWithParams($actionName, $params = [])
+    public function execute($actionName, $params = [])
     {
         if (empty($actionName)) {
             $actionName = $this->defaultAction;
@@ -293,7 +353,7 @@ class Controller extends Component
         if (!empty($methodParams)) {
             foreach ($methodParams as $p) {
                 $default = $p->isOptional() ? $p->getDefaultValue() : null;
-                $value = $this->request->getQuery($p->getName(), $default);
+                $value = array_key_exists($p->getName(), $params) ? $params[$p->getName()] : $default;
                 if (null === $value && !$p->isOptional()) {
                     throw new AppException('缺少请求参数:' . $p->getName());
                 }

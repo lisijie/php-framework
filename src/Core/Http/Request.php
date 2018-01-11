@@ -249,7 +249,7 @@ class Request extends Component
     /**
      * 增加过滤器
      *
-     * @param $callback 回调过滤器函数
+     * @param callable $callback 回调过滤器函数
      * @throws \InvalidArgumentException
      */
     public function addFilter($callback)
