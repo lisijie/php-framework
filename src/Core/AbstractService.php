@@ -32,7 +32,7 @@ abstract class AbstractService extends Component
      */
     private final function __construct()
     {
-        $this->logger = App::logger($this->className(true));
+        $this->logger = App::logger();
         $this->init();
     }
 
