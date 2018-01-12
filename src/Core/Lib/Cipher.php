@@ -5,14 +5,22 @@ namespace Core\Lib;
 /**
  * 加密/解密
  *
+ * 只支持大部分 openssl_get_cipher_methods() 列出的加密方式，并不支持所有。
+ *
  * @author lisijie <lsj86@qq.com>
  * @package Core\Lib
  */
 class Cipher
 {
 
+    const AES_128_CBC = 'AES-128-CBC';
+    const AES_256_CBC = 'AES-256-CBC';
+
+    // 向量长度
+    private $ivLen;
+
     // 加密算法类型
-    public $algo;
+    private $method;
 
     // 加密模式
     public $mode;
@@ -20,16 +28,14 @@ class Cipher
     // 是否对密文加上签名
     public $sign = true;
 
-    // 哈希算法
-    public $hashAlgo = 'md5';
-
-    // 哈希16进制字符串长度
-    public $hashLen = 32;
-
-    public function __construct($algo = MCRYPT_RIJNDAEL_256, $mode = MCRYPT_MODE_CBC, $sign = true)
+    /**
+     * @param string $method 加密方式
+     * @param bool $sign 是否加上签名
+     */
+    public function __construct($method = self::AES_256_CBC, $sign = true)
     {
-        $this->algo = $algo;
-        $this->mode = $mode;
+        $this->method = $method;
+        $this->ivLen = openssl_cipher_iv_length($method);
         $this->sign = $sign;
     }
 
@@ -42,19 +48,7 @@ class Cipher
      */
     public static function createSimple()
     {
-        return new self(MCRYPT_RIJNDAEL_128, MCRYPT_MODE_ECB, false);
-    }
-
-    /**
-     * 设置哈希算法
-     *
-     * @param string $algo 算法名
-     * @param int $len 哈希16进制字符串长度
-     */
-    public function setHashAlgo($algo, $len)
-    {
-        $this->hashAlgo = $algo;
-        $this->hashLen = $len;
+        return new self(self::AES_128_CBC, false);
     }
 
     /**
@@ -62,26 +56,22 @@ class Cipher
      *
      * @param string $text 要加密的内容
      * @param string $key 密钥
-     * @param bool $raw 是否返回原始数据，true则返回原始二进制格式，false则返回16进制字符串
+     * @param bool $raw 是否返回原始数据，true则返回原始二进制格式，false则返回base64编码后的字符串
      * @return string
      */
     public function encrypt($text, $key, $raw = false)
     {
-        $iv = '';
-        if ($this->mode != MCRYPT_MODE_ECB) { // ECB模式不需要创建向量
-            $iv = mcrypt_create_iv(mcrypt_get_iv_size($this->algo, $this->mode), MCRYPT_RAND);
-        }
-        $key = hash($this->hashAlgo, $key, true);
-        $text = mcrypt_encrypt($this->algo, $key, $text, $this->mode, $iv) . $iv;
-        if (!$raw) {
-            $text = unpack('H*0', $text);
-            $text = $text[0];
-        }
+        $iv = openssl_random_pseudo_bytes($this->ivLen);
+        $cipherText = openssl_encrypt($text, $this->method, $key, OPENSSL_RAW_DATA, $iv);
+        $result = $iv . $cipherText;
         if ($this->sign) {
-            $text = hash($this->hashAlgo, $key . $text) . $text;
+            $sign = hash_hmac('sha256', $result, $key, true);
+            $result = $sign . $result;
         }
-
-        return $text;
+        if (!$raw) {
+            $result = base64_encode($result);
+        }
+        return $result;
     }
 
 
@@ -95,25 +85,35 @@ class Cipher
      */
     public function decrypt($text, $key, $raw = false)
     {
-        $key = hash($this->hashAlgo, $key, true);
+        if (!$raw) {
+            $text = base64_decode($text);
+        }
         if ($this->sign) {
-            $hash = substr($text, 0, $this->hashLen);
-            $text = substr($text, $this->hashLen);
-            if ($hash != hash($this->hashAlgo, $key . $text)) { // 哈希校验
-                return '';
+            $sign = substr($text, 0, 32);
+            $text = substr($text, 32);
+            $sign2 = hash_hmac('sha256', $text, $key, true);
+            if (!$this->hashEquals($sign, $sign2)) {
+                return false;
             }
-            if (!$raw) {
-                $text = pack('H*', $text);
-            }
-        } elseif (!$raw) {
-            $text = pack('H*', $text);
         }
-        $iv = '';
-        if ($this->mode != MCRYPT_MODE_ECB) {
-            $iv = substr($text, -mcrypt_get_iv_size($this->algo, $this->mode));
-            $text = substr($text, 0, -strlen($iv));
-        }
-
-        return rtrim(mcrypt_decrypt($this->algo, $key, $text, $this->mode, $iv), "\x0");
+        $iv = substr($text, 0, $this->ivLen);
+        $cipherRaw = substr($text, $this->ivLen);
+        return openssl_decrypt($cipherRaw, $this->method, $key, OPENSSL_RAW_DATA, $iv);
     }
+
+    /**
+     * hash检查
+     *
+     * @param string $str1
+     * @param string $str2
+     * @return bool
+     */
+    private function hashEquals($str1 , $str2)
+    {
+        if (function_exists('hash_equals')) {
+            return hash_equals($str1, $str2);
+        }
+        return substr_count($str1 ^ $str2, "\0") * 2 === strlen($str1 . $str2);
+    }
+
 }
