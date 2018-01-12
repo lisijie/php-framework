@@ -274,10 +274,9 @@ class Controller extends Component
         }
         if (strpos($url, '//') === false) {
             $url = '/' . ltrim($url, '/');
-        }
-        if ($verifyHost) {
+        } elseif ($verifyHost) {
             $host = parse_url($url, PHP_URL_HOST);
-            if (!empty($host) && $host != $this->request->getHostName()) {
+            if (empty($host) || $host != $this->request->getHostName()) {
                 $url = '';
             }
         }
