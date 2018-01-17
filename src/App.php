@@ -343,9 +343,9 @@ class App extends Events
         if (false === strpos($langId, '.')) {
             if (!isset($cache['common'])) {
                 $filename = App::config()->get('app', 'lang', 'zh_CN') . "/language.php";
-                if (is_file(LANG_PATH . $filename)) {
+                if (is_file(LANG_PATH . DS . $filename)) {
                     $lang = [];
-                    include LANG_PATH . $filename;
+                    include LANG_PATH . DS . $filename;
                     $cache['common'] = $lang;
                 }
             }
@@ -360,10 +360,10 @@ class App extends Events
             if ($file && !isset($cache[$file])) {
                 $lang = [];
                 $filename = App::config()->get('app', 'lang', 'zh_CN') . "/{$file}.php";
-                if (!is_file(LANG_PATH . $filename)) {
+                if (!is_file(LANG_PATH . DS . $filename)) {
                     throw new InvalidArgumentException("lang file {$filename} not exists.");
                 }
-                include LANG_PATH . $filename;
+                include LANG_PATH . DS . $filename;
                 $cache[$file] = $lang;
             }
             if (!isset($cache[$file][$idx])) {

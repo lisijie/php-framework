@@ -51,7 +51,7 @@ class FileHandler extends AbstractHandler
         if (empty($config['savepath'])) {
             throw new \RuntimeException('Lib\Logger\Handler\FileHandler 缺少配置项: savepath');
         }
-        $this->savePath = $config['savepath'];
+        $this->savePath = rtrim($config['savepath'], DIRECTORY_SEPARATOR);
         if (!is_dir($this->savePath) && !@mkdir($this->savePath, 0755, true)) {
             throw new \RuntimeException('Lib\Logger\Handler\FileHandler 日志目录创建失败: ' . $this->savePath);
         }

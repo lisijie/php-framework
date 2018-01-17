@@ -22,9 +22,9 @@ class Smarty extends ViewAbstract
         }
         $defaults = [
             'template_dir' => VIEW_PATH,
-            'config_dir' => VIEW_PATH . 'config' . DIRECTORY_SEPARATOR,
-            'compile_dir' => DATA_PATH . 'cache/smarty_complied',
-            'cache_dir' => DATA_PATH . 'cache/smarty_cache',
+            'config_dir' => VIEW_PATH . '/config',
+            'compile_dir' => DATA_PATH . '/cache/smarty_complied',
+            'cache_dir' => DATA_PATH . '/cache/smarty_cache',
         ];
         $this->options = array_merge($defaults, $this->options);
         if (!class_exists('\Smarty')) {

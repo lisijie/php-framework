@@ -18,13 +18,13 @@ define('SYSTEM_PATH', __DIR__ . DS);
 
 /************* 应用目录 ***************/
 //配置文件目录
-defined('CONFIG_PATH') or define('CONFIG_PATH', APP_PATH . 'Config' . DS);
+defined('CONFIG_PATH') or define('CONFIG_PATH', APP_PATH . DS . 'Config');
 //语言包目录
-defined('LANG_PATH') or define('LANG_PATH', APP_PATH . 'Lang' . DS);
+defined('LANG_PATH') or define('LANG_PATH', APP_PATH . DS . 'Lang');
 //视图模板目录
-defined('VIEW_PATH') or define('VIEW_PATH', APP_PATH . 'View' . DS);
+defined('VIEW_PATH') or define('VIEW_PATH', APP_PATH . DS . 'View');
 //发布目录
-defined('PUBLIC_PATH') or define('PUBLIC_PATH', (isset($_SERVER['SCRIPT_FILENAME']) ? dirname($_SERVER['SCRIPT_FILENAME']) : getcwd()) . DS);
+defined('PUBLIC_PATH') or define('PUBLIC_PATH', (isset($_SERVER['SCRIPT_FILENAME']) ? dirname($_SERVER['SCRIPT_FILENAME']) : getcwd()));
 
 /************* 字符集 ****************/
 defined('CHARSET') or define('CHARSET', 'utf-8');

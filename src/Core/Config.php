@@ -22,7 +22,7 @@ class Config
     public function __construct($configPath, $env)
     {
         if (is_string($configPath)) {
-            $this->configPath = $configPath;
+            $this->configPath = rtrim($configPath, DS);
         }
         if (is_string($env)) {
             $this->env = $env;
@@ -40,8 +40,8 @@ class Config
      */
     private function load($file)
     {
-        $mainFile = $this->configPath . $file . '.php';
-        $diffFile = $this->configPath . $this->env . '/' . $file . '.php';
+        $mainFile = $this->configPath . "/{$file}.php";
+        $diffFile = $this->configPath . "/{$this->env}/{$file}.php";
         if (!is_file($mainFile) && !is_file($diffFile)) {
             die("配置文件不存在: {$file}");
         }
