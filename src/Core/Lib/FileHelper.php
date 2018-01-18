@@ -37,38 +37,43 @@ class FileHelper
      * 删除目录及其目录下的所有文件和子目录
      *
      * @param string $path 要删除的目录
-     * @return void
+     * @return bool
      */
-    public static function removeDir($path, $recursive = true)
+    public static function removeDir($path)
     {
         $path = rtrim($path, '/');
-        if (($handle = opendir($path)) !== false) {
-            while (false !== ($d = readdir($handle))) {
-                if ($d != '.' && $d != '..') {
-                    if (is_dir($path . '/' . $d)) {
-                        static::removeDir($path . '/' . $d);
-                        @rmdir($path . '/' . $d);
-                    } else {
-                        @unlink($path . '/' . $d);
-                    }
+        if (!is_dir($path)) {
+            return false;
+        }
+        $files = scandir($path);
+        foreach ($files as $file) {
+            if ($file != '.' && $file != '..') {
+                if (is_dir("{$path}/{$file}")) {
+                    static::removeDir("{$path}/{$file}");
+                } else {
+                    unlink($path . '/' . $file);
                 }
             }
-            closedir($handle);
         }
+        rmdir($path);
+        return true;
     }
 
     /**
      * 数据大小单位转换
+     *
+     * @param int $bytes
+     * @return string
      */
-    public static function sizeFormat($byte)
+    public static function sizeFormat($bytes)
     {
         $s = ['Byte', 'KB', 'MB', 'GB', 'TB'];
         $i = 0;
-        while ($byte > 1024) {
-            $byte /= 1024;
+        while ($bytes > 1024) {
+            $bytes /= 1024;
             $i++;
         }
-        return round($byte, 2) . $s[$i];
+        return round($bytes, 2) . $s[$i];
     }
 
     /**
