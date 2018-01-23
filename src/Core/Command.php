@@ -53,7 +53,7 @@ class Command extends Controller
         if (!empty($methodParams)) {
             foreach ($methodParams as $k => $p) {
                 $default = $p->isOptional() ? $p->getDefaultValue() : null;
-                $value = array_key_exists($p->getName(), $params) ? $params[$k] : $default;
+                $value = array_key_exists($k, $params) ? $params[$k] : $default;
                 if (null === $value && !$p->isOptional()) {
                     throw new AppException('缺少请求参数:' . $p->getName());
                 }
