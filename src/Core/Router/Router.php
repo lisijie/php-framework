@@ -324,7 +324,7 @@ abstract class Router implements RouterInterface
      * @param $route
      * @return string
      */
-    private function normalizeRoute($route)
+    protected function normalizeRoute($route)
     {
         $route = preg_replace_callback('#[A-Z]#', function ($m) {
             return '-' . strtolower($m[0]);

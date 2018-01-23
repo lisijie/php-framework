@@ -15,15 +15,16 @@ class Console extends Router
         $argv = $_SERVER['argv'];
         array_shift($argv);
         if (!empty($argv)) {
-            $this->routeName = array_shift($argv);
+            $routeName = array_shift($argv);
+            $this->routeName = $this->normalizeRoute($routeName);
         }
         $this->params = $argv;
     }
 
     public function makeUrl($route, $params = [])
     {
-        $result = $this->makeUrlPath($route, $params);
-        return $result['path'] . ' ' . implode(' ', $result['params']);
+        $route = $this->normalizeRoute($route);
+        return $route . ' ' . implode(' ', $params);
     }
 
 }

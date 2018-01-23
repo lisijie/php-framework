@@ -26,35 +26,36 @@ class Command extends Controller
     }
 
     /**
-     * 执行当前控制器方法
+     * 执行控制器方法
      *
      * @param string $actionName 方法名
      * @param array $params 参数列表
      * @return Response|mixed
      * @throws AppException
      */
-    public function runActionWithParams($actionName, $params = [])
+    public function execute($actionName, $params = [])
     {
         if (empty($actionName)) {
             $actionName = $this->defaultAction;
         }
         $actionName .= 'Action';
         if (!method_exists($this, $actionName)) {
-            throw new \BadMethodCallException("方法不存在: {$actionName}");
+            throw new \BadMethodCallException("方法不存在: " . get_class($this) . "::{$actionName}");
         }
 
         $method = new \ReflectionMethod($this, $actionName);
         if (!$method->isPublic()) {
-            throw new \BadMethodCallException("调用非公有方法: {$actionName}");
+            throw new \BadMethodCallException("调用非公有方法: " . get_class($this) . "::{$actionName}");
         }
+
         $args = [];
         $methodParams = $method->getParameters();
         if (!empty($methodParams)) {
-            foreach ($methodParams as $key => $p) {
+            foreach ($methodParams as $k => $p) {
                 $default = $p->isOptional() ? $p->getDefaultValue() : null;
-                $value = isset($params[$key]) ? $params[$key] : $default;
+                $value = array_key_exists($p->getName(), $params) ? $params[$k] : $default;
                 if (null === $value && !$p->isOptional()) {
-                    throw new AppException(get_class($this) . "::{$actionName}() 缺少参数: " . $p->getName());
+                    throw new AppException('缺少请求参数:' . $p->getName());
                 }
                 $args[] = $value;
             }
