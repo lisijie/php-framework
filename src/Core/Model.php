@@ -330,8 +330,24 @@ abstract class Model extends Component
                     case 'lte': //小于等于
                         $where[] = "`{$field}` <= " . $this->db->quote($val);
                         break;
-                    case 'like': //LIKE ‘%%’
-                        $where[] = "`{$field}` LIKE " . $this->db->quote("%{$val}%");
+                    case 'ne': //不等于
+                        $where[] = "`{$field}` != " . $this->db->quote($val);
+                        break;
+                    case 'like': //LIKE ‘%%’, 支持多个
+                        if (!is_array($val)) {
+                            $val = [$val];
+                        }
+                        foreach ($val as $k => $v) {
+                            $where[] = "`{$field}` LIKE " . $this->db->quote("%{$v}%");
+                        }
+                        break;
+                    case 'notlike': //NOT LIKE ‘%%’, 支持多个
+                        if (!is_array($val)) {
+                            $val = [$val];
+                        }
+                        foreach ($val as $k => $v) {
+                            $where[] = "`{$field}` NOT LIKE " . $this->db->quote("%{$v}%");
+                        }
                         break;
                     case 'startswith': //LIKE 'xxx%'
                         $where[] = "`{$field}` LIKE " . $this->db->quote("{$val}%");
@@ -340,7 +356,7 @@ abstract class Model extends Component
                         $where[] = "`{$field}` LIKE " . $this->db->quote("%{$val}");
                         break;
                     case 'between': //between 'a' AND 'b'
-                        $where[] = "`{$field}` BETWEEN " . $this->db->quote($val[0]) . " AND " . $this->db->quote($val[1]);
+                        $where[] = "(`{$field}` BETWEEN " . $this->db->quote($val[0]) . " AND " . $this->db->quote($val[1]) . ")";
                         break;
                     case 'in': // IN (1,2,3)
                         if (!is_array($val)) $val = [$val];
