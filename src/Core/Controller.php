@@ -207,26 +207,6 @@ class Controller extends Component
     }
 
     /**
-     * 提示消息
-     *
-     * @param string $message 提示消息
-     * @param int $code 消息号
-     * @param string $jumpUrl 跳转地址
-     * @return Response 输出对象
-     */
-    protected function message($message, $code = MSG_ERR, $jumpUrl = NULL)
-    {
-        $data = [
-            'code' => $code,
-            'msg' => $message,
-            'jumpUrl' => $jumpUrl,
-        ];
-        $this->assign($data);
-        $this->response->setContent(App::view()->render($this->messageTemplate, $this->data));
-        return $this->response;
-    }
-
-    /**
      * URL跳转
      *
      * @param string $url 目的地址
@@ -299,12 +279,61 @@ class Controller extends Component
     }
 
     /**
+     * JSON编码
+     *
+     * @param $data
+     * @return mixed|string
+     */
+    protected function jsonEncode($data)
+    {
+        return json_encode($data, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * 输出JSON格式
+     *
+     * @param array $data 输出的数据，默认使用assign的数据
+     * @return Response
+     */
+    protected function serveJSON(array $data = [])
+    {
+        if (empty($data)) {
+            $data = $this->data;
+        }
+        $content = $this->jsonEncode($data);
+        $charset = $this->response->getCharset();
+        $this->response->setHeader('content-type', "application/json; charset={$charset}");
+        $this->response->setContent($content);
+        return $this->response;
+    }
+
+    /**
+     * 提示消息
+     *
+     * @param string $message 提示消息
+     * @param int $code 消息号
+     * @param string $jumpUrl 跳转地址
+     * @return Response 输出对象
+     */
+    public function message($message, $code = MSG_ERR, $jumpUrl = NULL)
+    {
+        $data = [
+            'code' => $code,
+            'msg' => $message,
+            'jumpUrl' => $jumpUrl,
+        ];
+        $this->assign($data);
+        $this->response->setContent(App::view()->render($this->messageTemplate, $this->data));
+        return $this->response;
+    }
+
+    /**
      * 渲染模板并返回输出对象
      *
      * @param string $filename
      * @return Response 输出对象
      */
-    protected function display($filename = '')
+    public function display($filename = '')
     {
         if (empty($filename)) {
             $filename = CUR_ROUTE;
@@ -367,35 +396,6 @@ class Controller extends Component
         } elseif (null !== $result) {
             $this->response->setContent(strval($result));
         }
-        return $this->response;
-    }
-
-    /**
-     * JSON编码
-     *
-     * @param $data
-     * @return mixed|string
-     */
-    protected function jsonEncode($data)
-    {
-        return json_encode($data, JSON_UNESCAPED_UNICODE);
-    }
-
-    /**
-     * 输出JSON格式
-     *
-     * @param array $data 输出的数据，默认使用assign的数据
-     * @return Response
-     */
-    protected function serveJSON(array $data = [])
-    {
-        if (empty($data)) {
-            $data = $this->data;
-        }
-        $content = $this->jsonEncode($data);
-        $charset = $this->response->getCharset();
-        $this->response->setHeader('content-type', "application/json; charset={$charset}");
-        $this->response->setContent($content);
         return $this->response;
     }
 }
