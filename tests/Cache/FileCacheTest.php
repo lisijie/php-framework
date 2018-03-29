@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/TestCaseTrait.php';
+require_once __DIR__ . '/TestCaseTrait.php';
 
 class FileCacheTest extends TestCase
 {

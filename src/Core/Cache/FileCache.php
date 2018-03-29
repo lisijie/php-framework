@@ -1,6 +1,7 @@
 <?php
-
 namespace Core\Cache;
+
+use Core\Lib\FileHelper;
 
 /**
  * 文件缓存
@@ -25,7 +26,6 @@ class FileCache extends AbstractCache
 
     public function init()
     {
-        $this->prefix = isset($this->config['prefix']) ? $this->config['prefix'] : '';
         if (empty($this->config['save_path'])) {
             throw new CacheException("缺少参数: save_path");
         }
@@ -35,35 +35,36 @@ class FileCache extends AbstractCache
         }
     }
 
-    protected function doAdd($key, $value, $ttl)
+    protected function doAdd($key, $value, $ttl = 0)
     {
-        $filename = $this->filename($key);
-        if (!is_file($filename) || false === $this->get($key)) {
-            return $this->set($key, $value, $ttl);
+        if (!$this->doHas($key)) {
+            return $this->doSet($key, $value, $ttl);
         }
         return false;
     }
 
-    protected function doSet($key, $value, $ttl)
+    private function doSet($key, $value, $ttl = 0)
     {
         $file = $this->filename($key);
-        if (!is_dir(dirname($file))) mkdir(dirname($file), 0755, true);
+        if (!is_dir(dirname($file))) {
+            mkdir(dirname($file), 0755, true);
+        }
         $content = $this->encode($value, $ttl);
-        return file_put_contents($file, $content, LOCK_EX) > 0;
+        file_put_contents($file, $content, LOCK_EX);
+        return true;
     }
 
-    protected function doMSet(array $array, $ttl)
+    protected function doSetMultiple(array $values, $ttl = 0)
     {
-        $count = 0;
-        foreach ($array as $key => $value) {
-            if ($this->doSet($key, $value, $ttl)) {
-                $count++;
+        foreach ($values as $key => $value) {
+            if (!$this->doSet($key, $value, $ttl)) {
+                return false;
             }
         }
-        return $count;
+        return true;
     }
 
-    protected function doGet($key)
+    protected function doGet($key, $default = null)
     {
         $file = $this->filename($key);
         if (is_file($file)) {
@@ -72,35 +73,32 @@ class FileCache extends AbstractCache
                 $result = $this->decode($content);
                 if ($result['expired']) {
                     @unlink($file);
-                    return false;
+                    return $default;
                 }
                 return $result['data'];
             }
         }
-        return false;
+        return $default;
     }
 
-    protected function doMGet(array $keys)
+    protected function doGetMultiple(array $keys, $default = null)
     {
         $result = [];
         foreach ($keys as $key) {
-            if (false !== ($value = $this->doGet($key))) {
-                $result[$key] = $value;
-            }
+            $result[$key] = $this->doGet($key, $default);
         }
         return $result;
     }
 
-    protected function doDel(array $keys)
+    protected function doDeleteMultiple(array $keys)
     {
-        $count = 0;
         foreach ($keys as $key) {
             $file = $this->filename($key);
-            if (is_file($file) && unlink($file)) {
-                $count++;
+            if (is_file($file)) {
+                unlink($file);
             }
         }
-        return $count;
+        return true;
     }
 
     protected function doIncrement($key, $step = 1)
@@ -173,7 +171,7 @@ class FileCache extends AbstractCache
 
     private function filename($key)
     {
-        $hash = md5($this->prefix . $key);
+        $hash = md5($key);
         $path = $this->savePath . '/' . substr($hash, 0, 2) . '/' . substr($hash, 2, 2);
         return $path . '/' . $hash . '.php';
     }
@@ -206,5 +204,25 @@ class FileCache extends AbstractCache
         }
         $result = "<?php die;?>\n" . pack('V', $expire) . $compress . $value;
         return $result;
+    }
+
+    protected function doClear()
+    {
+        return FileHelper::removeDir($this->savePath);
+    }
+
+    protected function doHas($key)
+    {
+        $filename = $this->filename($key);
+        if (!is_file($filename)) {
+            return false;
+        }
+        $content = file_get_contents($filename);
+        $result = $this->decode($content);
+        if (!$result || $result['expired']) {
+            unlink($filename);
+            return false;
+        }
+        return true;
     }
 }

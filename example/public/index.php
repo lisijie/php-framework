@@ -5,7 +5,7 @@ define('APP_PATH', dirname(__DIR__) . '/app/');
 //运行时数据目录
 define('DATA_PATH', dirname(__DIR__) . '/data/');
 
-require dirname(dirname(__DIR__)) . '/src/App.php';
+require dirname(dirname(__DIR__)) . '/vendor/autoload.php';
 
 App::setDebug(true);
 App::bootstrap();

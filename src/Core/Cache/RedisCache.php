@@ -4,6 +4,8 @@ namespace Core\Cache;
 /**
  * Redis 支持
  *
+ * 这里对值强制使用序列化，造成的副作用是不能 set 一个值后使用 increment、decrement，会返回false。
+ *
  * 配置：
  * $config = array(
  *      'prefix' => 键名前缀,
@@ -22,9 +24,9 @@ class RedisCache extends AbstractCache
     /**
      * @var \Redis
      */
-    private $handler;
+    protected $client;
 
-    public function init()
+    protected function init()
     {
         if (!class_exists('\\Redis')) {
             throw new CacheException("当前环境不支持Redis");
@@ -33,78 +35,82 @@ class RedisCache extends AbstractCache
         $port = isset($this->config['port']) ? intval($this->config['port']) : 6379;
         $timeout = isset($this->config['timeout']) ? floatval($this->config['timeout']) : 0.0;
 
-        $this->handler = new \Redis();
-        $this->handler->connect($host, $port, $timeout);
+        $this->client = new \Redis();
+        $this->client->connect($host, $port, $timeout);
         if (isset($this->config['auth'])) {
-            $this->handler->auth($this->config['auth']);
+            $this->client->auth($this->config['auth']);
         }
         if (!empty($this->config['options'])) {
             foreach ($this->config['options'] as $name => $val) {
-                $this->handler->setOption($name, $val);
+                $this->client->setOption($name, $val);
             }
         }
+        $this->client->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_PHP);
     }
 
     protected function doAdd($key, $value, $ttl = 0)
     {
-        $ret = $this->handler->setnx($this->prefix . $key, $value);
-        if ($ret && $ttl > 0) {
-            $this->handler->expire($this->prefix . $key, $ttl);
-        }
-        return $ret;
-    }
-
-    protected function doSet($key, $value, $ttl = 0)
-    {
-        $ret = $this->handler->set($this->prefix . $key, $value);
-        if ($ret && $ttl > 0) {
-            $this->handler->expire($this->prefix . $key, $ttl);
-        }
-        return $ret;
-    }
-
-    protected function doMSet(array $items, $ttl)
-    {
-        $items = $this->addPrefixItems($items);
-        $ret = $this->handler->mset($items);
-        if ($ret && $ttl > 0) {
-            foreach ($items as $key => $val) {
-                $this->handler->expire($key, $ttl);
+        if ($this->client->setnx($key, $value)) {
+            if ($ttl > 0) {
+                $this->client->expire($key, $ttl);
             }
+            return true;
         }
-        return $ret;
+        return false;
     }
 
-    protected function doGet($key)
+    protected function doSetMultiple(array $values, $ttl = 0)
     {
-        return $this->handler->get($this->prefix . $key);
+        if ($this->client->mset($values)) {
+            if ($ttl > 0) {
+                foreach ($values as $key => $val) {
+                    $this->client->expire($key, $ttl);
+                }
+            }
+            return true;
+        }
+        return false;
     }
 
-    protected function doMGet(array $keys)
+    protected function doGetMultiple(array $keys, $default = null)
     {
-        $data = $this->handler->mget($this->addPrefixKeys($keys));
+        $values = $this->client->getMultiple($keys);
         $result = [];
-        // 去掉前缀，返回key/value形式
-        foreach ($keys as $key => $name) {
-            if ($data[$key] !== false) { // 过滤掉不存在的key, mget一个不存在的key, 值为false
-                $result[$name] = $data[$key];
+        foreach ($keys as $idx => $key) {
+            if (false === $values[$idx]) {
+                $result[$key] = $default;
+            } else {
+                $result[$key] = $values[$idx];
             }
         }
         return $result;
     }
 
-    protected function doDel(array $keys)
+    protected function doDeleteMultiple(array $keys)
     {
-        return $this->handler->del($this->addPrefixKeys($keys));
+        return $this->client->delete($keys) > 0;
+    }
+
+    protected function doClear()
+    {
+        if ($this->client instanceof \RedisCluster) {
+            return false;
+        }
+        return $this->client->flushDB();
+    }
+
+    protected function doHas($key)
+    {
+        return $this->client->exists($key);
     }
 
     protected function doIncrement($key, $step = 1)
     {
-        return $this->handler->incrBy($this->prefix . $key, $step);
+        return $this->client->incrBy($key, $step);
     }
 
     protected function doDecrement($key, $step = 1)
     {
-        return $this->handler->decrBy($this->prefix . $key, $step);
+        return $this->client->decrBy($key, $step);
     }
 }

@@ -1,5 +1,6 @@
 .idea
 .data
 vendor
+example/data
 composer.lock
 *.log

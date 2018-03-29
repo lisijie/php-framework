@@ -16,6 +16,6 @@ class RedisClusterTest extends TestCase
         $config = [
             'servers' => ['localhost:7001', 'localhost:7002', 'localhost:7003']
         ];
-        $this->cache = new \Core\Cache\RedisCluster($config);
+        $this->cache = new \Core\Cache\RedisClusterCache($config);
     }
 }

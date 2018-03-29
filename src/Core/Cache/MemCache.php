@@ -21,7 +21,7 @@ class MemCache extends AbstractCache
     /**
      * @var \Memcached
      */
-    private $handler;
+    private $client;
 
     public function init()
     {
@@ -31,76 +31,96 @@ class MemCache extends AbstractCache
         if (!class_exists('\\Memcached')) {
             throw new CacheException("当前环境不支持: memcached");
         }
-        $this->prefix = isset($this->config['prefix']) ? $this->config['prefix'] : '';
-
-        $this->handler = new \Memcached();
-        $this->handler->addServers($this->config['servers']);
+        $this->client = new \Memcached();
+        $this->client->addServers($this->config['servers']);
         if (!isset($this->config['options'])) {
             $this->config['options'] = [];
         }
         $this->config['options'][\Memcached::OPT_DISTRIBUTION] = \Memcached::DISTRIBUTION_CONSISTENT;
-        $this->handler->setOptions($this->config['options']);
+        $this->client->setOptions($this->config['options']);
     }
 
-    protected function doAdd($key, $value, $ttl)
+    protected function doSetMultiple(array $values, $ttl = 0)
     {
-        return $this->handler->add($this->prefix . $key, $value, $ttl);
+        return $this->checkStatusCode($this->client->setMulti($values, $ttl));
     }
 
-    protected function doSet($key, $value, $ttl)
+    protected function doGetMultiple(array $keys, $default = null)
     {
-        return $this->handler->set($this->prefix . $key, $value, $ttl);
+        return $this->checkStatusCode($this->client->getMulti($keys));
     }
 
-    protected function doMSet(array $items, $ttl)
+    protected function doDeleteMultiple(array $keys)
     {
-        if (strlen($this->prefix) > 0) {
-            foreach ($items as $key => $value) {
-                $items[$this->prefix . $key] = $value;
-                unset($items[$key]);
+        $ok = true;
+        $result = $this->client->deleteMulti($keys);
+        foreach ($this->checkStatusCode($result) as $code) {
+            if (true !== $code && $code !== \Memcached::RES_SUCCESS && $code !== \Memcached::RES_NOTFOUND) {
+                $ok = false;
             }
         }
-        if ($this->handler->setMulti($items, $ttl)) {
-            return count($items);
-        }
-        return 0;
+        return $ok;
     }
 
-    protected function doGet($key)
+    protected function doClear()
     {
-        return $this->handler->get($this->prefix . $key);
+        return $this->client->flush();
     }
 
-    protected function doMGet(array $keys)
+    protected function doHas($key)
     {
-        $data = $this->handler->getMulti($this->addPrefixKeys($keys));
-        $result = [];
-        foreach ($data as $key => $value) {
-            $result[substr($key, strlen($this->prefix))] = $value;
+        if (false !== $this->client->get($key)) {
+            return true;
         }
-        return $result;
-    }
-
-    protected function doDel(array $keys)
-    {
-        // 返回每个key是否删除成功
-        $result = $this->handler->deleteMulti($this->addPrefixKeys($keys));
-        $count = 0;
-        foreach ($result as $key => $val) {
-            if ($val == 1) {
-                $count ++;
-            }
+        if ($this->client->getResultCode() == \Memcached::RES_NOTFOUND) {
+            return false;
+        } elseif ($this->client->getResultCode() == \Memcached::RES_SUCCESS) {
+            return true;
+        } else {
+            throw new CacheException('memcached client error: ' . $this->client->getResultMessage());
         }
-        return $count;
     }
 
     protected function doIncrement($key, $step = 1)
     {
-        return $this->handler->increment($this->prefix . $key, $step);
+        if ($this->client->add($key, $step)) {
+            return $step;
+        }
+        return $this->client->increment($key, $step);
     }
 
     protected function doDecrement($key, $step = 1)
     {
-        return $this->handler->decrement($this->prefix . $key, $step);
+        if ($this->client->add($key, 0 - $step)) {
+            return 0 - $step;
+        }
+        return $this->client->decrement($key, $step);
+    }
+
+    protected function doAdd($key, $value, $ttl = 0)
+    {
+        $ok = $this->client->add($key, $value, $ttl);
+        if (false === $ok && $this->client->getResultCode() != \Memcached::RES_NOTSTORED) {
+            throw new CacheException('memcached client error: ' . $this->client->getResultMessage());
+        }
+        return $ok;
+    }
+
+    /**
+     * 检查Memcached的状态码
+     *
+     * 如果状态码不是成功或key不存在的状态，可能服务器有问题，抛出异常。
+     *
+     * @param $result
+     * @return mixed
+     * @throws CacheException
+     */
+    private function checkStatusCode($result)
+    {
+        $code = $this->client->getResultCode();
+        if ($code == \Memcached::RES_SUCCESS || $code == \Memcached::RES_NOTFOUND) {
+            return $result;
+        }
+        throw new CacheException('memcached client error: ' . $this->client->getResultMessage());
     }
 }

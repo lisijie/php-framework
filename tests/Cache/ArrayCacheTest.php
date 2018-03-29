@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/TestCaseTrait.php';
 
-class MemCacheTest extends TestCase
+class ArrayCacheTest extends TestCase
 {
     use TestCaseTrait;
 
@@ -13,7 +13,7 @@ class MemCacheTest extends TestCase
 
     public function setUp()
     {
-        $config = ['prefix' => 'test_', 'servers' => [['localhost',11211]]];
-        $this->cache = new \Core\Cache\MemCache($config);
+        $config = ['prefix' => 'test_'];
+        $this->cache = new \Core\Cache\ArrayCache($config);
     }
 }
