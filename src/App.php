@@ -20,8 +20,6 @@ foreach (['APP_PATH', 'DATA_PATH'] as $name) {
 
 //设置错误报告级别, 使用最严格的标准
 error_reporting(E_ALL | E_STRICT);
-//关闭显示错误消息, 所有错误已经转换成异常, 并注册了默认异常处理器
-ini_set('display_errors', 0);
 
 //系统常量定义
 require __DIR__ . '/Const.php';
@@ -37,37 +35,22 @@ ClassLoader::getInstance()
     ->register();
 
 use Core\Bootstrap\BootstrapInterface;
-use Core\Container;
+use Core\Db;
 use Core\Environment;
+use Core\Event\DbEvent;
 use Core\Events;
+use Core\Exception\CoreException;
 use Core\Exception\HttpException;
 use Core\Exception\HttpNotFoundException;
 use Core\Http\Request;
 use Core\Http\Response;
+use Core\Lib\VarDumper;
+use Core\Logger\Logger;
+use Core\Session\Handler\Memcached;
+use Core\Session\Session;
 
 class App extends Events
 {
-
-    /**
-     * 容器
-     *
-     * @var Container;
-     */
-    private static $container;
-
-    /**
-     * 控制器命名空间
-     *
-     * @var string|array
-     */
-    private static $controllerNamespace = 'App\\Controller';
-
-    /**
-     * 控制器名后缀
-     * @var string
-     */
-    private static $controllerSuffix = 'Controller';
-
     /**
      * 是否调试模式
      * @var bool
@@ -79,6 +62,11 @@ class App extends Events
      * @var bool
      */
     private static $sqlDebug = false;
+
+    /**
+     * @var \Core\Container\Container
+     */
+    private static $container;
 
     /**
      * 运行应用并输出结果
@@ -93,28 +81,28 @@ class App extends Events
     public static function run()
     {
         if (self::isCli()) {
-            self::$controllerNamespace = ['App\\Command', 'Core\\Console'];
-            self::$controllerSuffix = 'Command';
+            $router = new \Core\Router\ConsoleRouter();
+            $router->setDefaultRoute('help/index');
+            $router->registerNamespace('App\\Command', 'Command');
+            $router->registerNamespace('Core\\Console', 'Command');
+            self::set('router', $router, true);
+            list($controller, $action) = $router->resolve();
+            if (empty($controller) || !class_exists($controller)) {
+                die('command not found!');
+            }
+        } else {
+            $config = App::config()->get('app', 'router', []);
+            $router = new \Core\Router\HttpRouter($config);
+            $router->registerNamespace('App\\Controller', 'Controller');
+            $router->addConfig(App::config()->get('route'));
+            $request = new Request();
+            $response = new Response();
+            self::set('router', $router, true);
+            self::set('request', $request, true);
+            self::set('response', $response, true);
+            $response = self::process($request, $response);
+            $response->send();
         }
-        $config = self::config()->get('app', 'profiler', []);
-        if ($config && $config['enabled']) {
-            $profiler = new \Core\Lib\Profiler();
-            $profiler->setDataPath($config['data_path']);
-            $profiler->setXhprofUrl($config['xhprof_url']);
-            $profiler->start();
-        }
-        $response = self::handleRequest(new Request());
-        $response->send();
-    }
-
-    /**
-     * 设置控制器命名空间前缀
-     *
-     * @param $ns
-     */
-    public static function setControllerNamespace($ns)
-    {
-        self::$controllerNamespace = $ns;
     }
 
     /**
@@ -170,70 +158,29 @@ class App extends Events
     /**
      * 处理请求
      *
-     * @param  Request $request
+     * @param Request $request
+     * @param Response $response
      * @return Response 返回response对象
-     */
-    public static function handleRequest(Request $request)
-    {
-        $router = self::router();
-        $router->resolve($request);
-        //当前路由地址
-        define('CUR_ROUTE', $router->getRoute());
-        self::set('request', $request);
-
-        return self::runRoute(CUR_ROUTE, $router->getParams());
-    }
-
-    /**
-     * 获取控制目录
-     *
-     * @return array
-     */
-    public static function getControllerPaths()
-    {
-        $paths = [];
-        foreach ((array)self::$controllerNamespace as $ns) {
-            $ps = ClassLoader::getInstance()->getNamespacePaths(strstr($ns, '\\', true));
-            foreach ($ps as &$v) {
-                $v .= strtr(strstr($ns, '\\'), '\\', DS);
-            }
-            $paths[$ns] = $ps;
-        }
-        return $paths;
-    }
-
-    /**
-     * 执行路由
-     *
-     * @param string $route 路由地址
-     * @param array $params 路由参数
-     * @return Response
      * @throws HttpException
      * @throws HttpNotFoundException
      */
-    public static function runRoute($route, $params = [])
+    public static function process(Request $request, Response $response)
     {
-        // 包含非法字符则抛出404异常
-        if (!preg_match('#^[a-z][a-z0-9/\-]+$#i', $route)) {
-            throw new HttpNotFoundException();
-        }
-
+        $router = self::router();
         // 将路由地址解析为对应的控制器名和方法名
-        list($controllerName, $actionName) = self::parseRoute($route);
+        list($controllerName, $actionName) = $router->resolve($request);;
         // 控制器不存在抛出404异常
-        if (!class_exists($controllerName)) {
+        if (empty($controllerName) || !class_exists($controllerName)) {
             throw new HttpNotFoundException();
         }
-
-        $response = new Response();
-        self::set('response', $response);
-
+        //当前路由地址
+        define('CUR_ROUTE', $router->getRoute());
         try {
-            $controller = new $controllerName(self::get('request'), $response);
+            $controller = new $controllerName($request, $response);
             $controller->init();
             self::set('controller', $controller);
             if ($controller->before() === true) {
-                $response = $controller->execute($actionName, $params);
+                $response = $controller->execute($actionName, $router->getParams());
                 $controller->after();
             } else {
                 throw new HttpException(403);
@@ -243,61 +190,6 @@ class App extends Events
             self::logger()->debug($e);
             throw new HttpNotFoundException();
         }
-
-    }
-
-    /**
-     * 解析路由地址返回控制器名和方法名
-     *
-     * 路由地址由英文字母、斜杠和减号组成，如：/foo/bar/say-hello。
-     * 解析步骤如下：
-     * 1. 首先将路由地址转换为 Foo\Bar\SayHello。
-     * 2. 检查是否存在名为 Foo\Bar\SayHelloController 的控制器，如存在，则解析完成。
-     * 3. 如果控制器不存在，则将路由地址分割为两部分，Foo\Bar 为控制器名，SayHello 为方法名。检查是否存在
-     *    名为 Foo\BarController 的控制器，如果存在，则解析成功。
-     * 4. 如果控制器不存在，则返回的控制器名称为空。
-     *
-     * @param string $route 路由地址
-     * @return array 返回 [控制器名称, 方法名]
-     */
-    public static function parseRoute($route)
-    {
-        $pos = strrpos($route, '/');
-        if ($pos !== false) {
-            // 转换成首字母大写+反斜杠形式
-            $route = str_replace(' ', '\\', ucwords(str_replace('/', ' ', $route)));
-        } else {
-            $route = ucfirst($route);
-        }
-        // 将减号分割的单词转换为首字母大写的驼峰形式
-        if (strpos($route, '-') !== false && strpos($route, '--') === false) {
-            $route = str_replace(' ', '', ucwords(str_replace('-', ' ', $route)));
-        }
-        $controllerName = $actionName = '';
-        $namespaces = is_array(self::$controllerNamespace) ? self::$controllerNamespace : [self::$controllerNamespace];
-        foreach ($namespaces as $ns) {
-            $tmpName = $ns . "\\{$route}" . self::$controllerSuffix;
-
-            if (class_exists($tmpName)) {
-                $controllerName = $tmpName;
-                break;
-            }
-        }
-
-        if (!$controllerName && $pos > 0) {
-            $pos = strrpos($route, '\\');
-            $tmpControl = substr($route, 0, $pos);
-            foreach ($namespaces as $ns) {
-                $tmpName = $ns . "\\{$tmpControl}" . self::$controllerSuffix;
-                if (class_exists($tmpName)) {
-                    $controllerName = $tmpName;
-                    $actionName = lcfirst(substr($route, $pos + 1));
-                    break;
-                }
-            }
-        }
-
-        return [$controllerName, $actionName];
     }
 
     /**
@@ -309,21 +201,25 @@ class App extends Events
      */
     public static function bootstrap(BootstrapInterface $bootstrap = null)
     {
-        self::$container = new Container();
-        if (!$bootstrap) {
-            $bootstrap = new \Core\Bootstrap\Bootstrap();
+        $config = new \Core\Config(CONFIG_PATH, Environment::getEnvironment());
+        self::$container = new \Core\Container\Container();
+        self::$container->addServiceProvider(new \Core\Container\ServiceProvider(self::$container, $config->get('components')));
+        self::set('config', $config);
+        // 设置时区
+        if (App::config()->get('app', 'timezone')) {
+            date_default_timezone_set(App::config()->get('app', 'timezone'));
+        } elseif (ini_get('date.timezone') == '') {
+            date_default_timezone_set('Asia/Shanghai'); //设置默认时区为中国时区
         }
-        self::$container->setSingleton('config', new \Core\Config(CONFIG_PATH, Environment::getEnvironment()));
-
-        $class = new ReflectionClass($bootstrap);
-        $methods = $class->getMethods(ReflectionMethod::IS_PUBLIC);
-        foreach ($methods as $method) {
-            $methodName = $method->getName();
-            if (substr($methodName, 0, 4) == 'init') {
-                self::$container->set(lcfirst(substr($methodName, 4)), [$bootstrap, $methodName], true);
-            }
+        //注册异常处理器
+        if (class_exists('\\App\\Exception\\ErrorHandler')) {
+            (new \App\Exception\ErrorHandler(App::logger()))->register();
+        } else {
+            (new \Core\Exception\ErrorHandler(App::logger()))->register();
         }
-        $bootstrap->startup();
+        if ($bootstrap) {
+            $bootstrap->startup();
+        }
     }
 
     /**
@@ -390,12 +286,35 @@ class App extends Events
     /**
      * 获取DB实例
      *
-     * @param string $name 节点名称
+     * @param string $node 节点名称
      * @return Core\Db
      */
-    public static function db($name = 'default')
+    public static function db($node = 'default')
     {
-        return self::get('db', $name);
+        $name = "db:{$node}";
+        if (!self::has($name)) {
+            $config = App::config()->get('app', 'database');
+            if (!isset($config[$name])) {
+                throw new \InvalidArgumentException("数据配置不存在: {$name}");
+            }
+            $config = $config[$name];
+            $db = new Db($config);
+            $db->on(Db::EVENT_QUERY, function (DbEvent $event) use ($name) {
+                $time = number_format($event->getTime(), 3) . 's';
+                $params = VarDumper::export($event->getParams());
+                $sql = $event->getSql();
+                if (App::isSqlDebug()) {
+                    App::logger('database')->debug("[" . CUR_ROUTE . "] [{$name}] [{$time}] [{$sql}] {$params}");
+                } else {
+                    $logSlow = $event->getSender()->getOption('log_slow');
+                    if ($logSlow && $event->getTime() >= $logSlow) {
+                        App::logger('database')->warn("[" . CUR_ROUTE . "] [$name] [{$time}] [{$sql}] {$params}");
+                    }
+                }
+            });
+            self::set($name, $db);
+        }
+        return self::get($name);
     }
 
     /**
@@ -421,10 +340,21 @@ class App extends Events
     /**
      * 返回路由对象
      *
-     * @return Core\Router\Router
+     * @return Core\Router\RouterInterface
      */
     public static function router()
     {
+        if (!self::has('router')) {
+            if (PHP_SAPI == 'cli') {
+                $router = new \Core\Router\ConsoleRouter();
+                $router->setDefaultRoute('help/index');
+            } else {
+                $config = App::config()->get('app', 'router', []);
+                $router = new \Core\Router\HttpRouter($config);
+                $router->addConfig(App::config()->get('route'));
+            }
+            self::set('router', $router);
+        }
         return self::get('router');
     }
 
@@ -435,32 +365,87 @@ class App extends Events
      */
     public static function session()
     {
+        if (!self::has('session')) {
+            $config = App::config()->get('app', 'session', []);
+            $session = new Session();
+            if (isset($config['type'])) {
+                switch ($config['type']) {
+                    case 'file':
+                        if (!empty($config['file']['save_path'])) {
+                            $session->setSavePath($config['file']['save_path']);
+                        }
+                        break;
+                    case 'memcached':
+                        $session->setHandler(new Memcached($config['memcached']['servers']));
+                        break;
+                }
+            }
+            // $session->start();
+            self::set('session', $session, true);
+        }
         return self::get('session');
     }
 
     /**
      * 返回缓存对象
      *
-     * @param string $name 节点名称
      * @return Core\Cache\CacheInterface
      */
-    public static function cache($name = 'default')
+    public static function cache()
     {
-        return self::get('cache', $name);
+        $alias = 'cache';
+        if (!self::has($alias)) {
+            self::set($alias, new \Core\Cache\NullCache());
+        }
+        return self::get($alias);
     }
 
     /**
      * 返回日志对象
      *
-     * @param string $name 节点名称
+     * @param string $channel 通道名称
      * @return Core\Logger\LoggerInterface
      */
-    public static function logger($name = '')
+    public static function logger($channel = '')
     {
-        if (empty($name)) {
-            $name = PHP_SAPI == 'cli' ? 'console' : 'default';
+        if (empty($channel)) {
+            $channel = PHP_SAPI == 'cli' ? 'console' : 'default';
         }
-        return self::get('logger', $name);
+        $name = "logger:{$channel}";
+        if (!self::has($name)) {
+            $config = App::config()->get('app', 'logger', []);
+            $timezone = App::config()->get('app', 'timezone', 'UTC');
+            $logger = new Logger($channel);
+            $logger->setTimeZone(new \DateTimeZone($timezone));
+            if ($channel != 'default' && !isset($config[$channel])) {
+                $channel = 'default';
+            }
+            if (isset($config[$channel])) {
+                foreach ($config[$channel] as $conf) {
+                    $handlerClass = $conf['handler'];
+                    if (!class_exists($handlerClass)) {
+                        throw new \RuntimeException('找不到日志处理类: ' . $handlerClass);
+                    }
+                    $handler = new $handlerClass($conf['config']);
+                    // 日志格式化器配置
+                    if (!empty($conf['formatter'])) {
+                        $formatterClass = $conf['formatter'];
+                        if (!class_exists($formatterClass)) {
+                            throw new \RuntimeException('找不到日志格式化类: ' . $formatterClass);
+                        }
+                        $formatter = new $formatterClass();
+                        $handler->setFormatter($formatter);
+                    }
+                    // 设置日志时间格式
+                    if (!empty($conf['date_format'])) {
+                        $handler->getFormatter()->setDateFormat($conf['date_format']);
+                    }
+                    $logger->setHandler($handler, $conf['level']);
+                }
+            }
+            self::set($name, $logger, true);
+        }
+        return self::get($name);
     }
 
     /**
@@ -484,17 +469,20 @@ class App extends Events
     }
 
     /**
-     * 注入对象
+     * 添加对象
+     *
+     * $definition 可以是一个配置信息，格式为：
+     *   ['class' => className, 'param1' => 'value1', 'param2' => 'value2' ...]
+     * 示例化时，如果构造函数有定义了对应名称的参数，则传给构造函数，否则通过 setter 函数赋值给对象。
      *
      * @param string $name 名称
      * @param mixed $definition 定义
-     * @param bool $singleton 是否单一实例
+     * @param bool $shared 是否共享实例
      * @return bool
      */
-    public static function set($name, $definition, $singleton = true)
+    public static function set($name, $definition, $shared = true)
     {
-        self::$container->set($name, $definition, $singleton);
-        return true;
+        return self::$container->set($name, $definition, $shared);
     }
 
     /**
@@ -502,19 +490,21 @@ class App extends Events
      *
      * @param string $name
      * @return mixed
+     * @throws CoreException
      */
     public static function get($name)
     {
-        return call_user_func_array([self::$container, 'get'], func_get_args());
+        return self::$container->get($name);
     }
 
     /**
-     * 获取容器对象
+     * 检查容器中是否存在某个名称
      *
-     * @return \Core\Container
+     * @param string $name
+     * @return bool
      */
-    public static function container()
+    public static function has($name)
     {
-        return self::$container;
+        return self::$container->has($name);
     }
 }

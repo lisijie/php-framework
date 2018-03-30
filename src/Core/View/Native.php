@@ -1,8 +1,5 @@
 <?php
-namespace Core\View\Adapter;
-
-use Core\View\ViewAbstract;
-use Core\View\ViewException;
+namespace Core\View;
 
 /**
  * 原生PHP模板
@@ -10,7 +7,7 @@ use Core\View\ViewException;
  * @author lisijie <lsj86@qq.com>
  * @package Core\View
  */
-class Native extends ViewAbstract
+class Native extends AbstractView
 {
 
     protected $funcMap = [];

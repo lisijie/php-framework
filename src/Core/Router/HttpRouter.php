@@ -1,6 +1,7 @@
 <?php
 namespace Core\Router;
 
+use Core\Exception\HttpNotFoundException;
 use Core\Http\Request;
 
 /**
@@ -21,10 +22,11 @@ use Core\Http\Request;
  *     ['/users/*', 'User/UserList', 'GET'],
  * ];
  *
+ *
  * @author lisijie <lsj86@qq.com>
  * @package Core\Router
  */
-abstract class Router implements RouterInterface
+class HttpRouter extends AbstractRouter implements RouterInterface
 {
     /**
      * 固定路径
@@ -54,7 +56,7 @@ abstract class Router implements RouterInterface
      * 控制器到URI规则的映射
      * @var array
      */
-    protected $routeMap = [];
+    protected $handlerMap = [];
 
     /**
      * 路由查找表
@@ -63,39 +65,22 @@ abstract class Router implements RouterInterface
     protected $pathMap = [];
 
     /**
-     * 当前路由参数
-     *
-     * @var array
-     */
-    protected $params = [];
-
-    /**
-     * 当前路由地址
-     *
-     * @var string
-     */
-    protected $routeName;
-
-    /**
      * 请求对象
-     *
      * @var \Core\Http\Request
      */
     protected $request;
 
     /**
-     * 默认路由
-     *
-     * @var string
-     */
-    protected $defaultRoute = '';
-
-    /**
      * 路由变量
-     *
      * @var string
      */
     protected $routeVar = 'r';
+
+    /**
+     * 是否启用URL重写
+     * @var bool
+     */
+    private $prettyUrl = false;
 
     public function __construct($options = [])
     {
@@ -105,62 +90,39 @@ abstract class Router implements RouterInterface
         if (isset($options['route_var'])) {
             $this->routeVar = (string)$options['route_var'];
         }
-    }
-
-    /**
-     * 设置默认路由
-     * @param $route
-     */
-    public function setDefaultRoute($route)
-    {
-        $this->defaultRoute = $route;
-    }
-
-    /**
-     * 返回默认路由
-     * @return string
-     */
-    public function getDefaultRoute()
-    {
-        return $this->defaultRoute;
-    }
-
-    /**
-     * 获取路由地址
-     * @return string
-     */
-    public function getRoute()
-    {
-        return $this->routeName ?: $this->defaultRoute;
-    }
-
-    /**
-     * 获取路由参数列表
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->params;
-    }
-
-    /**
-     * 获取路由参数
-     * @param $key
-     * @return mixed|null
-     */
-    public function getParam($key)
-    {
-        return isset($this->params[$key]) ? $this->params[$key] : null;
+        if (isset($options['pretty_url'])) {
+            $this->prettyUrl = (bool)$options['pretty_url'];
+        }
+        if (!empty($options['namespaces'])) {
+            foreach ($options['namespaces'] as $namespace) {
+                $this->registerNamespace($namespace[0], $namespace[1]);
+            }
+        }
     }
 
     /**
      * 路由解析
+     *
      * @param Request $request
+     * @return array
      */
-    public function resolve(Request $request)
+    public function resolve($request = null)
     {
         $this->request = $request;
-        return $this->parse();
+        if (!$this->prettyUrl) {
+            $route = $this->request->getQuery($this->routeVar);
+        } else {
+            $requestUri = $this->request->getRequestUri();
+            $parts = parse_url($requestUri);
+            $route = $parts['path'];
+            // 去掉项目目录
+            $baseUrl = $this->request->getBaseUrl();
+            if ($baseUrl && ($pos = strpos($route, $baseUrl)) === 0) {
+                $route = substr($route, strlen($baseUrl));
+            }
+        }
+        $this->parseRoute($route);
+        return $this->resolveHandler();
     }
 
     /**
@@ -184,26 +146,28 @@ abstract class Router implements RouterInterface
     /**
      * 添加路由规则
      *
-     * @param string $path 路径规则
-     * @param string $route 控制器地址
+     * @param string $pattern 路径规则
+     * @param string $handler 处理器
      * @param string $method 允许的请求方法
      */
-    public function addRoute($path, $route, $method = self::METHOD_ANY)
+    public function addRoute($pattern, $handler, $method = self::METHOD_ANY)
     {
-        $route = $this->normalizeRoute($route);
+        if (is_string($handler)) {
+            $handler = $this->normalizeRoute($handler);
+        }
         // 必须以"/"开头
-        if ($path[0] != '/') {
-            $path = '/' . $path;
+        if ($pattern[0] != '/') {
+            $pattern = '/' . $pattern;
         }
         // 匹配类型
-        if (strpos($path, '*') !== false) {
+        if (strpos($pattern, '*') !== false) {
             $type = self::TYPE_ANY;
-        } elseif (strpos($path, ':') !== false) {
+        } elseif (strpos($pattern, ':') !== false) {
             $type = self::TYPE_PARAM;
         } else {
             $type = self::TYPE_STATIC;
         }
-        $parts = explode('/', $path);
+        $parts = explode('/', $pattern);
         $pk = 0;
         foreach ($parts as $key => $part) {
             if (empty($part)) {
@@ -220,8 +184,10 @@ abstract class Router implements RouterInterface
         if (!isset($this->pathMap[$type])) {
             $this->pathMap[$type] = [];
         }
-        $this->pathMap[$type][$re] = ['route' => $route, 'method' => $method];
-        $this->routeMap[$route] = ['path' => $path];
+        $this->pathMap[$type][$re] = ['handler' => $handler, 'method' => $method];
+        if (is_string($handler)) {
+            $this->handlerMap[$handler] = ['pattern' => $pattern];
+        }
     }
 
     /**
@@ -231,11 +197,17 @@ abstract class Router implements RouterInterface
      *
      * @param string $path
      * @return bool
+     * @throws HttpNotFoundException
      * @throws MethodNotAllowedException
      */
-    public function parseRoute($path)
+    private function parseRoute($path)
     {
         if (empty($path)) return false;
+
+        // 包含非法字符则抛出404异常
+        if (!preg_match('#^[a-z][a-z0-9/\-]+$#i', $path)) {
+            throw new HttpNotFoundException();
+        }
         if ($path[0] != '/') {
             $path = '/' . $path;
         }
@@ -282,17 +254,17 @@ abstract class Router implements RouterInterface
     /**
      * 根据规则生成URL路径部分
      *
-     * @param string $route
+     * @param string $handlerName
      * @param array $params
      * @return array('path'=>路径, 'params'=>参数)
      */
-    protected function makeUrlPath($route, array $params)
+    protected function makeUrlPath($handlerName, array $params)
     {
-        $route = $this->normalizeRoute($route);
+        $handlerName = $this->normalizeRoute($handlerName);
         $path = '';
-        if (isset($this->routeMap[$route])) {
-            $path = $this->routeMap[$route]['path'];
-            $parts = explode('/', $path);
+        if (isset($this->handlerMap[$handlerName])) {
+            $pattern = $this->handlerMap[$handlerName]['pattern'];
+            $parts = explode('/', $pattern);
             $pk = 0;
             foreach ($parts as $key => $val) {
                 if (empty($val)) {
@@ -311,25 +283,9 @@ abstract class Router implements RouterInterface
             $path = implode('/', $parts);
         }
         if (!$path) {
-            $path = $route;
+            $path = $handlerName;
         }
         return ['path' => $path, 'params' => $params];
-    }
-
-    /**
-     * 标准化路由地址
-     *
-     * 全部转成小写，每个单词用"-"分隔，例如 Admin/UserList 转换为 admin/user-list
-     *
-     * @param $route
-     * @return string
-     */
-    protected function normalizeRoute($route)
-    {
-        $route = preg_replace_callback('#[A-Z]#', function ($m) {
-            return '-' . strtolower($m[0]);
-        }, $route);
-        return ltrim(strtr($route, ['/-' => '/']), '-');
     }
 
     /**
@@ -339,27 +295,15 @@ abstract class Router implements RouterInterface
      * @param array $params 参数
      * @return string
      */
-    abstract public function makeUrl($route, $params = []);
-
-    /**
-     * 开始路由解析
-     */
-    abstract protected function parse();
-
-    /**
-     * 工厂方法
-     * 实例化指定类型路由器
-     *
-     * @param $type
-     * @param array $options
-     * @return Router
-     */
-    public static function factory($type, array $options = [])
+    public function makeUrl($route, $params = [])
     {
-        $className = '\\Core\\Router\\' . ucfirst($type);
-        if (class_exists($className) && is_subclass_of($className, '\\Core\\Router\Router')) {
-            return new $className($options);
+        $result = $this->makeUrlPath($route, $params);
+        if (!$this->prettyUrl) {
+            $query = $result['params'];
+            $query[$this->routeVar] = $result['path'];
+            return $this->request->getBaseUrl() . '/?' .  http_build_query($query);
+        } else {
+            return $this->request->getBaseUrl() . '/' . ltrim($result['path'], '/') . (empty($result['params']) ? '' : '?' . http_build_query($result['params']));
         }
-        throw new \InvalidArgumentException("Unknown Router : {$type}");
     }
 }

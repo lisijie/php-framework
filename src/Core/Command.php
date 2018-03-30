@@ -12,8 +12,13 @@ use Core\Lib\Console;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Command extends Controller
+class Command
 {
+    /**
+     * 默认动作
+     * @var string
+     */
+    protected $defaultAction = 'index';
 
     protected function stdout($string)
     {

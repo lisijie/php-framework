@@ -8,7 +8,7 @@ namespace Core\View;
  * @author lisijie <lsj86@qq.com>
  * @package Core\View
  */
-abstract class ViewAbstract implements ViewInterface
+abstract class AbstractView implements ViewInterface
 {
     /**
      * 布局模板中内容主体的占位符

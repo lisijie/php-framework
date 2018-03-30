@@ -1,9 +1,5 @@
 <?php
-
-namespace Core\View\Adapter;
-
-use Core\View\ViewAbstract;
-use Core\View\ViewException;
+namespace Core\View;
 
 /**
  * Smarty模版引擎
@@ -11,7 +7,7 @@ use Core\View\ViewException;
  * @author lisijie <lsj86@qq.com>
  * @package Core\View
  */
-class Smarty extends ViewAbstract
+class Smarty extends AbstractView
 {
     private $smarty;
 

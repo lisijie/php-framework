@@ -11,23 +11,10 @@ return [
     // 时区设置，PRC为中国时区
     'timezone' => 'PRC',
 
-    // 视图模板配置，使用原生PHP作为模板引擎
-    'view' => [
-        'engine' => 'native',
-        'options' => [
-            'template_dir' => VIEW_PATH,
-            'ext' => '.php',
-            'static_url' => '/',
-            'static_version' => '1.0',
-        ],
-    ],
-
-    //路由类型配置
+    //路由配置
     'router' => [
-        'type' => 'simple',
-        'options' => [
-            'default_route' => 'home/index', //默认路由
-        ],
+        'pretty_url' => false,
+        'default_route' => 'home/index', //默认路由
     ],
 
     //缓存配置
