@@ -68,25 +68,6 @@ class Controller extends Component
     }
 
     /**
-     * 动作执行前置方法
-     *
-     * 该方法会在Action方法被执行前调用，只有在本方法返回true时，才会执行接下来的Action方法，否则将返回403错误页面。
-     * 可以用来做功能开关、访问控制等。
-     */
-    public function before()
-    {
-        return true;
-    }
-
-    /**
-     * 动作执行后调用
-     */
-    public function after()
-    {
-
-    }
-
-    /**
      * 获取服务器环境变量
      *
      * @param string $name 名称
@@ -328,31 +309,19 @@ class Controller extends Component
     }
 
     /**
-     * 渲染模板并返回输出对象
+     * 渲染模板并返回Response对象
      *
      * @param string $filename
-     * @return Response 输出对象
+     * @param array $data
+     * @return Response
      */
-    public function display($filename = '')
+    public function render($filename = '', $data = [])
     {
         if (empty($filename)) {
             $filename = CUR_ROUTE;
         }
-        $this->response->setContent(App::view()->render($filename, $this->data));
-        return $this->response;
-    }
-
-    /**
-     * 渲染模板
-     *
-     * @param string $filename
-     * @param array $data
-     * @return string
-     */
-    public function render($filename, $data = [])
-    {
         $data = array_merge($this->data, $data);
-        return App::view()->render($filename, $data);
+        return $this->response->setContent(App::view()->render($filename, $data));
     }
 
     /**

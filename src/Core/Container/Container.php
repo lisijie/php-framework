@@ -2,6 +2,7 @@
 namespace Core\Container;
 
 use Core\Exception\CoreException;
+use Psr\Container\ContainerInterface;
 use ReflectionClass;
 
 /**
@@ -10,7 +11,7 @@ use ReflectionClass;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Container
+class Container implements ContainerInterface
 {
     /**
      * 对象定义
@@ -77,7 +78,7 @@ class Container
                     return $provider->get($name);
                 }
             }
-            throw new \InvalidArgumentException("对象名称未注册: {$name}");
+            throw new NotFoundException("对象名称未注册: {$name}");
         }
 
         if (array_key_exists($name, $this->sharedInstances) && (null !== $this->sharedInstances[$name])) {
@@ -107,7 +108,7 @@ class Container
                             $args[] = $definition[$paramName];
                             unset($definition[$paramName]);
                         } elseif (!$parameter->isOptional()) {
-                            throw new CoreException("构建 {$refClass->getName()} 失败，构造函数缺少参数: {$parameter->getName()}");
+                            throw new ContainerException("构建 {$refClass->getName()} 失败，构造函数缺少参数: {$parameter->getName()}");
                         }
                     }
                 }

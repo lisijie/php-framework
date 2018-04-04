@@ -2,9 +2,10 @@
 namespace Core\Console;
 
 use App;
+use ClassLoader;
 use Core\Command;
-use Core\Lib\FileHelper;
 use Core\Lib\Console;
+use Core\Lib\FileHelper;
 
 /**
  * 显示帮助
@@ -33,13 +34,14 @@ class HelpCommand extends Command
     private function showCommandList()
     {
         $controllers = $this->getControllers();
+        $paths = $this->getCommandPaths();
         $commands = [];
         $len = 0;
         foreach ($controllers as $controller) {
             $actions = $this->getControllerActions($controller);
             if (count($actions) > 0) {
                 foreach ($actions as $name => $action) {
-                    $command = str_replace(array_keys(\App::getControllerPaths()), '', substr($controller, 0, -7));
+                    $command = str_replace(array_keys($paths), '', substr($controller, 0, -7));
                     $command = ltrim(strtr($command, '\\', '/'), '/') . '/' . $name;
                     $commands[$controller][$command] = $this->parseCommentSummary($action->getDocComment());
                     if (strlen($command) > $len) {
@@ -51,17 +53,17 @@ class HelpCommand extends Command
 
         foreach ($commands as $controller => $actions) {
             $class = $this->getReflectionClass($controller);
-            $string = str_replace(array_keys(\App::getControllerPaths()), '', substr($controller, 0, -7));
+            $string = str_replace(array_keys($this->getCommandPaths()), '', substr($controller, 0, -7));
             $string = ltrim(strtr($string, '\\', '/'), '/');
-            $this->stdout(Console::ansiFormat("- {$string}", Console::FG_YELLOW));
-            $this->stdout(str_repeat(' ', $len - strlen($string) + 10));
-            $this->stdout(Console::ansiFormat($this->parseCommentSummary($class->getDocComment()), Console::BOLD));
-            $this->stdout("\n");
+            fprintf(STDOUT, Console::ansiFormat("- {$string}", Console::FG_YELLOW));
+            fprintf(STDOUT, str_repeat(' ', $len - strlen($string) + 10));
+            fprintf(STDOUT, Console::ansiFormat($this->parseCommentSummary($class->getDocComment()), Console::BOLD));
+            fprintf(STDOUT, "\n");
             foreach ($actions as $name => $summary) {
-                $this->stdout('    ' . Console::ansiFormat($name, Console::FG_GREEN));
-                $this->stdout(str_repeat(' ', $len - strlen($name) + 8));
-                $this->stdout($summary);
-                $this->stdout("\n");
+                fprintf(STDOUT, '    ' . Console::ansiFormat($name, Console::FG_GREEN));
+                fprintf(STDOUT, str_repeat(' ', $len - strlen($name) + 8));
+                fprintf(STDOUT, $summary);
+                fprintf(STDOUT, "\n");
             }
         }
     }
@@ -72,12 +74,14 @@ class HelpCommand extends Command
     private function getControllers()
     {
         $controllers = [];
-        $paths = App::getControllerPaths();
+        $paths = $this->getCommandPaths();
         foreach ($paths as $ns => $nsPaths) {
-            foreach ($nsPaths as $path) {
+            foreach ($nsPaths as $pathInfo) {
+                list($path, $suffix) = $pathInfo;
                 $files = FileHelper::scanDir($path);
+                $fileSuffix = $suffix . '.php';
                 foreach ($files as $file) {
-                    if (substr_compare($file, 'Command.php', -11, 11) !== 0) {
+                    if (substr_compare($file, $fileSuffix, 0 - strlen($fileSuffix), strlen($fileSuffix)) !== 0) {
                         continue;
                     }
                     $file = substr($file, strlen($path), -4);
@@ -86,6 +90,31 @@ class HelpCommand extends Command
             }
         }
         return $controllers;
+    }
+
+    private function getCommandPaths()
+    {
+        $namespaces = App::router()->getNamespaces();
+        $loader = ClassLoader::getInstance();
+        $paths = [];
+        foreach ($namespaces as $namespace) {
+            list($prefix, $suffix) = $namespace;
+            $ns = '';
+            foreach (explode('\\', $prefix) as $p) {
+                $ns .= $p;
+                $values = $loader->getNamespacePaths($ns);
+                if ($values) {
+                    foreach ($values as $value) {
+                        $path = $value . substr($prefix, strlen($ns));
+                        $path = str_replace('\\', '/', $path);
+                        $paths[$prefix][] = [$path, $suffix];
+                    }
+                    continue 2;
+                }
+                $ns .= '\\';
+            }
+        }
+        return $paths;
     }
 
     /**

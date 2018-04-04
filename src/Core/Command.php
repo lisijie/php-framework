@@ -20,16 +20,6 @@ class Command
      */
     protected $defaultAction = 'index';
 
-    protected function stdout($string)
-    {
-        return Console::stdout($string);
-    }
-
-    protected function stdin($raw = false)
-    {
-        return Console::stdin($raw);
-    }
-
     /**
      * 执行控制器方法
      *
@@ -65,12 +55,6 @@ class Command
                 $args[] = $value;
             }
         }
-        $result = $method->invokeArgs($this, $args);
-        if ($result instanceof Response) {
-            return $result;
-        } elseif (null !== $result) {
-            $this->response->setContent(strval($result));
-        }
-        return $this->response;
+        return $method->invokeArgs($this, $args);
     }
 }

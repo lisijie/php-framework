@@ -35,6 +35,9 @@ ClassLoader::getInstance()
     ->register();
 
 use Core\Bootstrap\BootstrapInterface;
+use Core\Config;
+use Core\Container\Container;
+use Core\Container\ServiceProvider;
 use Core\Db;
 use Core\Environment;
 use Core\Event\DbEvent;
@@ -46,6 +49,9 @@ use Core\Http\Request;
 use Core\Http\Response;
 use Core\Lib\VarDumper;
 use Core\Logger\Logger;
+use Core\Middleware\MiddlewareInterface;
+use Core\Router\ConsoleRouter;
+use Core\Router\HttpRouter;
 use Core\Session\Handler\Memcached;
 use Core\Session\Session;
 
@@ -64,9 +70,44 @@ class App extends Events
     private static $sqlDebug = false;
 
     /**
-     * @var \Core\Container\Container
+     * @var Container
      */
     private static $container;
+
+    /**
+     * @var Core\Middleware\MiddlewareInterface[]
+     */
+    private static $middlewares = [];
+
+    /**
+     * 执行引导程序
+     *
+     * 先调用所有init开头的方法，最后调用startup方法初始化
+     *
+     * @param BootstrapInterface $bootstrap
+     */
+    public static function bootstrap(BootstrapInterface $bootstrap = null)
+    {
+        $config = new Config(CONFIG_PATH, Environment::getEnvironment());
+        self::$container = new Container();
+        self::$container->addServiceProvider(new ServiceProvider(self::$container, $config->get('components')));
+        self::set('config', $config);
+        // 设置时区
+        if (App::config()->get('app', 'timezone')) {
+            date_default_timezone_set(App::config()->get('app', 'timezone'));
+        } elseif (ini_get('date.timezone') == '') {
+            date_default_timezone_set('Asia/Shanghai'); //设置默认时区为中国时区
+        }
+        //注册异常处理器
+        if (class_exists('\\App\\Exception\\ErrorHandler')) {
+            (new \App\Exception\ErrorHandler(App::logger()))->register();
+        } else {
+            (new \Core\Exception\ErrorHandler(App::logger()))->register();
+        }
+        if ($bootstrap) {
+            $bootstrap->startup();
+        }
+    }
 
     /**
      * 运行应用并输出结果
@@ -81,18 +122,22 @@ class App extends Events
     public static function run()
     {
         if (self::isCli()) {
-            $router = new \Core\Router\ConsoleRouter();
+            $router = new ConsoleRouter();
             $router->setDefaultRoute('help/index');
             $router->registerNamespace('App\\Command', 'Command');
             $router->registerNamespace('Core\\Console', 'Command');
             self::set('router', $router, true);
-            list($controller, $action) = $router->resolve();
-            if (empty($controller) || !class_exists($controller)) {
+            //当前路由地址
+            define('CUR_ROUTE', $router->getRoute());
+            list($class, $action) = $router->resolve();
+            if (empty($class) || !class_exists($class) || !is_subclass_of($class, \Core\Command::class, true)) {
                 die('command not found!');
             }
+            $controller = new $class();
+            $controller->execute($action, $router->getParams());
         } else {
             $config = App::config()->get('app', 'router', []);
-            $router = new \Core\Router\HttpRouter($config);
+            $router = new HttpRouter($config);
             $router->registerNamespace('App\\Controller', 'Controller');
             $router->addConfig(App::config()->get('route'));
             $request = new Request();
@@ -104,6 +149,62 @@ class App extends Events
             $response->send();
         }
     }
+
+    /**
+     * 注册中间件
+     *
+     * @param MiddlewareInterface $middleware
+     */
+    public static function add(MiddlewareInterface $middleware)
+    {
+        self::$middlewares[] = $middleware;
+    }
+
+    /**
+     * 处理请求
+     *
+     * @param Request $request
+     * @param Response $response
+     * @return Response 返回response对象
+     * @throws HttpException
+     * @throws HttpNotFoundException
+     */
+    public static function process(Request $request, Response $response)
+    {
+        $router = self::router();
+        // 将路由地址解析为对应的控制器名和方法名
+        list($controllerName, $actionName) = $router->resolve($request);
+        // 控制器不存在抛出404异常
+        if (empty($controllerName) || !class_exists($controllerName) || !is_subclass_of($controllerName, \Core\Controller::class, true)) {
+            throw new HttpNotFoundException();
+        }
+        //当前路由地址
+        define('CUR_ROUTE', $router->getRoute());
+        try {
+            $handler = function () use ($request, $response, $controllerName, $actionName, $router) {
+                $controller = new $controllerName($request, $response);
+                $controller->init();
+                self::set('controller', $controller);
+                $response = $controller->execute($actionName, $router->getParams());
+                return $response;
+            };
+            // 中间件调用链
+            if (!empty(self::$middlewares)) {
+                for ($i = count(self::$middlewares) - 1; $i >= 0; $i--) {
+                    $middleware = self::$middlewares[$i];
+                    $handler = function () use ($request, $response, $handler, $middleware) {
+                        return $middleware->process($request, $response, $handler);
+                    };
+                }
+
+            }
+            return $handler();
+        } catch (BadMethodCallException $e) {
+            self::logger()->debug($e);
+            throw new HttpNotFoundException();
+        }
+    }
+
 
     /**
      * 是否命令行模式
@@ -153,73 +254,6 @@ class App extends Events
     public static function isSqlDebug()
     {
         return self::$sqlDebug;
-    }
-
-    /**
-     * 处理请求
-     *
-     * @param Request $request
-     * @param Response $response
-     * @return Response 返回response对象
-     * @throws HttpException
-     * @throws HttpNotFoundException
-     */
-    public static function process(Request $request, Response $response)
-    {
-        $router = self::router();
-        // 将路由地址解析为对应的控制器名和方法名
-        list($controllerName, $actionName) = $router->resolve($request);;
-        // 控制器不存在抛出404异常
-        if (empty($controllerName) || !class_exists($controllerName)) {
-            throw new HttpNotFoundException();
-        }
-        //当前路由地址
-        define('CUR_ROUTE', $router->getRoute());
-        try {
-            $controller = new $controllerName($request, $response);
-            $controller->init();
-            self::set('controller', $controller);
-            if ($controller->before() === true) {
-                $response = $controller->execute($actionName, $router->getParams());
-                $controller->after();
-            } else {
-                throw new HttpException(403);
-            }
-            return $response;
-        } catch (BadMethodCallException $e) {
-            self::logger()->debug($e);
-            throw new HttpNotFoundException();
-        }
-    }
-
-    /**
-     * 执行引导程序
-     *
-     * 先调用所有init开头的方法，最后调用startup方法初始化
-     *
-     * @param BootstrapInterface $bootstrap
-     */
-    public static function bootstrap(BootstrapInterface $bootstrap = null)
-    {
-        $config = new \Core\Config(CONFIG_PATH, Environment::getEnvironment());
-        self::$container = new \Core\Container\Container();
-        self::$container->addServiceProvider(new \Core\Container\ServiceProvider(self::$container, $config->get('components')));
-        self::set('config', $config);
-        // 设置时区
-        if (App::config()->get('app', 'timezone')) {
-            date_default_timezone_set(App::config()->get('app', 'timezone'));
-        } elseif (ini_get('date.timezone') == '') {
-            date_default_timezone_set('Asia/Shanghai'); //设置默认时区为中国时区
-        }
-        //注册异常处理器
-        if (class_exists('\\App\\Exception\\ErrorHandler')) {
-            (new \App\Exception\ErrorHandler(App::logger()))->register();
-        } else {
-            (new \Core\Exception\ErrorHandler(App::logger()))->register();
-        }
-        if ($bootstrap) {
-            $bootstrap->startup();
-        }
     }
 
     /**
@@ -344,17 +378,6 @@ class App extends Events
      */
     public static function router()
     {
-        if (!self::has('router')) {
-            if (PHP_SAPI == 'cli') {
-                $router = new \Core\Router\ConsoleRouter();
-                $router->setDefaultRoute('help/index');
-            } else {
-                $config = App::config()->get('app', 'router', []);
-                $router = new \Core\Router\HttpRouter($config);
-                $router->addConfig(App::config()->get('route'));
-            }
-            self::set('router', $router);
-        }
         return self::get('router');
     }
 
@@ -393,11 +416,7 @@ class App extends Events
      */
     public static function cache()
     {
-        $alias = 'cache';
-        if (!self::has($alias)) {
-            self::set($alias, new \Core\Cache\NullCache());
-        }
-        return self::get($alias);
+        return self::get('cache');
     }
 
     /**
@@ -506,5 +525,15 @@ class App extends Events
     public static function has($name)
     {
         return self::$container->has($name);
+    }
+
+    /**
+     * 返回容器对象
+     *
+     * @return Container
+     */
+    public static function container()
+    {
+        return self::$container;
     }
 }
