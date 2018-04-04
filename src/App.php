@@ -134,6 +134,7 @@ class App extends Events
                 die('command not found!');
             }
             $controller = new $class();
+            $controller->init();
             $controller->execute($action, $router->getParams());
         } else {
             $config = App::config()->get('app', 'router', []);
@@ -328,21 +329,21 @@ class App extends Events
         $name = "db:{$node}";
         if (!self::has($name)) {
             $config = App::config()->get('app', 'database');
-            if (!isset($config[$name])) {
-                throw new \InvalidArgumentException("数据配置不存在: {$name}");
+            if (!isset($config[$node])) {
+                throw new \InvalidArgumentException("数据配置不存在: {$node}");
             }
-            $config = $config[$name];
+            $config = $config[$node];
             $db = new Db($config);
-            $db->on(Db::EVENT_QUERY, function (DbEvent $event) use ($name) {
+            $db->on(Db::EVENT_QUERY, function (DbEvent $event) use ($node) {
                 $time = number_format($event->getTime(), 3) . 's';
                 $params = VarDumper::export($event->getParams());
                 $sql = $event->getSql();
                 if (App::isSqlDebug()) {
-                    App::logger('database')->debug("[" . CUR_ROUTE . "] [{$name}] [{$time}] [{$sql}] {$params}");
+                    App::logger('database')->debug("[" . CUR_ROUTE . "] [{$node}] [{$time}] [{$sql}] {$params}");
                 } else {
                     $logSlow = $event->getSender()->getOption('log_slow');
                     if ($logSlow && $event->getTime() >= $logSlow) {
-                        App::logger('database')->warn("[" . CUR_ROUTE . "] [$name] [{$time}] [{$sql}] {$params}");
+                        App::logger('database')->warn("[" . CUR_ROUTE . "] [$node] [{$time}] [{$sql}] {$params}");
                     }
                 }
             });

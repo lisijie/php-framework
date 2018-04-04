@@ -121,7 +121,7 @@ class HttpRouter extends AbstractRouter implements RouterInterface
                 $route = substr($route, strlen($baseUrl));
             }
         }
-        $this->parseRoute($route);
+        $this->parseRoute(trim($route, '/'));
         return $this->resolveHandler();
     }
 
@@ -219,19 +219,12 @@ class HttpRouter extends AbstractRouter implements RouterInterface
                 if (preg_match('#^' . $re . '$#i', $path, $matches)) {
                     // 检查请求方法是否匹配
                     if ($item['method'] != self::METHOD_ANY) {
-                        $ok = false;
                         $reqMethod = $this->request->getMethod();
-                        foreach (explode(',', $item['method']) as $method) {
-                            if ($method == $reqMethod) {
-                                $ok = true;
-                                break;
-                            }
-                        }
-                        if (!$ok) {
+                        if (!in_array($reqMethod, explode(',', $item['method']))) {
                             throw new MethodNotAllowedException();
                         }
                     }
-                    $this->routeName = $item['route'];
+                    $this->routeName = $item['handler'];
                     foreach ($matches as $k => $v) {
                         if (is_numeric($k)) {
                             continue;
@@ -301,7 +294,7 @@ class HttpRouter extends AbstractRouter implements RouterInterface
         if (!$this->prettyUrl) {
             $query = $result['params'];
             $query[$this->routeVar] = $result['path'];
-            return $this->request->getBaseUrl() . '/?' .  http_build_query($query);
+            return $this->request->getBaseUrl() . '/?' . http_build_query($query);
         } else {
             return $this->request->getBaseUrl() . '/' . ltrim($result['path'], '/') . (empty($result['params']) ? '' : '?' . http_build_query($result['params']));
         }

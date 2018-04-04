@@ -82,7 +82,7 @@ class AbstractRouter
      * @param $route
      * @return string
      */
-    protected function normalizeRoute($route)
+    public function normalizeRoute($route)
     {
         $route = preg_replace_callback('#[A-Z]#', function ($m) {
             return '-' . strtolower($m[0]);
