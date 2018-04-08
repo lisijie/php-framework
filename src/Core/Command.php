@@ -12,13 +12,23 @@ use Core\Lib\Console;
  * @author lisijie <lsj86@qq.com>
  * @package Core
  */
-class Command
+abstract class Command
 {
     /**
      * 默认动作
      * @var string
      */
     protected $defaultAction = 'index';
+
+    public final function __construct()
+    {
+        $this->init();
+    }
+
+    public function init()
+    {
+
+    }
 
     /**
      * 执行控制器方法
