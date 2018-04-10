@@ -31,6 +31,23 @@ abstract class Command
     }
 
     /**
+     * 提示消息
+     *
+     * @param string $message 提示消息
+     * @param int $code 消息号
+     */
+    public function message($message, $code = MSG_ERR)
+    {
+        if ($code == MSG_OK) {
+            echo $message . "\n";
+        } else {
+            echo Console::ansiFormat("错误提示：", Console::FG_RED) . $message . "\n";
+        }
+        exit;
+    }
+
+
+    /**
      * 执行控制器方法
      *
      * @param string $actionName 方法名

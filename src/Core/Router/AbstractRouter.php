@@ -145,8 +145,10 @@ class AbstractRouter
             $tmpControl = substr($route, 0, $pos);
             foreach ($namespaces as $item) {
                 list($nsPrefix, $classSuffix) = $item;
-                $class = "{$nsPrefix}\\{$tmpControl}{$classSuffix}";
-                if (class_exists($class)) {
+                if (($class = "{$nsPrefix}\\{$route}{$classSuffix}") && class_exists($class)) {
+                    $controllerName = $class;
+                    break;
+                } elseif (($class = "{$nsPrefix}\\{$tmpControl}{$classSuffix}") && class_exists($class)) {
                     $controllerName = $class;
                     $actionName = lcfirst(substr($route, $pos + 1));
                     break;

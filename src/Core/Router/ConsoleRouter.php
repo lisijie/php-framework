@@ -12,17 +12,22 @@ class ConsoleRouter extends AbstractRouter implements RouterInterface
     public function makeUrl($route, $params = [])
     {
         $route = $this->normalizeRoute($route);
-        return $route . ' ' . implode(' ', $params);
+        foreach ($params as $k => $v) {
+            $params[$k] = escapeshellarg($v);
+        }
+        return $_SERVER['argv'][0] . ' '. $route . ' ' . implode(' ', $params);
     }
 
     /**
      * 解析
-     * @param null $request
+     * @param null $argv
      * @return mixed
      */
-    public function resolve($request = null)
+    public function resolve($argv = null)
     {
-        $argv = $_SERVER['argv'];
+        if (null === $argv) {
+            $argv = $_SERVER['argv'];
+        }
         array_shift($argv);
         if (!empty($argv)) {
             $routeName = array_shift($argv);

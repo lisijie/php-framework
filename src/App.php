@@ -54,6 +54,7 @@ use Core\Router\ConsoleRouter;
 use Core\Router\HttpRouter;
 use Core\Session\Handler\Memcached;
 use Core\Session\Session;
+use Core\Lib\Console;
 
 class App extends Events
 {
@@ -98,11 +99,25 @@ class App extends Events
         } elseif (ini_get('date.timezone') == '') {
             date_default_timezone_set('Asia/Shanghai'); //设置默认时区为中国时区
         }
-        //注册异常处理器
+        // 注册异常处理器
         if (class_exists('\\App\\Exception\\ErrorHandler')) {
             (new \App\Exception\ErrorHandler(App::logger()))->register();
         } else {
             (new \Core\Exception\ErrorHandler(App::logger()))->register();
+        }
+        // 注册路由解析器
+        if (self::isCli()) {
+            $router = new ConsoleRouter();
+            $router->setDefaultRoute('help/index');
+            $router->registerNamespace('App\\Command', 'Command');
+            $router->registerNamespace('Core\\Console', 'Command');
+            self::set('router', $router, true);
+        } else {
+            $config = App::config()->get('app', 'router', []);
+            $router = new HttpRouter($config);
+            $router->registerNamespace('App\\Controller', 'Controller');
+            $router->addConfig(App::config()->get('route'));
+            self::set('router', $router, true);
         }
         if ($bootstrap) {
             $bootstrap->startup();
@@ -122,28 +137,20 @@ class App extends Events
     public static function run()
     {
         if (self::isCli()) {
-            $router = new ConsoleRouter();
-            $router->setDefaultRoute('help/index');
-            $router->registerNamespace('App\\Command', 'Command');
-            $router->registerNamespace('Core\\Console', 'Command');
-            self::set('router', $router, true);
+            $router = self::router();
             //当前路由地址
             define('CUR_ROUTE', $router->getRoute());
-            list($class, $action) = $router->resolve();
+            list($class, $action) = $router->resolve($_SERVER['argv']);
             if (empty($class) || !class_exists($class) || !is_subclass_of($class, \Core\Command::class, true)) {
-                die('command not found!');
+                echo Console::ansiFormat("错误提示：", Console::FG_RED) . "命令不存在。\n";
+                die;
             }
             $controller = new $class();
             $controller->init();
             $controller->execute($action, $router->getParams());
         } else {
-            $config = App::config()->get('app', 'router', []);
-            $router = new HttpRouter($config);
-            $router->registerNamespace('App\\Controller', 'Controller');
-            $router->addConfig(App::config()->get('route'));
             $request = new Request();
             $response = new Response();
-            self::set('router', $router, true);
             self::set('request', $request, true);
             self::set('response', $response, true);
             $response = self::process($request, $response);

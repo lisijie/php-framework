@@ -48,4 +48,23 @@ interface RouterInterface
      * @return mixed
      */
     public function resolve($request = null);
+
+    /**
+     * 标准化路由地址
+     *
+     * 全部转成小写，每个单词用"-"分隔，例如 Admin/UserList 转换为 admin/user-list
+     *
+     * @param $route
+     * @return string
+     */
+    public function normalizeRoute($route);
+
+    /**
+     * 生成URL
+     *
+     * @param string $route
+     * @param array $params
+     * @return mixed
+     */
+    public function makeUrl($route, $params = []);
 }
