@@ -47,6 +47,18 @@ class Controller extends Component
     protected $messageTemplate = 'message';
 
     /**
+     * 是否允许jsonp
+     * @var bool
+     */
+    protected $jsonpEnabled = false;
+
+    /**
+     * jsonp回调参数名
+     * @var string
+     */
+    protected $jsonCallback = 'jsoncallback';
+
+    /**
      * 构造方法，不可重写
      * 子类可通过重写init()方法完成初始化
      *
@@ -282,6 +294,11 @@ class Controller extends Component
             $data = $this->data;
         }
         $content = $this->jsonEncode($data);
+        $callback = $this->get($this->jsonCallback);
+        if ($this->jsonpEnabled && $callback != '') {
+            $func = $callback{0} == '?' ? '' : $callback;
+            $content = "{$func}($content)";
+        }
         $charset = $this->response->getCharset();
         $this->response->setHeader('content-type', "application/json; charset={$charset}");
         $this->response->setContent($content);
