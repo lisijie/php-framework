@@ -475,6 +475,16 @@ class Request extends Component
     }
 
     /**
+     * 返回站点URL
+     *
+     * @return string
+     */
+    public function getSiteUrl()
+    {
+        return $this->getHostInfo() . $this->getBaseUrl();
+    }
+
+    /**
      * 获取PATHINFO
      *
      * 例如请求URL是 http://www.example.com/index.php/main/index?q=123 ，返回结果为 /main/index
