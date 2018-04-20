@@ -405,7 +405,7 @@ abstract class Model extends Component
             if (is_string($key)) {
                 $result[] = "`{$key}` AS {$val}";
             } else {
-                $result[] = "`{$key}`";
+                $result[] = "`{$val}`";
             }
         }
         return implode(', ', $result);
