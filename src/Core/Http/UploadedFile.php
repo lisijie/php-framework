@@ -4,6 +4,11 @@ namespace Core\Http;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
 
+/**
+ * 通过HTTP上传的文件值对象
+ *
+ * @package Core\Http
+ */
 class UploadedFile implements UploadedFileInterface
 {
 
