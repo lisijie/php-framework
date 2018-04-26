@@ -1,6 +1,5 @@
 <?php
-
-namespace Core\Lib;
+namespace Core\Cipher;
 
 /**
  * 加密/解密
@@ -8,9 +7,9 @@ namespace Core\Lib;
  * 只支持大部分 openssl_get_cipher_methods() 列出的加密方式，并不支持所有。
  *
  * @author lisijie <lsj86@qq.com>
- * @package Core\Lib
+ * @package Core\Cipher
  */
-class Cipher
+class Cipher implements CipherInterface
 {
 
     const AES_128_CBC = 'AES-128-CBC';
