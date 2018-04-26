@@ -1,10 +1,22 @@
 <?php
 namespace Core\Http;
 
-class Headers implements \IteratorAggregate, \Countable
+class Headers
 {
+    /**
+     * @var array
+     */
     protected $headers = [];
-    protected static $special = [
+
+    /**
+     * @var array
+     */
+    protected $headerNames = [];
+
+    /**
+     * @var array
+     */
+    protected static $specials = [
         'CONTENT_TYPE',
         'CONTENT_LENGTH',
         'PHP_AUTH_USER',
@@ -15,63 +27,132 @@ class Headers implements \IteratorAggregate, \Countable
 
     public function __construct(array $headers = [])
     {
-        $this->headers = $headers;
+        foreach ($headers as $name => $value) {
+            $this->set($name, $value);
+        }
     }
 
-    public static function createFromEnv()
+    /**
+     * 根据请求的环境变量创建对象
+     *
+     * @return Headers
+     */
+    public static function createFromGlobals()
     {
         $header = new self();
         foreach ($_SERVER as $key => $value) {
-            if (strpos($key, 'X_') === 0 || strpos($key, 'HTTP_') === 0 || in_array($key, self::$special)) {
+            if (strpos($key, 'X_') === 0 || strpos($key, 'HTTP_') === 0 || in_array($key, self::$specials)) {
+                $key = strtolower($key);
+                $key = str_replace(['-', '_'], ' ', $key);
+                $key = preg_replace('#^http #', '', $key);
+                $key = ucwords($key);
+                $key = str_replace(' ', '-', $key);
                 $header->set($key, $value);
             }
         }
         return $header;
     }
 
+    /**
+     * 设置header
+     *
+     * @param string $name 大小写不敏感的header字段名
+     * @param string|string[] $value header值
+     * @return static
+     * @throws \InvalidArgumentException 名称或值无效时抛出
+     */
     public function set($name, $value)
     {
-        $name = $this->normalizeKey($name);
-        if (!is_string($name) || !is_string($value)) {
-            throw new \UnexpectedValueException('参数值必须是字符串');
+        if (empty($name)) {
+            throw new \InvalidArgumentException('Header name cannot be empty');
+        }
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+        $normalized = strtolower($name);
+        if (isset($this->headerNames[$normalized])) {
+            unset($this->headers[$this->headerNames[$normalized]]);
         }
         $this->headers[$name] = $value;
+        $this->headerNames[$normalized] = $name;
+        return $this;
     }
 
+    /**
+     * 给指定header附加新值
+     *
+     * @param string $name 大小写不敏感的header字段名
+     * @param string|string[] $value 要附加的header值
+     * @return static
+     * @throws \InvalidArgumentException 名称或值无效时抛出
+     */
+    public function add($name, $value)
+    {
+        $normalized = strtolower($name);
+        if (!is_array($value)) {
+            $value = [$value];
+        }
+        if (!isset($this->headerNames[$normalized])) {
+            $this->headerNames[$normalized] = $name;
+            $this->headers[$name] = [];
+        }
+        foreach ($value as $item) {
+            $this->headers[$name][] = (string)$item;
+        }
+        return $this;
+    }
+
+    /**
+     * 返回指定header信息
+     *
+     * @param string $name 大小写不敏感的header字段名
+     * @return string[]
+     */
     public function get($name)
     {
-        $name = $this->normalizeKey($name);
-        return isset($this->headers[$name]) ? $this->headers[$name] : null;
+        $name = strtolower($name);
+        if (!isset($this->headerNames[$name])) {
+            return [];
+        }
+        return $this->headers[$this->headerNames[$name]];
     }
 
+    /**
+     * 移除指定header
+     *
+     * @param string $name 大小写不敏感的header字段名
+     * @return static
+     */
     public function remove($name)
     {
-        unset($this->headers[$this->normalizeKey($name)]);
+        $normalized = strtolower($name);
+        if (!isset($this->headerNames[$normalized])) {
+            return $this;
+        }
+        unset($this->headers[$this->headerNames[$normalized]]);
+        unset($this->headerNames[$normalized]);
+        return $this;
     }
 
+    /**
+     * 返回所有header信息
+     *
+     * @return string[][]
+     */
+    public function all()
+    {
+        return $this->headers;
+    }
+
+    /**
+     * 检查指定header是否存在
+     *
+     * @param string $name 大小写不敏感的名称
+     * @return bool
+     */
     public function has($name)
     {
-        return isset($this->headers[$this->normalizeKey($name)]);
-    }
-
-    public function normalizeKey($key)
-    {
-        $key = strtolower($key);
-        $key = str_replace(['-', '_'], ' ', $key);
-        $key = preg_replace('#^http #', '', $key);
-        $key = ucwords($key);
-        $key = str_replace(' ', '-', $key);
-        return $key;
-    }
-
-    public function getIterator()
-    {
-        return new \ArrayIterator($this->headers);
-    }
-
-    public function count()
-    {
-        return count($this->headers);
+        return isset($this->headerNames[strtolower($name)]);
     }
 
     public function __toString()
