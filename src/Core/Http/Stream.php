@@ -3,6 +3,12 @@ namespace Core\Http;
 
 use Psr\Http\Message\StreamInterface;
 
+/**
+ * 流操作类
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core\Http
+ */
 class Stream implements StreamInterface
 {
     private $stream;

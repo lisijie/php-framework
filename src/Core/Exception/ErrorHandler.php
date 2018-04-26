@@ -156,14 +156,7 @@ class ErrorHandler
      */
     protected function renderHttpException(HttpException $e)
     {
-        $message = $e->getMessage();
-        if (empty($message)) {
-            $message = Response::getStatusText($e->getCode());
-        }
-        $response = new Response();
-        $response->setStatus($e->getCode());
-        $response->setContent("<h1>{$message}</h1>");
-        $response->send();
+        \App::respond(new Response($e->getCode(), $e->getMessage()));
     }
 
     /**

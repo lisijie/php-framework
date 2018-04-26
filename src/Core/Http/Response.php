@@ -1,66 +1,27 @@
 <?php
-
 namespace Core\Http;
 
-use Core\Component;
+use Psr\Http\Message\ResponseInterface;
 
 /**
- * Response 输出类
+ * HTTP响应
  *
  * @author lisijie <lsj86@qq.com>
- * @package Http
+ * @package Core\Http
  */
-class Response extends Component
+class Response extends Message implements ResponseInterface
 {
-    const EVENT_SET_CONTENT = 'set_content';
-
-    const EVENT_APPEND_CONTENT = 'append_content';
-
-    const EVENT_BEFORE_SEND = 'before_send';
-
-    const EVENT_AFTER_SEND = 'after_send';
+    const EOL = "\r\n";
 
     /**
-     * 头信息
-     * @var Headers
-     */
-    protected $headers = null;
-
-    /**
-     * cookies
-     * @var Cookies
-     */
-    protected $cookies = null;
-
-    /**
-     * 输出内容
-     * @var string
-     */
-    protected $content = '';
-
-    /**
-     * 响应状态码
      * @var int
      */
     protected $status = 200;
 
     /**
-     * 状态文本
      * @var string
      */
-    protected $statusText = '';
-
-    /**
-     * 协议名称
-     * @var string
-     */
-    protected $protocol;
-
-    /**
-     * 字符集
-     * @var string
-     */
-    protected $charset;
+    protected $reasonPhrase = '';
 
     /**
      * http状态码
@@ -118,245 +79,135 @@ class Response extends Component
         505 => '505 HTTP Version Not Supported'
     ];
 
-    public function __construct($content = '', $charset = 'utf-8')
-    {
-        $this->content = $content;
-        $this->charset = $charset;
-        $this->protocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
-    }
-
-    /**
-     * 获取用于发送的cookies对象
-     *
-     * @return Cookies
-     */
-    public function cookies()
-    {
-        if (null === $this->cookies) {
-            $this->cookies = new Cookies([]);
-        }
-        return $this->cookies;
-    }
-
-    /**
-     * 获取用于发送的headers对象
-     *
-     * @return Headers
-     */
-    public function headers()
-    {
-        if (null === $this->headers) {
-            $this->headers = new Headers([]);
-        }
-        return $this->headers;
-    }
-
-    /**
-     * 设置cookie
-     *
-     * @param $name
-     * @param $value
-     * @return $this
-     */
-    public function setCookie($name, $value)
-    {
-        $this->cookies()->set($name, $value);
-        return $this;
-    }
-
-    /**
-     * 设置安全cookie
-     *
-     * @param $name
-     * @param $value
-     * @param null $secret
-     * @return $this
-     */
-    public function setSecureCookie($name, $value, $secret = null)
-    {
-        $this->cookies()->setSecure($name, $value, $secret);
-        return $this;
-    }
-
-    /**
-     * 设置头信息
-     *
-     * @param $name
-     * @param $value
-     * @return $this
-     */
-    public function setHeader($name, $value)
-    {
-        $this->headers()->set($name, $value);
-        return $this;
-    }
-
-    /**
-     * URL重定向
-     *
-     * @param string $url
-     * @param int $status 状态码
-     * @return $this
-     */
-    public function redirect($url, $status = 302)
-    {
-        $this->setStatus($status);
-        $this->headers()->set('Location', $url);
-        return $this;
-    }
-
-    /**
-     * 设置字符集
-     *
-     * @param string $charset
-     * @return $this
-     */
-    public function setCharset($charset)
-    {
-        $this->charset = $charset;
-        return $this;
-    }
-
-    /**
-     * 获取字符集类型
-     *
-     * @return string
-     */
-    public function getCharset()
-    {
-        return $this->charset;
-    }
-
-    /**
-     * 设置输出http状态
-     *
-     * @param int $status 状态码
-     * @param string $text 文本
-     * @return $this
-     */
-    public function setStatus($status, $text = null)
+    public function __construct($status = 200, $body = null, Headers $headers = null, $version = '1.1', $reasonPhrase = '')
     {
         $this->status = $status;
-        if (null === $text) {
-            $text = isset(self::$httpCodes[$status]) ? self::$httpCodes[$status] : '';
+        if (empty($reasonPhrase) && isset(static::$httpCodes[$status])) {
+            $this->reasonPhrase = static::$httpCodes[$status];
+        } else {
+            $this->reasonPhrase = (string)$reasonPhrase;
         }
-        $this->statusText = $text;
-        return $this;
+        $this->protocol = $version;
+        $this->headers = $headers ? $headers : new Headers();
+        if (!empty($headers)) {
+            foreach ($headers as $name => $value) {
+                $this->headers->set($name, $value);
+            }
+        }
+        $this->body = $this->createStream($body);
     }
 
     /**
-     * 获取HTTP状态码
+     * 根据body类型创建Stream对象
      *
-     * @return int
+     * @param $body
+     * @return Stream
      */
-    public function getStatus()
+    private function createStream($body)
+    {
+        // integer、float、string 或 boolean
+        if (is_scalar($body)) {
+            $stream = fopen('php://temp', 'r+');
+            if ($body !== '') {
+                fwrite($stream, $body);
+                fseek($stream, 0);
+            }
+            return new Stream($stream);
+        }
+        switch (gettype($body)) {
+            case 'resource':
+                return new Stream($body);
+            case 'object':
+                if (method_exists($body, '__toString')) {
+                    return $this->createStream((string)$body);
+                }
+                break;
+            case 'NULL':
+                return new Stream(fopen('php://temp', 'r+'));
+        }
+        throw new \InvalidArgumentException('Invalid resource type: ' . gettype($body));
+    }
+
+    /**
+     * 返回响应状态码
+     *
+     * @return int Status code.
+     */
+    public function getStatusCode()
     {
         return $this->status;
     }
 
     /**
-     * 获取状态码对应信息
+     * 返回指定状态码的新对象
      *
-     * @param int $status 状态码
+     * @param int $code
+     * @param string $reasonPhrase
+     * @return static
+     * @throws \InvalidArgumentException
+     */
+    public function withStatus($code, $reasonPhrase = '')
+    {
+        $obj = clone $this;
+        $obj->status = $code;
+        if ($reasonPhrase == '' && isset(static::$httpCodes[$code])) {
+            $this->reasonPhrase = static::$httpCodes[$code];
+        } else {
+            $this->reasonPhrase = (string)$reasonPhrase;
+        }
+        return $obj;
+    }
+
+    /**
+     * 返回响应状态码的原因短语
+     *
+     * @link http://tools.ietf.org/html/rfc7231#section-6
+     * @link http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml
      * @return string
      */
-    public static function getStatusText($status)
+    public function getReasonPhrase()
     {
-        return isset(static::$httpCodes[$status]) ? static::$httpCodes[$status] : '';
+        return $this->reasonPhrase;
     }
 
     /**
-     * 设置输出内容
+     * 返回加上cookie的新对象
      *
-     * @param string $content
-     * @return $this
+     * @param Cookie $cookie
+     * @return static
      */
-    public function setContent($content)
+    public function withCookie(Cookie $cookie)
     {
-        $this->content = $content;
-        $this->trigger(self::EVENT_SET_CONTENT);
-        return $this;
-    }
-
-    /**
-     * 追加输出内容
-     *
-     * @param string $content
-     * @return $this
-     */
-    public function appendContent($content)
-    {
-        $this->content .= $content;
-        return $this;
-    }
-
-    /**
-     * 获取输出内容
-     *
-     * @return string
-     */
-    public function getContent()
-    {
-        return $this->content;
+        $obj = clone $this;
+        $obj->headers->add('Set-Cookie', $cookie->toHeader());
+        return $obj;
     }
 
     /**
      * 返回输出内容长度
      *
-     * @return int
+     * @return int|null
      */
     public function getContentLength()
     {
-        return strlen($this->content);
+        return $this->getBody()->getSize();
     }
 
-    /**
-     * 输出数据
-     *
-     * @throws \RuntimeException
-     */
-    public function send()
+    public function __toString()
     {
-        $this->trigger(self::EVENT_BEFORE_SEND);
-        if (!headers_sent($filename, $line)) {
-            $this->sendHeaders();
-            $this->sendCookies();
-        } elseif (count($this->headers()) > 0 && count($this->cookies()) > 0) {
-            throw new \RuntimeException("Headers already sent in $filename on line $line");
+        $output = sprintf(
+            'HTTP/%s %s %s',
+            $this->getProtocolVersion(),
+            $this->getStatusCode(),
+            $this->getReasonPhrase()
+        );
+        $output .= Response::EOL;
+        foreach ($this->getHeaders() as $name => $values) {
+            $output .= sprintf('%s: %s', $name, $this->getHeaderLine($name)) . Response::EOL;
         }
-        $this->sendBody();
-        $this->trigger(self::EVENT_AFTER_SEND);
-    }
+        $output .= Response::EOL;
+        $output .= (string)$this->getBody();
 
-    protected function sendHeaders()
-    {
-        if ($this->status != 200 && isset(self::$httpCodes[$this->status])) {
-            header(sprintf("%s %s", $this->protocol, self::$httpCodes[$this->status]));
-        }
-        if (!$this->headers) {
-            return;
-        }
-        if (!$this->headers->has('content-type')) {
-            $this->headers->set('content-type', 'text/html; charset=' . $this->charset);
-        }
-        foreach ($this->headers as $key => $value) {
-            header("{$key}: $value", true);
-        }
-    }
-
-    protected function sendCookies()
-    {
-        if (!$this->cookies) {
-            return;
-        }
-        foreach ($this->cookies as $key => $value) {
-            $str = $this->cookies->parseValue($key, $value);
-            header("Set-Cookie: $str", false);
-        }
-    }
-
-    protected function sendBody()
-    {
-        echo $this->content;
+        return $output;
     }
 }

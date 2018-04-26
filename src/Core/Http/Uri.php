@@ -1,12 +1,14 @@
 <?php
 namespace Core\Http;
 
+use InvalidArgumentException;
 use Psr\Http\Message\UriInterface;
 
 /**
  * URI
  *
  * @see https://zh.wikipedia.org/wiki/%E7%BB%9F%E4%B8%80%E8%B5%84%E6%BA%90%E6%A0%87%E5%BF%97%E7%AC%A6
+ * @author lisijie <lsj86@qq.com>
  * @package Core\Http
  */
 class Uri implements UriInterface
@@ -62,7 +64,7 @@ class Uri implements UriInterface
         if ($uri) {
             $parts = parse_url($uri);
             if (!$parts) {
-                throw new \InvalidArgumentException("Unable to parse uri: {$uri}");
+                throw new InvalidArgumentException("Unable to parse uri: {$uri}");
             }
             $this->applyParts($parts);
         }
@@ -103,16 +105,16 @@ class Uri implements UriInterface
      *
      * @param $scheme
      * @return string
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function filterScheme($scheme)
     {
         if (!is_string($scheme)) {
-            throw new \InvalidArgumentException('Scheme must be a string');
+            throw new InvalidArgumentException('Scheme must be a string');
         }
         $scheme = strtolower($scheme);
         if (!isset(self::$defaultSchemePorts[$scheme])) {
-            throw new \InvalidArgumentException('Scheme must be one of: "", "http", "https"');
+            throw new InvalidArgumentException('Scheme must be one of: "", "http", "https"');
         }
         return $scheme;
     }
@@ -122,12 +124,12 @@ class Uri implements UriInterface
      *
      * @param $host
      * @return string
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function filterHost($host)
     {
         if (!is_string($host)) {
-            throw new \InvalidArgumentException('Host must be a string');
+            throw new InvalidArgumentException('Host must be a string');
         }
         return strtolower($host);
     }
@@ -137,14 +139,14 @@ class Uri implements UriInterface
      *
      * @param $port
      * @return int|null
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     protected function filterPort($port)
     {
         if (is_null($port) || (is_int($port) && $port > 0 && $port <= 65535)) {
             return $port;
         }
-        throw new \InvalidArgumentException('Port must be null or an integer between 1 and 65535 (inclusive)');
+        throw new InvalidArgumentException('Port must be null or an integer between 1 and 65535 (inclusive)');
     }
 
     /**
@@ -154,12 +156,12 @@ class Uri implements UriInterface
      *
      * @param string $path
      * @return string
-     * @throws \InvalidArgumentException 参数非字符串时抛出异常
+     * @throws InvalidArgumentException 参数非字符串时抛出异常
      */
     protected function filterPath($path)
     {
         if (!is_string($path)) {
-            throw new \InvalidArgumentException('Path must be a string');
+            throw new InvalidArgumentException('Path must be a string');
         }
         return preg_replace_callback(
             '/(?:[^a-zA-Z0-9_\-\.~:@&=\+\$,\/;%]+|%(?![A-Fa-f0-9]{2}))/',
@@ -177,12 +179,12 @@ class Uri implements UriInterface
      *
      * @param string $query
      * @return string
-     * @throws \InvalidArgumentException 参数非字符串时抛出异常
+     * @throws InvalidArgumentException 参数非字符串时抛出异常
      */
     protected function filterQuery($query)
     {
         if (!is_string($query)) {
-            throw new \InvalidArgumentException('Query must be a string');
+            throw new InvalidArgumentException('Query must be a string');
         }
         $query = ltrim($query, '?');
         return preg_replace_callback(
@@ -319,7 +321,7 @@ class Uri implements UriInterface
      *
      * @param string $scheme
      * @return static
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function withScheme($scheme)
     {
@@ -353,7 +355,7 @@ class Uri implements UriInterface
      *
      * @param string $host
      * @return static
-     * @throws \InvalidArgumentException
+     * @throws InvalidArgumentException
      */
     public function withHost($host)
     {
@@ -370,7 +372,7 @@ class Uri implements UriInterface
      *
      * @param int $port
      * @return static
-     * @throws \InvalidArgumentException 当端口号无效时
+     * @throws InvalidArgumentException 当端口号无效时
      */
     public function withPort($port)
     {
@@ -385,7 +387,7 @@ class Uri implements UriInterface
      *
      * @param string $path
      * @return static
-     * @throws \InvalidArgumentException 当path无效时
+     * @throws InvalidArgumentException 当path无效时
      */
     public function withPath($path)
     {
@@ -400,7 +402,7 @@ class Uri implements UriInterface
      *
      * @param string $query 可以是URL编码过的，或是未编码过的
      * @return static
-     * @throws \InvalidArgumentException 当参数无效时
+     * @throws InvalidArgumentException 当参数无效时
      */
     public function withQuery($query)
     {
@@ -415,7 +417,7 @@ class Uri implements UriInterface
      *
      * @param string $fragment
      * @return static
-     * @throws \InvalidArgumentException 当参数无效时
+     * @throws InvalidArgumentException 当参数无效时
      */
     public function withFragment($fragment)
     {

@@ -3,9 +3,13 @@
 namespace Core;
 
 use App;
+use Core\Cipher\Cipher;
+use Core\Cipher\CipherInterface;
 use Core\Exception\AppException;
+use Core\Http\Cookie;
 use Core\Http\Request;
 use Core\Http\Response;
+use Psr\Http\Message\UriInterface;
 
 /**
  * 控制器基类
@@ -59,6 +63,12 @@ class Controller extends Component
     protected $jsonCallback = 'jsoncallback';
 
     /**
+     * 加密解密
+     * @var CipherInterface
+     */
+    protected $cipher;
+
+    /**
      * 构造方法，不可重写
      * 子类可通过重写init()方法完成初始化
      *
@@ -83,11 +93,13 @@ class Controller extends Component
      * 获取服务器环境变量
      *
      * @param string $name 名称
+     * @param null $default
+     * @param bool $applyFilter
      * @return string
      */
-    protected function getServer($name)
+    protected function getServer($name, $default = null, $applyFilter = true)
     {
-        return $this->request->getServer($name);
+        return $this->request->getServerParam($name, $default, $applyFilter);
     }
 
     /**
@@ -95,13 +107,13 @@ class Controller extends Component
      *
      * @param string $name
      * @param mixed $default
-     * @param bool $filter
+     * @param bool $applyFilter
      * @return mixed
      */
-    protected function get($name, $default = null, $filter = true)
+    protected function get($name, $default = null, $applyFilter = true)
     {
-        if (null === ($value = $this->request->getQuery($name, null, $filter))) {
-            $value = $this->request->getPost($name, $default, $filter);
+        if (null === ($value = $this->request->getQueryParam($name, null, $applyFilter))) {
+            $value = $this->request->getPostParam($name, $default, $applyFilter);
         }
         return $value;
     }
@@ -111,12 +123,12 @@ class Controller extends Component
      *
      * @param string $name
      * @param mixed $default
-     * @param bool $filter
+     * @param bool $applyFilter
      * @return mixed|null
      */
-    protected function getQuery($name = null, $default = null, $filter = true)
+    protected function getQuery($name = null, $default = null, $applyFilter = true)
     {
-        return $this->request->getQuery($name, $default, $filter);
+        return $this->request->getQueryParam($name, $default, $applyFilter);
     }
 
     /**
@@ -124,12 +136,69 @@ class Controller extends Component
      *
      * @param string $name
      * @param mixed $default
-     * @param bool $filter
+     * @param bool $applyFilter
      * @return mixed|null
      */
-    protected function getPost($name = null, $default = null, $filter = true)
+    protected function getPost($name = null, $default = null, $applyFilter = true)
     {
-        return $this->request->getPost($name, $default, $filter);
+        return $this->request->getPostParam($name, $default, $applyFilter);
+    }
+
+    /**
+     * 获取Cookie值
+     *
+     * @param string $name
+     * @param bool $isSecure 是否加密Cookie
+     * @param null $secret 密钥
+     * @param bool $applyFilter
+     * @return mixed|null
+     */
+    protected function getCookie($name, $isSecure = false, $secret = null, $applyFilter = true)
+    {
+        $value = $this->request->getCookieParam($name, null, $applyFilter);
+        if ($isSecure && $value != null) {
+            if ($secret === null) {
+                $secret = App::config()->get('app', 'secret_key');
+            }
+            if (empty($secret)) {
+                throw new \RuntimeException("请先到app配置文件设置密钥: secret_key");
+            }
+            $value = $this->getCipher()->decrypt($value, $secret);
+        }
+        return $value;
+    }
+
+    /**
+     * 设置Cookie
+     *
+     * @param Cookie $cookie
+     * @param bool $secure 是否加密
+     * @param null $secret 指定密钥
+     */
+    protected function setCookie(Cookie $cookie, $secure = false, $secret = null)
+    {
+        if ($secure) {
+            if ($secret === null) {
+                $secret = App::config()->get('app', 'secret_key');
+            }
+            if (empty($secret)) {
+                throw new \RuntimeException("请先到app配置文件设置密钥: secret_key");
+            }
+            $value = $this->getCipher()->encrypt($cookie->getValue(), $secret);
+            $cookie->setValue($value);
+        }
+        $this->response = $this->response->withCookie($cookie);
+    }
+
+    /**
+     * @return Cipher|CipherInterface
+     */
+    protected function getCipher()
+    {
+        if (!$this->cipher) {
+            $this->cipher = Cipher::createSimple();
+        }
+        return $this->cipher;
     }
 
     /**
@@ -183,7 +252,7 @@ class Controller extends Component
      *
      * @return string
      */
-    protected function getRefer()
+    protected function getReferrer()
     {
         if ($this->getServer('HTTP_REFERER') == '' ||
             strpos($this->getServer('HTTP_REFERER'), $this->getServer('HTTP_HOST')) === FALSE
@@ -202,13 +271,13 @@ class Controller extends Component
     /**
      * URL跳转
      *
-     * @param string $url 目的地址
+     * @param string|UriInterface $url 目的地址
      * @param int $status 状态码
      * @return Response 输出对象
      */
     protected function redirect($url, $status = 302)
     {
-        return $this->response->redirect($url, $status);
+        return $this->response->withHeader('Location', $url)->withStatus($status);
     }
 
     /**
@@ -237,10 +306,10 @@ class Controller extends Component
     {
         $url = $this->get('refer');
         if (empty($url)) {
-            $url = $this->request->getCookie('refer');
+            $url = $this->getCookie('refer');
         }
         if (empty($url)) {
-            $url = $this->request->getReferrer();
+            $url = $this->getReferrer();
         }
         if (empty($url)) {
             $url = $defaultUrl;
@@ -249,7 +318,7 @@ class Controller extends Component
             $url = '/' . ltrim($url, '/');
         } elseif ($verifyHost) {
             $host = parse_url($url, PHP_URL_HOST);
-            if (empty($host) || $host != $this->request->getHostName()) {
+            if (empty($host) || $host != $this->request->getUri()->getHost()) {
                 $url = '';
             }
         }
@@ -268,7 +337,11 @@ class Controller extends Component
      */
     protected function refresh($anchor = '')
     {
-        return $this->redirect($this->request->getRequestUri() . $anchor);
+        $uri = $this->request->getUri();
+        if ($anchor) {
+            $uri = $uri->withFragment($anchor);
+        }
+        return $this->redirect($uri);
     }
 
     /**
@@ -299,10 +372,10 @@ class Controller extends Component
             $func = $callback{0} == '?' ? '' : $callback;
             $content = "{$func}($content)";
         }
-        $charset = $this->response->getCharset();
-        $this->response->setHeader('content-type', "application/json; charset={$charset}");
-        $this->response->setContent($content);
-        return $this->response;
+
+        $response = $this->response->withHeader('Content-Type', "application/json; charset=" . CHARSET);
+        $response->getBody()->write($content);
+        return $response;
     }
 
     /**
@@ -321,7 +394,8 @@ class Controller extends Component
             'jumpUrl' => $jumpUrl,
         ];
         $this->assign($data);
-        $this->response->setContent(App::view()->render($this->messageTemplate, $this->data));
+        $content = App::view()->render($this->messageTemplate, $this->data);
+        $this->response->getBody()->write($content);
         return $this->response;
     }
 
@@ -338,7 +412,9 @@ class Controller extends Component
             $filename = CUR_ROUTE;
         }
         $data = array_merge($this->data, $data);
-        return $this->response->setContent(App::view()->render($filename, $data));
+        $content = App::view()->render($filename, $data);
+        $this->response->getBody()->write($content);
+        return $this->response;
     }
 
     /**
@@ -380,8 +456,24 @@ class Controller extends Component
         if ($result instanceof Response) {
             return $result;
         } elseif (null !== $result) {
-            $this->response->setContent(strval($result));
+            $this->response->getBody()->write((string)$result);
         }
         return $this->response;
     }
+
+    /**
+     * 控制器内部变量允许外部读取
+     *
+     * @param string $name
+     * @return mixed
+     * @throws \ErrorException
+     */
+    public function __get($name)
+    {
+        if (property_exists($this, $name)) {
+            return $this->{$name};
+        }
+        throw new \ErrorException(sprintf('Undefined property: %s::$%s', static::class, $name));
+    }
+
 }

@@ -7,12 +7,12 @@ class UserController extends Controller
 {
     public function listAction()
     {
-        return $this->response->setContent('user/list');
+
     }
 
     public function infoAction()
     {
-        $id = $this->request->getParam('id');
+        $id = $this->request->getAttribute('id');
 
         return $this->serveJSON(['id' => $id]);
     }

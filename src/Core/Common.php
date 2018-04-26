@@ -12,11 +12,12 @@
  *
  * @param string $route
  * @param array $params 参数
+ * @param bool $full
  * @return string
  */
-function URL($route = '', $params = [])
+function URL($route = '', $params = [], $full = false)
 {
-    return App::router()->makeUrl($route, $params);
+    return App::router()->makeUrl($route, $params, $full);
 }
 
 /**

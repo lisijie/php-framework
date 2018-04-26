@@ -47,6 +47,7 @@ use Core\Exception\HttpException;
 use Core\Exception\HttpNotFoundException;
 use Core\Http\Request;
 use Core\Http\Response;
+use Core\Lib\Console;
 use Core\Lib\VarDumper;
 use Core\Logger\Logger;
 use Core\Middleware\MiddlewareInterface;
@@ -54,7 +55,7 @@ use Core\Router\ConsoleRouter;
 use Core\Router\HttpRouter;
 use Core\Session\Handler\Memcached;
 use Core\Session\Session;
-use Core\Lib\Console;
+use Psr\Http\Message\ResponseInterface;
 
 class App extends Events
 {
@@ -125,6 +126,16 @@ class App extends Events
     }
 
     /**
+     * 注册中间件
+     *
+     * @param MiddlewareInterface $middleware
+     */
+    public static function add(MiddlewareInterface $middleware)
+    {
+        self::$middlewares[] = $middleware;
+    }
+
+    /**
      * 运行应用并输出结果
      *
      * 流程：
@@ -149,23 +160,42 @@ class App extends Events
             $controller->init();
             $controller->execute($action, $router->getParams());
         } else {
-            $request = new Request();
-            $response = new Response();
-            self::set('request', $request, true);
-            self::set('response', $response, true);
-            $response = self::process($request, $response);
-            $response->send();
+            $response = self::handleRequest(Request::createFromGlobals(), new Response());
+            self::respond($response);
         }
     }
 
     /**
-     * 注册中间件
+     * 发送HTTP响应到客户端
      *
-     * @param MiddlewareInterface $middleware
+     * @param ResponseInterface $response
      */
-    public static function add(MiddlewareInterface $middleware)
+    public static function respond(ResponseInterface $response)
     {
-        self::$middlewares[] = $middleware;
+        if (!headers_sent()) {
+            header(sprintf("%s %s", $response->getStatusCode(), $response->getReasonPhrase()));
+            if (!$response->hasHeader('Content-Type')) {
+                header('Content-Type: text/html; charset=utf-8');
+            }
+            foreach ($response->getHeaders() as $name => $values) {
+                if (strtolower($name) == 'set-cookie') {
+                    foreach ($values as $value) {
+                        header("{$name}: {$value}", false);
+                    }
+                } else {
+                    header("{$name}: " . $response->getHeaderLine($name), true);
+                }
+            }
+        }
+        $body = $response->getBody();
+        $body->rewind();
+        while (!$body->eof()) {
+            echo $body->read(4096);
+            // 当连接中断时停止输出
+            if (connection_status() != CONNECTION_NORMAL) {
+                break;
+            }
+        }
     }
 
     /**
@@ -177,22 +207,32 @@ class App extends Events
      * @throws HttpException
      * @throws HttpNotFoundException
      */
-    public static function process(Request $request, Response $response)
+    public static function handleRequest(Request $request, Response $response)
     {
         $router = self::router();
         // 将路由地址解析为对应的控制器名和方法名
         list($controllerName, $actionName) = $router->resolve($request);
+        if (!empty($router->getParams())) {
+            $request = $request->withAttributes($router->getParams());
+        }
+        self::set('request', $request, true);
+
         // 控制器不存在抛出404异常
         if (empty($controllerName) || !class_exists($controllerName) || !is_subclass_of($controllerName, \Core\Controller::class, true)) {
             throw new HttpNotFoundException();
         }
-        //当前路由地址
-        define('CUR_ROUTE', $router->getRoute());
+
         try {
-            $handler = function () use ($request, $response, $controllerName, $actionName, $router) {
-                $controller = new $controllerName($request, $response);
-                $controller->init();
-                self::set('controller', $controller);
+            $controller = new $controllerName($request, $response);
+            if ($actionName == '') {
+                $actionName = $controller->defaultAction;
+                define('CUR_ROUTE', $router->getRoute() . '/' . $actionName);
+            } else {
+                define('CUR_ROUTE', $router->getRoute());
+            }
+            self::set('controller', $controller, true);
+            $handler = function () use ($request, $response, $controller, $actionName, $router) {
+                $controller->init(); // 执行前才进行初始化
                 $response = $controller->execute($actionName, $router->getParams());
                 return $response;
             };
@@ -204,7 +244,6 @@ class App extends Events
                         return $middleware->process($request, $response, $handler);
                     };
                 }
-
             }
             return $handler();
         } catch (BadMethodCallException $e) {
@@ -367,16 +406,6 @@ class App extends Events
     public static function request()
     {
         return self::get('request');
-    }
-
-    /**
-     * 返回Response对象
-     *
-     * @return Core\Http\Response
-     */
-    public static function response()
-    {
-        return self::get('response');
     }
 
     /**

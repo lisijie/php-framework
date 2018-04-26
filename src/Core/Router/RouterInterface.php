@@ -64,7 +64,8 @@ interface RouterInterface
      *
      * @param string $route
      * @param array $params
+     * @param bool $full
      * @return mixed
      */
-    public function makeUrl($route, $params = []);
+    public function makeUrl($route, $params = [], $full = false);
 }

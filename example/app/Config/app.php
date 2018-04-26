@@ -13,7 +13,7 @@ return [
 
     //路由配置
     'router' => [
-        'pretty_url' => false,
+        'pretty_url' => true,
         'default_route' => 'home/index', //默认路由
     ],
 

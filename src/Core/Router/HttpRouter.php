@@ -110,18 +110,17 @@ class HttpRouter extends AbstractRouter implements RouterInterface
     {
         $this->request = $request;
         if (!$this->prettyUrl) {
-            $route = $this->request->getQuery($this->routeVar);
+            $route = $this->request->getQueryParam($this->routeVar);
         } else {
-            $requestUri = $this->request->getRequestUri();
-            $parts = parse_url($requestUri);
-            $route = $parts['path'];
+            $path = $this->request->getUri()->getPath();
             // 去掉项目目录
-            $baseUrl = $this->request->getBaseUrl();
-            if ($baseUrl && ($pos = strpos($route, $baseUrl)) === 0) {
-                $route = substr($route, strlen($baseUrl));
+            $basePath = $this->request->getBasePath();
+            if ($basePath != '/' && ($pos = strpos($path, $basePath)) === 0) {
+                $path = substr($path, strlen($basePath));
             }
+            $route = $path;
         }
-        $this->parseRoute(trim($route, '/'));
+        $this->parseRoute($route);
         return $this->resolveHandler();
     }
 
@@ -202,12 +201,9 @@ class HttpRouter extends AbstractRouter implements RouterInterface
      */
     private function parseRoute($path)
     {
+        $path = rtrim($path, '/');
         if (empty($path)) return false;
 
-        // 包含非法字符则抛出404异常
-        if (!preg_match('#^[a-z][a-z0-9/\-]+$#i', $path)) {
-            throw new HttpNotFoundException();
-        }
         if ($path[0] != '/') {
             $path = '/' . $path;
         }
@@ -229,13 +225,13 @@ class HttpRouter extends AbstractRouter implements RouterInterface
                         if (is_numeric($k)) {
                             continue;
                         }
+                        $v = urldecode($v);
                         if (substr($k, 0, 3) == 'idx') {
                             $this->params[substr($k, 3)] = $v;
                         } else {
                             $this->params[$k] = $v;
                         }
                     }
-                    $this->request->addParams($this->params);
                     return true;
                 }
             }
@@ -286,17 +282,18 @@ class HttpRouter extends AbstractRouter implements RouterInterface
      *
      * @param string $route 路由地址
      * @param array $params 参数
+     * @param bool $full 是否完整URL
      * @return string
      */
-    public function makeUrl($route, $params = [])
+    public function makeUrl($route, $params = [], $full = false)
     {
         $result = $this->makeUrlPath($route, $params);
         if (!$this->prettyUrl) {
             $query = $result['params'];
             $query[$this->routeVar] = $result['path'];
-            return $this->request->getBaseUrl() . '/?' . http_build_query($query);
+            return rtrim($this->request->getBaseUrl($full), '/') . '/?' . http_build_query($query);
         } else {
-            return $this->request->getBaseUrl() . '/' . ltrim($result['path'], '/') . (empty($result['params']) ? '' : '?' . http_build_query($result['params']));
+            return rtrim($this->request->getBaseUrl($full), '/') . '/' . ltrim($result['path'], '/') . (empty($result['params']) ? '' : '?' . http_build_query($result['params']));
         }
     }
 }

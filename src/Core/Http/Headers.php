@@ -1,6 +1,12 @@
 <?php
 namespace Core\Http;
 
+/**
+ * Headers
+ *
+ * @author lisijie <lsj86@qq.com>
+ * @package Core\Http
+ */
 class Headers
 {
     /**

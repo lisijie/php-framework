@@ -1,12 +1,15 @@
 <?php
 namespace Core\Http;
 
+use InvalidArgumentException;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UploadedFileInterface;
+use RuntimeException;
 
 /**
  * 通过HTTP上传的文件值对象
  *
+ * @author lisijie <lsj86@qq.com>
  * @package Core\Http
  */
 class UploadedFile implements UploadedFileInterface
@@ -73,10 +76,10 @@ class UploadedFile implements UploadedFileInterface
     public function __construct($file, $name = null, $type = null, $size = null, $error = UPLOAD_ERR_OK, $sapi = false)
     {
         if (!in_array($error, self::$errors)) {
-            throw new \InvalidArgumentException('Invalid error status.');
+            throw new InvalidArgumentException('Invalid error status.');
         }
         if (null !== $size && false === is_int($size)) {
-            throw new \InvalidArgumentException('Upload file size must be an integer');
+            throw new InvalidArgumentException('Upload file size must be an integer');
         }
         $this->file = $file;
         $this->name = $name;
@@ -90,12 +93,12 @@ class UploadedFile implements UploadedFileInterface
      * 获取上传文件的流对象
      *
      * @return StreamInterface
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function getStream()
     {
         if ($this->moved) {
-            throw new \RuntimeException(sprintf('Uploaded file %1s has already been moved', $this->name));
+            throw new RuntimeException(sprintf('Uploaded file %1s has already been moved', $this->name));
         }
         if ($this->stream === null) {
             $this->stream = new Stream(fopen($this->file, 'r'));
@@ -111,29 +114,29 @@ class UploadedFile implements UploadedFileInterface
     public function moveTo($targetPath)
     {
         if ($this->moved) {
-            throw new \RuntimeException('Uploaded file already moved');
+            throw new RuntimeException('Uploaded file already moved');
         }
         $targetIsStream = strpos($targetPath, '://') > 0;
         if (!$targetIsStream && !is_writable(dirname($targetPath))) {
-            throw new \RuntimeException('Upload target path is not writable');
+            throw new RuntimeException('Upload target path is not writable');
         }
         if ($targetIsStream) {
             if (!copy($this->file, $targetPath)) {
-                throw new \RuntimeException("Error moving uploaded file {$this->name} to {$targetPath}");
+                throw new RuntimeException("Error moving uploaded file {$this->name} to {$targetPath}");
             }
             if (!unlink($this->file)) {
-                throw new \RuntimeException("Error removing uploaded file {$this->file}");
+                throw new RuntimeException("Error removing uploaded file {$this->file}");
             }
         } elseif ($this->sapi) {
             if (!is_uploaded_file($this->file)) {
-                throw new \RuntimeException("{$this->file} is not a valid uploaded file");
+                throw new RuntimeException("{$this->file} is not a valid uploaded file");
             }
             if (!move_uploaded_file($this->file, $targetPath)) {
-                throw new \RuntimeException("Error moving uploaded file {$this->name} to {$targetPath}");
+                throw new RuntimeException("Error moving uploaded file {$this->name} to {$targetPath}");
             }
         } else {
             if (!rename($this->file, $targetPath)) {
-                throw new \RuntimeException("Error moving uploaded file {$this->name} to {$targetPath}");
+                throw new RuntimeException("Error moving uploaded file {$this->name} to {$targetPath}");
             }
         }
         $this->moved = true;
