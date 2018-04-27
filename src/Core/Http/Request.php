@@ -111,7 +111,7 @@ class Request extends Message implements ServerRequestInterface
             ->withCookieParams($_COOKIE)
             ->withQueryParams($_GET)
             ->withParsedBody($_POST)
-            ->withUploadedFiles($_FILES);
+            ->withUploadedFiles(self::normalizeFiles($_FILES));
     }
 
     /**
@@ -201,13 +201,13 @@ class Request extends Message implements ServerRequestInterface
             }
             return $normalizedFiles;
         }
-
         return new UploadedFile(
             $value['tmp_name'],
+            $value['name'],
+            $value['type'],
             (int)$value['size'],
             (int)$value['error'],
-            $value['name'],
-            $value['type']
+            true
         );
     }
 

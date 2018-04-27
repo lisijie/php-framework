@@ -173,7 +173,7 @@ class App extends Events
     public static function respond(ResponseInterface $response)
     {
         if (!headers_sent()) {
-            header(sprintf("%s %s", $response->getStatusCode(), $response->getReasonPhrase()));
+            header(sprintf("HTTP/%s %s %s", $response->getProtocolVersion(), $response->getStatusCode(), $response->getReasonPhrase()));
             if (!$response->hasHeader('Content-Type')) {
                 header('Content-Type: text/html; charset=utf-8');
             }
