@@ -2,6 +2,7 @@
 namespace Core;
 
 use App;
+use App\Util\Arrays;
 
 /**
  * 基于表的模型基类
@@ -291,14 +292,7 @@ abstract class Model extends Component
      */
     public final static function index(array $data, $idx)
     {
-        if (empty($data) || !isset($data[0][$idx])) {
-            return $data;
-        }
-        $tmp = [];
-        foreach ($data as $row) {
-            $tmp[$row[$idx]] = $row;
-        }
-        return $tmp;
+        return Arrays::index($data, $idx);
     }
 
     /**
