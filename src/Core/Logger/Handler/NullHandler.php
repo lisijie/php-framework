@@ -12,7 +12,7 @@ namespace Core\Logger\Handler;
  */
 class NullHandler extends AbstractHandler
 {
-    public function __construct(array $config = [])
+    public function init()
     {
 
     }
@@ -22,8 +22,8 @@ class NullHandler extends AbstractHandler
 
     }
 
-    public function handle(array $record)
+    public function handleRecord(array $record)
     {
-
+        return true;
     }
 }

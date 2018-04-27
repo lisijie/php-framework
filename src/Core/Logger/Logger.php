@@ -69,20 +69,10 @@ class Logger implements LoggerInterface
      * 设置日志处理器
      *
      * @param HandlerInterface $handler
-     * @param $level
-     * @throws InvalidArgumentException
      */
-    public function setHandler(HandlerInterface $handler, $level)
+    public function addHandler(HandlerInterface $handler)
     {
-        if (!isset($this->levels[$level])) {
-            throw new InvalidArgumentException('日志级别无效');
-        }
-        if (!isset($this->handlers[$level])) {
-            $this->handlers[$level] = [$handler];
-        } else {
-            $this->handlers[$level][] = $handler;
-        }
-        ksort($this->handlers);
+        $this->handlers[] = $handler;
     }
 
     /**
@@ -181,7 +171,7 @@ class Logger implements LoggerInterface
         }
 
         if (empty($this->handlers)) {
-            $this->setHandler(new NullHandler(), self::DEBUG);
+            $this->addHandler(new NullHandler());
         }
 
         if (!$this->timeZone) {
@@ -209,13 +199,9 @@ class Logger implements LoggerInterface
             'line' => $line,
         ];
 
-        foreach ($this->handlers as $lv => $handlers) {
-            if ($lv <= $level) {
-                foreach ($handlers as $handler) {
-                    if ($handler->handle($record) !== false) {
-                        break 2;
-                    }
-                }
+        foreach ($this->handlers as $handler) {
+            if ($handler->handle($record)) {
+                break;
             }
         }
     }

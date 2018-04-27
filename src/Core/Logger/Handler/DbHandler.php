@@ -1,8 +1,8 @@
 <?php
-
 namespace Core\Logger\Handler;
 
 use Core\Logger\Formatter\ArrayFormatter;
+use PDO;
 
 /**
  * DB日志处理器
@@ -19,39 +19,28 @@ use Core\Logger\Formatter\ArrayFormatter;
  */
 class DbHandler extends AbstractHandler
 {
-    private $dsn;
-
-    private $username;
-
-    private $password;
-
-    private $timeout = 3;
-
-    private $table;
-
     /**
-     * @var \PDO
+     * @var PDO
      */
     private $db;
 
-    public function __construct(array $config = [])
+    public function init()
     {
-        if (empty($config['dsn'])) {
+        if (empty($this->config['dsn'])) {
             throw new \RuntimeException('缺少配置项: dsn');
         }
-        if (empty($config['username'])) {
+        if (empty($this->config['username'])) {
             throw new \RuntimeException('缺少配置项: username');
         }
-        if (empty($config['table'])) {
+        if (empty($this->config['table'])) {
             throw new \RuntimeException('缺少配置项: table');
         }
-        if (!empty($config['timeout'])) {
-            $this->timeout = (int)$config['timeout'];
+        if (!isset($this->config['timeout'])) {
+            $this->config['timeout'] = 3;
         }
-        $this->dsn = $config['dsn'];
-        $this->username = $config['username'];
-        $this->password = isset($config['password']) ? $config['password'] : '';
-        $this->table = $config['table'];
+        if (!isset($this->config['password'])) {
+            $this->config['password'] = '';
+        }
     }
 
     public function getDefaultFormatter()
@@ -59,10 +48,11 @@ class DbHandler extends AbstractHandler
         return new ArrayFormatter();
     }
 
-    public function handle(array $record)
+    public function handleRecord(array $record)
     {
+        $table = $this->config['table'];
         $row = $this->getFormatter()->format($record);
-        $sql = "INSERT INTO {$this->table} (`datetime`, `channel`, `level`, `file`, `line`, `message`) VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO {$table} (`datetime`, `channel`, `level`, `file`, `line`, `message`) VALUES (?, ?, ?, ?, ?, ?)";
         $sth = $this->getDb()->prepare($sql);
         return $sth->execute([
             $row['datetime'],
@@ -77,9 +67,9 @@ class DbHandler extends AbstractHandler
     private function getDb()
     {
         if (!$this->db) {
-            $this->db = new \PDO($this->dsn, $this->username, $this->password, [
-                \PDO::ATTR_TIMEOUT => $this->timeout,
-                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            $this->db = new PDO($this->config['dsn'], $this->config['username'], $this->config['password'], [
+                PDO::ATTR_TIMEOUT => $this->config['timeout'],
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             ]);
         }
         return $this->db;

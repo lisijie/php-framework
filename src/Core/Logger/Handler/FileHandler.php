@@ -46,8 +46,9 @@ class FileHandler extends AbstractHandler
      */
     private $fileName = '{Y}{m}{d}.log';
 
-    public function __construct(array $config = [])
+    public function init()
     {
+        $config = $this->config;
         if (empty($config['savepath'])) {
             throw new \RuntimeException('Lib\Logger\Handler\FileHandler 缺少配置项: savepath');
         }
@@ -68,7 +69,7 @@ class FileHandler extends AbstractHandler
         return new LineFormatter();
     }
 
-    public function handle(array $record)
+    public function handleRecord(array $record)
     {
         $message = $this->getFormatter()->format($record) . "\n";
 

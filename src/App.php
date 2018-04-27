@@ -92,7 +92,7 @@ class App extends Events
     {
         $config = new Config(CONFIG_PATH, Environment::getEnvironment());
         self::$container = new Container();
-        self::$container->addServiceProvider(new ServiceProvider(self::$container, $config->get('components')));
+        self::$container->addServiceProvider(new ServiceProvider(self::$container, $config->get('component')));
         self::set('config', $config);
         // 设置时区
         if (App::config()->get('app', 'timezone')) {
@@ -482,21 +482,7 @@ class App extends Events
                     if (!class_exists($handlerClass)) {
                         throw new \RuntimeException('找不到日志处理类: ' . $handlerClass);
                     }
-                    $handler = new $handlerClass($conf['config']);
-                    // 日志格式化器配置
-                    if (!empty($conf['formatter'])) {
-                        $formatterClass = $conf['formatter'];
-                        if (!class_exists($formatterClass)) {
-                            throw new \RuntimeException('找不到日志格式化类: ' . $formatterClass);
-                        }
-                        $formatter = new $formatterClass();
-                        $handler->setFormatter($formatter);
-                    }
-                    // 设置日志时间格式
-                    if (!empty($conf['date_format'])) {
-                        $handler->getFormatter()->setDateFormat($conf['date_format']);
-                    }
-                    $logger->setHandler($handler, $conf['level']);
+                    $logger->addHandler(new $handlerClass($conf['config']));
                 }
             }
             self::set($name, $logger, true);

@@ -9,13 +9,13 @@ namespace Core\Router;
  */
 class ConsoleRouter extends AbstractRouter implements RouterInterface
 {
-    public function makeUrl($route, $params = [])
+    public function makeUrl($route, $params = [], $full = false)
     {
         $route = $this->normalizeRoute($route);
         foreach ($params as $k => $v) {
             $params[$k] = escapeshellarg($v);
         }
-        return $_SERVER['argv'][0] . ' '. $route . ' ' . implode(' ', $params);
+        return ($full ? $_SERVER['argv'][0] : '') . ' ' . $route . ' ' . implode(' ', $params);
     }
 
     /**

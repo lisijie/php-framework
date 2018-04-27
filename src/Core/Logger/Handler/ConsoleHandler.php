@@ -13,7 +13,7 @@ class ConsoleHandler extends AbstractHandler
 {
     private $isCli = false;
 
-    public function __construct(array $config = [])
+    public function init()
     {
         $this->isCli = (php_sapi_name() == 'cli');
     }
@@ -23,7 +23,7 @@ class ConsoleHandler extends AbstractHandler
         return new ConsoleFormatter();
     }
 
-    public function handle(array $record)
+    public function handleRecord(array $record)
     {
         if ($this->isCli) {
             $message = $this->getFormatter()->format($record);

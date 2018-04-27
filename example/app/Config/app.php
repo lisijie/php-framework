@@ -62,10 +62,10 @@ return [
         'default' => [
             // 写到文件日志
             [
-                'level' => \Core\Logger\Logger::DEBUG, //日志级别
                 'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
-                'formatter' => \Core\Logger\Formatter\LineFormatter::class,
                 'config' => [
+                    'level' => \Core\Logger\Logger::DEBUG, //日志级别
+                    'formatter' => \Core\Logger\Formatter\ConsoleFormatter::class,
                     'savepath' => DATA_PATH . '/logs/', //日志保存目录
                     'filesize' => 0, //文件分割大小
                     'filename' => '{level}-{Y}{m}{d}.log',
@@ -76,22 +76,31 @@ return [
         'console' => [
             // 输出到控制台
             [
-                'level' => \Core\Logger\Logger::DEBUG, //日志级别
                 'handler' => \Core\Logger\Handler\ConsoleHandler::class, //日志处理器
-                'formatter' => \Core\Logger\Formatter\ConsoleFormatter::class,
-                'config' => [],
+                'config' => [
+                    'level' => \Core\Logger\Logger::DEBUG, //日志级别
+                ],
             ],
             // 写到日志文件
             [
-                'level' => \Core\Logger\Logger::WARN, //日志级别
                 'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
-                'formatter' => \Core\Logger\Formatter\LineFormatter::class,
                 'config' => [
+                    'level' => \Core\Logger\Logger::ERROR, //日志级别
+                    'formatter' => \Core\Logger\Formatter\LineFormatter::class,
                     'savepath' => DATA_PATH . '/logs/', //日志保存目录
                     'filesize' => 0, //文件分割大小
-                    'filename' => '{level}-{Y}{m}{d}.log',
+                    'filename' => '2.log',
                 ],
-            ]
+            ],
+            [
+                'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
+                'config' => [
+                    'level' => \Core\Logger\Logger::WARN, //日志级别
+                    'savepath' => DATA_PATH . '/logs/', //日志保存目录
+                    'filesize' => 0, //文件分割大小
+                    'filename' => '1.log',
+                ],
+            ],
         ],
     ],
 ];
