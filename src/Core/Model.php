@@ -1,6 +1,7 @@
 <?php
-
 namespace Core;
+
+use App;
 
 /**
  * 基于表的模型基类
@@ -33,7 +34,7 @@ abstract class Model extends Component
 
     private final function __construct()
     {
-        $this->db = \App::db($this->dbNode);
+        $this->db = App::db($this->dbNode);
         $this->init();
     }
 
@@ -84,10 +85,10 @@ abstract class Model extends Component
      * @param int $offset 偏移量
      * @return array
      */
-    public final function select(array $fields = null, array $filter = null, array $order = null, $limit = 0, $offset = 0)
+    public final function select(array $fields = [], array $filter = [], array $order = [], $limit = 0, $offset = 0)
     {
         $table = $this->getTable();
-        $fields = empty($fields) ? '*' : implode(',', $fields);
+        $fields = $this->parseFields($fields);
         $sql = "SELECT {$fields} FROM {$table}";
         if (!empty($filter)) {
             $sql .= " WHERE " . $this->parseFilter($filter);
@@ -192,13 +193,9 @@ abstract class Model extends Component
      * @param array $fields 字段
      * @return array
      */
-    public final function getRow(array $filter = null, array $fields = [])
+    public final function getRow(array $filter = [], array $fields = [])
     {
-        if ($fields) {
-            $fields = '`' . implode('`,`', $fields) . '`';
-        } else {
-            $fields = '*';
-        }
+        $fields = $this->parseFields($fields);
         $sql = "SELECT {$fields} FROM " . $this->getTable();
         if (!empty($filter)) {
             $sql .= " WHERE " . $this->parseFilter($filter);
@@ -390,5 +387,27 @@ abstract class Model extends Component
             }
         }
         return implode(' AND ', $where);
+    }
+
+    /**
+     * 字段解析成SQL
+     *
+     * @param array $fields
+     * @return string
+     */
+    protected function parseFields(array $fields)
+    {
+        if (empty($fields)) {
+            return '*';
+        }
+        $result = [];
+        foreach ($fields as $key => $val) {
+            if (is_string($key)) {
+                $result[] = "`{$key}` AS {$val}";
+            } else {
+                $result[] = "`{$val}`";
+            }
+        }
+        return implode(', ', $result);
     }
 }
