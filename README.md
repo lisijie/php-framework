@@ -103,7 +103,7 @@ class MainController extends Controller
     public function indexAction()
     {
         $this->assign('foo', 'bar');
-        return $this->display();
+        return $this->render();
     }
 
 }
