@@ -30,12 +30,9 @@ return [
 
     //缓存配置
     'cache' => [
-        'default' => 'redis',
-        'redis' => [
-            'driver' => \Core\Cache\RedisCache::class,
+        'default' => [
+            'class' => \Core\Cache\NullCache::class,
             'config' => [
-                'host' => '127.0.0.1',
-                'port' => 6379,
             ],
         ],
     ],

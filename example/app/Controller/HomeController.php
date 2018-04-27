@@ -14,7 +14,7 @@ class HomeController extends Controller
 
     public function init()
     {
-        $this->cache = \App::get('cache');
+        $this->cache = App::cache();
     }
 
     public function indexAction()
