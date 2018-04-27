@@ -106,20 +106,6 @@ class App extends Events
         } else {
             (new \Core\Exception\ErrorHandler(App::logger()))->register();
         }
-        // 注册路由解析器
-        if (self::isCli()) {
-            $router = new ConsoleRouter();
-            $router->setDefaultRoute('help/index');
-            $router->registerNamespace('App\\Command', 'Command');
-            $router->registerNamespace('Core\\Console', 'Command');
-            self::set('router', $router, true);
-        } else {
-            $config = App::config()->get('app', 'router', []);
-            $router = new HttpRouter($config);
-            $router->registerNamespace('App\\Controller', 'Controller');
-            $router->addConfig(App::config()->get('route'));
-            self::set('router', $router, true);
-        }
         if ($bootstrap) {
             $bootstrap->startup();
         }
@@ -215,13 +201,11 @@ class App extends Events
         if (!empty($router->getParams())) {
             $request = $request->withAttributes($router->getParams());
         }
-        self::set('request', $request, true);
-
         // 控制器不存在抛出404异常
         if (empty($controllerName) || !class_exists($controllerName) || !is_subclass_of($controllerName, \Core\Controller::class, true)) {
             throw new HttpNotFoundException();
         }
-
+        self::set('request', $request, true);
         try {
             $controller = new $controllerName($request, $response);
             if ($actionName == '') {
@@ -415,6 +399,21 @@ class App extends Events
      */
     public static function router()
     {
+        if (!self::has('router')) {
+            // 注册路由解析器
+            if (self::isCli()) {
+                $router = new ConsoleRouter();
+                $router->setDefaultRoute('help/index');
+                $router->registerNamespace('App\\Command', 'Command');
+                $router->registerNamespace('Core\\Console', 'Command');
+            } else {
+                $config = self::config()->get('app', 'router', []);
+                $router = new HttpRouter($config);
+                $router->registerNamespace('App\\Controller', 'Controller');
+                $router->addConfig(App::config()->get('route'));
+            }
+            self::set('router', $router, true);
+        }
         return self::get('router');
     }
 
@@ -449,11 +448,21 @@ class App extends Events
     /**
      * 返回缓存对象
      *
-     * @return Core\Cache\CacheInterface
+     * @param string $node 节点名称
+     * @return \Core\Cache\CacheInterface
+     * @throws CoreException
      */
-    public static function cache()
+    public static function cache($node = 'default')
     {
-        return self::get('cache');
+        $key = "cache:{$node}";
+        if (!self::has($key)) {
+            $config = App::config()->get('app', 'cache', []);
+            if (!isset($config[$node])) {
+                throw new CoreException('缓存节点配置不存在:' . $node);
+            }
+            self::set($key, $config[$node], true);
+        }
+        return self::get($key);
     }
 
     /**
@@ -480,7 +489,7 @@ class App extends Events
                 foreach ($config[$channel] as $conf) {
                     $handlerClass = $conf['handler'];
                     if (!class_exists($handlerClass)) {
-                        throw new \RuntimeException('找不到日志处理类: ' . $handlerClass);
+                        throw new \InvalidArgumentException('找不到日志处理类: ' . $handlerClass);
                     }
                     $logger->addHandler(new $handlerClass($conf['config']));
                 }
@@ -497,6 +506,9 @@ class App extends Events
      */
     public static function view()
     {
+        if (!self::has('view')) {
+            self::set('view', self::config()->get('app', 'view'));
+        }
         return self::get('view');
     }
 

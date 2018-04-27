@@ -43,7 +43,7 @@ abstract class AbstractView implements ViewInterface
      * 配置信息
      * @var array
      */
-    protected $options = [];
+    protected $config = [];
     /**
      * 布局模板名称
      * @var string
@@ -67,23 +67,23 @@ abstract class AbstractView implements ViewInterface
 
     /**
      * 构造函数
-     * @param array $options 配置选项，不同的模板引擎有不同的选项
+     * @param array $config 配置选项，不同的模板引擎有不同的选项
      */
-    public final function __construct(array $options)
+    public final function __construct(array $config)
     {
         // 静态资源基础URL，需要以斜杠结尾
-        if (empty($options['static_url'])) {
-            $options['static_url'] = '/';
+        if (empty($config['static_url'])) {
+            $config['static_url'] = '/';
         }
         // 静态资源版本号,如: 1.0.0
-        if (!isset($options['static_version'])) {
-            $options['static_version'] = '';
+        if (!isset($config['static_version'])) {
+            $config['static_version'] = '';
         }
         // 版本号变量名
-        if (empty($options['static_version_var'])) {
-            $options['static_version_var'] = 'v';
+        if (empty($config['static_version_var'])) {
+            $config['static_version_var'] = 'v';
         }
-        $this->options = $options;
+        $this->config = $config;
         $this->init();
     }
 
@@ -103,7 +103,7 @@ abstract class AbstractView implements ViewInterface
      */
     public function getOption($name)
     {
-        return isset($this->options[$name]) ? $this->options[$name] : null;
+        return isset($this->config[$name]) ? $this->config[$name] : null;
     }
 
     /**
@@ -115,7 +115,7 @@ abstract class AbstractView implements ViewInterface
      */
     public function setOption($name, $value)
     {
-        $this->options[$name] = $value;
+        $this->config[$name] = $value;
         return true;
     }
 
@@ -355,9 +355,9 @@ abstract class AbstractView implements ViewInterface
      */
     public function getAssetUrl($url)
     {
-        $url = $this->options['static_url'] . ltrim($url, '/');
-        if (!empty($this->options['static_version'])) {
-            $url .= ((strpos($url, '?') === false) ? '?' : '&') . $this->options['static_version_var'] . '=' . $this->options['static_version'];
+        $url = $this->config['static_url'] . ltrim($url, '/');
+        if (!empty($this->config['static_version'])) {
+            $url .= ((strpos($url, '?') === false) ? '?' : '&') . $this->config['static_version_var'] . '=' . $this->config['static_version'];
         }
         return $url;
     }

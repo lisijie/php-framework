@@ -13,8 +13,8 @@ class Smarty extends AbstractView
 
     protected function init()
     {
-        if (!isset($this->options['ext'])) {
-            $this->options['ext'] = '.html';
+        if (!isset($this->config['ext'])) {
+            $this->config['ext'] = '.html';
         }
         $defaults = [
             'template_dir' => VIEW_PATH,
@@ -22,13 +22,13 @@ class Smarty extends AbstractView
             'compile_dir' => DATA_PATH . '/cache/smarty_complied',
             'cache_dir' => DATA_PATH . '/cache/smarty_cache',
         ];
-        $this->options = array_merge($defaults, $this->options);
+        $this->config = array_merge($defaults, $this->config);
         if (!class_exists('\Smarty')) {
             throw new ViewException('Smarty 类不存在，请使用composer安装');
         }
         $this->smarty = new \Smarty();
         foreach ($defaults as $key => $value) {
-            $this->smarty->{$key} = $this->options[$key];
+            $this->smarty->{$key} = $this->config[$key];
         }
 
         // 注册smarty模板函数，以支持布局模板

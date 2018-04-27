@@ -17,6 +17,17 @@ return [
         'default_route' => 'home/index', //默认路由
     ],
 
+    // 视图配置
+    'view' => [
+        'class' => \Core\View\Native::class,
+        'config' => [
+            'template_dir' => VIEW_PATH,
+            'ext' => '.php',
+            'static_url' => '/',
+            'static_version' => '1.0',
+        ],
+    ],
+
     //缓存配置
     'cache' => [
         'default' => 'redis',

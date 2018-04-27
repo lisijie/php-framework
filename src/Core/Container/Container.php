@@ -148,6 +148,6 @@ class Container implements ContainerInterface
                 }
             }
         }
-        return false;
+        return $ok;
     }
 }
