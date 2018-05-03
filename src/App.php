@@ -216,7 +216,11 @@ class App extends Events
             }
             self::set('controller', $controller, true);
             $handler = function () use ($request, $response, $controller, $actionName, $router) {
-                $controller->init(); // 执行前才进行初始化
+                // 执行前才进行初始化
+                $ret = $controller->init();
+                if ($ret && $ret instanceof ResponseInterface) {
+                    return $ret;
+                }
                 $response = $controller->execute($actionName, $router->getParams());
                 return $response;
             };
