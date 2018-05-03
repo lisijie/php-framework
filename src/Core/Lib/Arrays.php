@@ -1,5 +1,5 @@
 <?php
-namespace App\Util;
+namespace Core\Lib;
 
 /**
  * 数组操作
