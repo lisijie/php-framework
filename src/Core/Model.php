@@ -2,7 +2,7 @@
 namespace Core;
 
 use App;
-use App\Util\Arrays;
+use Core\Lib\Arrays;
 
 /**
  * 基于表的模型基类
