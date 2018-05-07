@@ -599,6 +599,16 @@ class Request extends Message implements ServerRequestInterface
      */
     public function isAjax()
     {
+        return $this->isXHR();
+    }
+
+    /**
+     * 是否XMLHttpRequest请求
+     *
+     * @return bool
+     */
+    public function isXHR()
+    {
         return strtolower($this->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
     }
 
