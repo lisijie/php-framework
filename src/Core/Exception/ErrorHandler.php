@@ -2,6 +2,7 @@
 
 namespace Core\Exception;
 
+use App;
 use Core\Lib\VarDumper;
 use Exception;
 use Core\Http\Response;
@@ -42,7 +43,7 @@ class ErrorHandler
     public function register()
     {
         // 关闭显示错误消息
-        ini_set('display_errors', 0);
+        ini_set('display_errors', App::isDebug());
         // 注册错误处理函数，将所有错误转为异常
         set_error_handler(function ($code, $str, $file, $line) {
             throw new \ErrorException($str, $code, 0, $file, $line);
@@ -102,7 +103,7 @@ class ErrorHandler
             return;
         }
 
-        if (\App::isDebug()) {
+        if (App::isDebug()) {
             $this->renderDebugInfo($e);
             return;
         }
@@ -156,7 +157,7 @@ class ErrorHandler
      */
     protected function renderHttpException(HttpException $e)
     {
-        \App::respond(new Response($e->getCode(), $e->getMessage()));
+        App::respond(new Response($e->getCode(), $e->getMessage()));
     }
 
     /**

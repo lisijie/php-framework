@@ -14,7 +14,7 @@ define('START_TIME', microtime(TRUE));
 //内存使用
 define('START_MEMORY_USAGE', memory_get_usage());
 //框架目录
-define('SYSTEM_PATH', __DIR__ . DS);
+define('SYSTEM_PATH', __DIR__);
 
 /************* 应用目录 ***************/
 //配置文件目录

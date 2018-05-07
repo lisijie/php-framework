@@ -11,6 +11,8 @@ return [
     // 时区设置，PRC为中国时区
     'timezone' => 'PRC',
 
+    'debug' => true,
+
     //路由配置
     'router' => [
         'pretty_url' => true,

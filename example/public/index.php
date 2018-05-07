@@ -7,6 +7,5 @@ define('DATA_PATH', dirname(__DIR__) . '/data/');
 
 require dirname(dirname(__DIR__)) . '/vendor/autoload.php';
 
-App::setDebug(true);
 App::bootstrap();
 App::run();

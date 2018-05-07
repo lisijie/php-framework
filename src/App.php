@@ -95,17 +95,19 @@ class App extends Events
         self::$container->addServiceProvider(new ServiceProvider(self::$container, $config->get('component')));
         self::set('config', $config);
         // 设置时区
-        if (App::config()->get('app', 'timezone')) {
-            date_default_timezone_set(App::config()->get('app', 'timezone'));
+        if ($config->get('app', 'timezone')) {
+            date_default_timezone_set($config->get('app', 'timezone'));
         } elseif (ini_get('date.timezone') == '') {
             date_default_timezone_set('Asia/Shanghai'); //设置默认时区为中国时区
         }
         // 注册异常处理器
         if (class_exists('\\App\\Exception\\ErrorHandler')) {
-            (new \App\Exception\ErrorHandler(App::logger()))->register();
+            (new \App\Exception\ErrorHandler(self::logger()))->register();
         } else {
-            (new \Core\Exception\ErrorHandler(App::logger()))->register();
+            (new \Core\Exception\ErrorHandler(self::logger()))->register();
         }
+        // 是否开启debug模式
+        self::$debug = $config->get('app', 'debug', false);
         if ($bootstrap) {
             $bootstrap->startup();
         }
@@ -146,6 +148,9 @@ class App extends Events
             $controller->init();
             $controller->execute($action, $router->getParams());
         } else {
+            if (self::$debug) {
+                self::add(new \Core\Web\Debug\Middleware\DebuggerMiddleware());
+            }
             $response = self::handleRequest(Request::createFromGlobals(), new Response());
             self::respond($response);
         }
@@ -215,7 +220,7 @@ class App extends Events
                 define('CUR_ROUTE', $router->getRoute());
             }
             self::set('controller', $controller, true);
-            $handler = function () use ($request, $response, $controller, $actionName, $router) {
+            $handler = function () use ($request, $controller, $actionName, $router) {
                 // 执行前才进行初始化
                 $ret = $controller->init();
                 if ($ret && $ret instanceof ResponseInterface) {
@@ -228,8 +233,8 @@ class App extends Events
             if (!empty(self::$middlewares)) {
                 for ($i = count(self::$middlewares) - 1; $i >= 0; $i--) {
                     $middleware = self::$middlewares[$i];
-                    $handler = function () use ($request, $response, $handler, $middleware) {
-                        return $middleware->process($request, $response, $handler);
+                    $handler = function () use ($request, $handler, $middleware) {
+                        return $middleware->process($request, $handler);
                     };
                 }
             }
@@ -249,16 +254,6 @@ class App extends Events
     public static function isCli()
     {
         return PHP_SAPI == 'cli';
-    }
-
-    /**
-     * 设置调试模式
-     *
-     * @param $bool
-     */
-    public static function setDebug($bool)
-    {
-        self::$debug = (bool)$bool;
     }
 
     /**
@@ -414,7 +409,10 @@ class App extends Events
                 $config = self::config()->get('app', 'router', []);
                 $router = new HttpRouter($config);
                 $router->registerNamespace('App\\Controller', 'Controller');
-                $router->addConfig(App::config()->get('route'));
+                if (self::$debug) {
+                    $router->registerNamespace('Core\\Web\\Debug\\Controller', 'Controller');
+                }
+                $router->addConfig(self::config()->get('route'));
             }
             self::set('router', $router, true);
         }
