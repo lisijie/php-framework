@@ -10,8 +10,8 @@ namespace Core\Exception;
  */
 class HttpNotFoundException extends HttpException
 {
-    public function __construct($message = 'Page Not Found', $code = 404, \Exception $previous = NULL)
+    public function __construct()
     {
-        parent::__construct($code, $message);
+        parent::__construct(404, 'Page Not Found');
     }
 }
