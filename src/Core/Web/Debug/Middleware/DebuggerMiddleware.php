@@ -68,6 +68,8 @@ class DebuggerMiddleware implements MiddlewareInterface
         $data = [
             'route' => CUR_ROUTE,
             'request' => $request,
+            'responseHeaders' => $response->getHeaders(),
+            'contentLength' => $response->getContentLength(),
             'get' => $_GET,
             'post' => $_POST,
             'files' => $_FILES,

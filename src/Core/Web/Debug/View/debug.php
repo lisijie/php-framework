@@ -92,6 +92,16 @@
         <?php endforeach; ?>
     </div>
 
+    <h4>响应Headers</h4>
+    <table class="table table-bordered table-striped">
+        <?php foreach ($responseHeaders as $key => $value) : ?>
+            <tr>
+                <th width="150"><?= $key ?></th>
+                <td><?= implode(', ', $value) ?></td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+
     <h4>SQL</h4>
     <table class="table table-bordered table-striped">
         <tr>
