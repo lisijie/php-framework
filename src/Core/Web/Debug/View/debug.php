@@ -107,12 +107,22 @@
         <tr>
             <th width="50">序号</th>
             <th width="100">耗时</th>
+            <th width="100">文件</th>
             <th>查询</th>
         </tr>
         <?php foreach ($sqlLogs as $k => $log) : ?>
             <tr>
                 <td><?= $k + 1 ?></td>
                 <td><?= round($log['time'], 4) . 's' ?></td>
+                <td>
+                    <?php
+                    foreach (['controller', 'service', 'model'] as $item) {
+                        if ($log[$item]) {
+                            echo $log[$item] . '<br />';
+                        }
+                    }
+                    ?>
+                </td>
                 <td><?= $log['sql'] ?></td>
             </tr>
         <?php endforeach; ?>

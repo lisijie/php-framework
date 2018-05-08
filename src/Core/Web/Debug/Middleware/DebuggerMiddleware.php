@@ -37,7 +37,26 @@ class DebuggerMiddleware implements MiddlewareInterface
                 require dirname(__DIR__) . '/Lib/Xhprof/xhprof_runs.php';
             }
             Events::on(Db::class, Db::EVENT_QUERY, function (DbEvent $event) {
+                $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+                $service = $model = $controller = '';
+                foreach ($backtrace as $item) {
+                    if (isset($item['file'])) {
+                        if (strpos($item['file'], 'lisijie/framework') !== false) {
+                            continue;
+                        }
+                        if (!$service && substr($item['file'], -11) == 'Service.php') {
+                            $service = basename($item['file']) . ":{$item['line']}";
+                        } elseif (!$model && substr($item['file'], -9) == 'Model.php') {
+                            $model = basename($item['file']) . ":{$item['line']}";
+                        } elseif (!$controller && substr($item['file'], -14) == 'Controller.php') {
+                            $controller = basename($item['file']) . ":{$item['line']}";
+                        }
+                    }
+                }
                 $this->sqlLogs[] = [
+                    'service' => $service,
+                    'model' => $model,
+                    'controller' => $controller,
                     'time' => $event->getTime(),
                     'sql' => $event->getSql(),
                     'params' => $event->getParams(),
