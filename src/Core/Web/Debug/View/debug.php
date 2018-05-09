@@ -1,20 +1,40 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <title>Debugger</title>
+    <title>Debug Info</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="//apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet"/>
     <style type="text/css">
-        table th, table td {
-            font-size: 12px;
+        body { margin: 0  }
+        #banner {
+            background: #2C6AA0;
+            margin-bottom: 20px
         }
-        body {margin: 0}
-        #banner {background: #3367d6; margin-bottom: 20px}
-        #banner h1 {margin: 0; padding: 10px; color: #fff}
+        #banner h1 {
+            margin: 0;
+            padding: 10px;
+            color: #fff
+        }
+        * {
+            outline: none;
+        }
+        .tablesorter .tablesorter-header {
+            background-image: url(data:image/gif;base64,R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==);
+            background-repeat: no-repeat;
+            background-position: center right;
+            white-space: normal;
+        }
+        .tablesorter .headerSortUp,
+        .tablesorter .tablesorter-headerSortUp,
+        .tablesorter .tablesorter-headerAsc {
+            background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7);
+        }
+        .tablesorter .headerSortDown,
+        .tablesorter .tablesorter-headerSortDown,
+        .tablesorter .tablesorter-headerDesc {
+            background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7);
+        }
     </style>
-    <script src="//apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="//apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-
 </head>
 <body>
 <div id="banner">
@@ -22,7 +42,8 @@
 </div>
 
 <div class="container-fluid">
-
+<div class="row">
+    <div class="col-md-12">
     <ul class="nav nav-tabs" id="tabs" role="tablist">
         <li role="presentation" class="active">
             <a href="#home" aria-controls="home" role="tab" data-toggle="tab">基本信息</a>
@@ -50,27 +71,27 @@
             <table class="table table-bordered table-striped">
                 <tr>
                     <th width="150">路由地址</th>
-                    <td><?= $route ?></td>
+                    <td><?= $meta['route'] ?></td>
                 </tr>
                 <tr>
                     <th>请求URL</th>
-                    <td><?= $request->getUri() ?></td>
+                    <td><?= $meta['url'] ?></td>
                 </tr>
                 <tr>
                     <th>请求方法</th>
-                    <td><?= $request->getMethod() ?></td>
+                    <td><?= $meta['method'] ?></td>
                 </tr>
                 <tr>
                     <th>请求时间</th>
-                    <td><?= date('Y-m-d H:i:s', $startTime) ?></td>
+                    <td><?= date('Y-m-d H:i:s', $meta['startTime']) ?></td>
                 </tr>
                 <tr>
                     <th>执行时间</th>
-                    <td><?= round($execTime, 4) . '秒' ?></td>
+                    <td><?= round($meta['execTime'], 4) . '秒' ?></td>
                 </tr>
                 <tr>
                     <th>内存使用</th>
-                    <td><?= \Core\Lib\FileHelper::sizeFormat($memoryUsage) ?></td>
+                    <td><?= \Core\Lib\FileHelper::sizeFormat($meta['memoryUsage']) ?></td>
                 </tr>
             </table>
         </div>
@@ -81,7 +102,7 @@
             ?>
             <div role="tabpanel" class="tab-pane" id="<?= $var ?>">
                 <table class="table table-bordered table-striped">
-                    <?php foreach (${$var} as $key => $value) : ?>
+                    <?php foreach ($meta[$var] as $key => $value) : ?>
                         <tr>
                             <th width="150"><?= $key ?></th>
                             <td><?= \Core\Lib\VarDumper::dumpAsString($value) ?></td>
@@ -94,7 +115,7 @@
 
     <h4>响应Headers</h4>
     <table class="table table-bordered table-striped">
-        <?php foreach ($responseHeaders as $key => $value) : ?>
+        <?php foreach ($meta['responseHeaders'] as $key => $value) : ?>
             <tr>
                 <th width="150"><?= $key ?></th>
                 <td><?= implode(', ', $value) ?></td>
@@ -103,13 +124,16 @@
     </table>
 
     <h4>SQL</h4>
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped tablesorter">
+        <thead>
         <tr>
-            <th width="50">序号</th>
+            <th width="80">序号</th>
             <th width="100">耗时</th>
             <th width="100">文件</th>
             <th>查询</th>
         </tr>
+        </thead>
+        <tbody>
         <?php foreach ($sqlLogs as $k => $log) : ?>
             <tr>
                 <td><?= $k + 1 ?></td>
@@ -126,8 +150,56 @@
                 <td><?= $log['sql'] ?></td>
             </tr>
         <?php endforeach; ?>
+        </tbody>
     </table>
 
+    <h4>性能分析</h4>
+    <?php if (empty($profile)) :?>
+    <p class="bg-warning">请先安装并开启 XHProf 扩展。</p>
+    <?php else:?>
+    <table id="profile" class="table table-bordered table-hover tablesorter">
+        <thead>
+        <tr>
+            <th>函数</th>
+            <th width="100">调用次数</th>
+            <th width="100">执行时间</th>
+            <th width="100">CPU时间</th>
+            <th width="100">内存占用</th>
+            <th width="100">内存峰值</th>
+            <th width="100">总执行时间</th>
+            <th width="100">总CPU时间</th>
+            <th width="100">总内存占用</th>
+            <th width="100">总内存峰值</th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($profile as $key => $value) : ?>
+            <tr>
+                <td class="text"><?= $key ?></td>
+                <td class="center"><?= $value['ct'] ?></td>
+                <td class="center"><?= $this->formatTime($value['ewt']) ?></td>
+                <td class="center"><?= $this->formatTime($value['ecpu']) ?></td>
+                <td class="center"><?= $this->formatSize($value['emu']) ?></td>
+                <td class="center"><?= $this->formatSize($value['epmu']) ?></td>
+                <td class="center"><?= $this->formatTime($value['wt']) ?></td>
+                <td class="center"><?= $this->formatTime($value['cpu']) ?></td>
+                <td class="center"><?= $this->formatSize($value['mu']) ?></td>
+                <td class="center"><?= $this->formatSize($value['pmu']) ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
+    </table>
+    <?php endif;?>
+    </div>
 </div>
+</div>
+<script src="//apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="//apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script src="//cdn.bootcss.com/jquery.tablesorter/2.30.3/js/jquery.tablesorter.min.js"></script>
+<script>
+    $(function() {
+        $(".tablesorter").tablesorter();
+    });
+</script>
 </body>
 </html>
