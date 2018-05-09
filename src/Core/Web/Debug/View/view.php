@@ -97,7 +97,7 @@
             <?php foreach ($sqlLogs as $k => $log) : ?>
                 <tr>
                     <td><?= $k + 1 ?></td>
-                    <td><?= round($log['time'], 4) . 's' ?></td>
+                    <td><?= $this->formatTime($log['time']) ?></td>
                     <td>
                         <?php
                         foreach (['controller', 'service', 'model'] as $item) {

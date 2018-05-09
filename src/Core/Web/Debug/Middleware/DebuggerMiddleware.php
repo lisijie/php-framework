@@ -49,7 +49,7 @@ class DebuggerMiddleware implements MiddlewareInterface
                     'service' => $service,
                     'model' => $model,
                     'controller' => $controller,
-                    'time' => $event->getTime(),
+                    'time' => $event->getTime() * 1000000, // 微秒
                     'sql' => $event->getSql(),
                     'params' => $event->getParams(),
                 ];
