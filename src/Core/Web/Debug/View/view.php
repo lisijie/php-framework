@@ -46,11 +46,11 @@
                     </tr>
                     <tr>
                         <th>执行时间</th>
-                        <td><?= round($meta['execTime'], 4) . '秒' ?></td>
+                        <td><?= $this->formatTime($meta['execTime']) ?></td>
                     </tr>
                     <tr>
                         <th>内存使用</th>
-                        <td><?= \Core\Lib\FileHelper::sizeFormat($meta['memoryUsage']) ?></td>
+                        <td><?= $this->formatSize($meta['memoryUsage']) ?></td>
                     </tr>
                 </table>
             </div>
