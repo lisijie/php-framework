@@ -88,8 +88,8 @@ class DebuggerMiddleware implements MiddlewareInterface
             'cookies' => $_COOKIE,
             'server' => $_SERVER,
             'startTime' => START_TIME,
-            'execTime' => microtime(true) - START_TIME,
-            'memoryUsage' => memory_get_usage(),
+            'execTime' => round((microtime(true) - START_TIME) * 1000000), // 微秒
+            'memoryUsage' => memory_get_peak_usage(true),
             'sqlLogs' => $this->sqlLogs,
         ];
 

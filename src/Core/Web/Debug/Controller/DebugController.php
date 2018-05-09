@@ -32,7 +32,7 @@ class DebugController extends Controller
             return round($v / 1000, 1) . ' <span class="text-muted">ms</span>';
         });
         $this->view->registerFunc('formatSize', function ($v) {
-            return round($v / 1024 / 1024, 2) . ' <span class="text-muted">KB</span>';
+            return round($v / 1024, 2) . ' <span class="text-muted">KB</span>';
         });
         $this->view->setLayout('layout');
 
