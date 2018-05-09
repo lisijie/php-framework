@@ -107,7 +107,7 @@
                         }
                         ?>
                     </td>
-                    <td><?= $log['sql'] ?></td>
+                    <td style="word-break: break-all"><?= $log['sql'] ?></td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
