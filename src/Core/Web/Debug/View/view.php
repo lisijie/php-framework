@@ -1,47 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <title>Debug Info</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="//apps.bdimg.com/libs/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet"/>
-    <style type="text/css">
-        body { margin: 0  }
-        #banner {
-            background: #2C6AA0;
-            margin-bottom: 20px
-        }
-        #banner h1 {
-            margin: 0;
-            padding: 10px;
-            color: #fff
-        }
-        * {
-            outline: none;
-        }
-        .tablesorter .tablesorter-header {
-            background-image: url(data:image/gif;base64,R0lGODlhFQAJAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAkAAAIXjI+AywnaYnhUMoqt3gZXPmVg94yJVQAAOw==);
-            background-repeat: no-repeat;
-            background-position: center right;
-            white-space: normal;
-        }
-        .tablesorter .headerSortUp,
-        .tablesorter .tablesorter-headerSortUp,
-        .tablesorter .tablesorter-headerAsc {
-            background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjI8Bya2wnINUMopZAQA7);
-        }
-        .tablesorter .headerSortDown,
-        .tablesorter .tablesorter-headerSortDown,
-        .tablesorter .tablesorter-headerDesc {
-            background-image: url(data:image/gif;base64,R0lGODlhFQAEAIAAACMtMP///yH5BAEAAAEALAAAAAAVAAQAAAINjB+gC+jP2ptn0WskLQA7);
-        }
-    </style>
-</head>
-<body>
-<div id="banner">
-    <h1>Debug Info</h1>
-</div>
 
-<div class="container-fluid">
 <div class="row">
     <div class="col-md-12">
     <ul class="nav nav-tabs" id="tabs" role="tablist">
@@ -192,14 +149,3 @@
     <?php endif;?>
     </div>
 </div>
-</div>
-<script src="//apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js"></script>
-<script src="//apps.bdimg.com/libs/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-<script src="//cdn.bootcss.com/jquery.tablesorter/2.30.3/js/jquery.tablesorter.min.js"></script>
-<script>
-    $(function() {
-        $(".tablesorter").tablesorter();
-    });
-</script>
-</body>
-</html>

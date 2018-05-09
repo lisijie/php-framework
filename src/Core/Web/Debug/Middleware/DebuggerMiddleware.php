@@ -9,13 +9,11 @@ use Core\Http\Cookie;
 use Core\Http\Request;
 use Core\Http\Response;
 use Core\Middleware\MiddlewareInterface;
+use Core\Web\Debug\Lib\Config;
 use Core\Web\Debug\Lib\Storage;
 
 class DebuggerMiddleware implements MiddlewareInterface
 {
-
-    private $cookieName = 'debug_trace_id';
-
     private $sqlLogs = [];
 
     private $profileExtension = '';
@@ -68,7 +66,11 @@ class DebuggerMiddleware implements MiddlewareInterface
      */
     public function process(Request $request, callable $next)
     {
-        if (App::isCli() || !$request->getQueryParam('_debug')) {
+
+        if (App::isCli()
+            || substr(CUR_ROUTE, 0, 6) == 'debug/'
+            || (!$request->getCookieParam(Config::$startCookieName) && !$request->getQueryParam(Config::$debugParamName))
+        ) {
             return $next();
         }
 
@@ -76,7 +78,8 @@ class DebuggerMiddleware implements MiddlewareInterface
 
         $meta = [
             'route' => CUR_ROUTE,
-            'url' => (string)$request->getUri(),
+            'url' => (string)$request->getUri()->getPath(),
+            'requestTime' => $request->getServerParam('REQUEST_TIME'),
             'method' => $request->getMethod(),
             'responseHeaders' => $response->getHeaders(),
             'get' => $_GET,
@@ -105,7 +108,7 @@ class DebuggerMiddleware implements MiddlewareInterface
 
         $fileKey = (new Storage())->save($data);
 
-        $response = $response->withCookie(new Cookie($this->cookieName, $fileKey));
+        $response = $response->withCookie(new Cookie(Config::$traceCookieName, $fileKey));
         return $response;
     }
 }
