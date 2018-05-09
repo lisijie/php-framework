@@ -18,12 +18,18 @@ class DebuggerMiddleware implements MiddlewareInterface
 
     private $sqlLogs = [];
 
-    private $xhprofEnabled = false;
+    private $profileExtension = '';
 
     public function __construct()
     {
         if (!App::isCli()) {
-            $this->xhprofEnabled = extension_loaded('xhprof');
+            if (extension_loaded('xhprof')) {
+                $this->profileExtension = 'xhprof';
+                xhprof_enable(XHPROF_FLAGS_CPU | XHPROF_FLAGS_MEMORY | XHPROF_FLAGS_NO_BUILTINS);
+            } elseif (extension_loaded('tideways_xhprof')) {
+                $this->profileExtension = 'tideways_xhprof';
+                tideways_xhprof_enable(TIDEWAYS_XHPROF_FLAGS_MEMORY | TIDEWAYS_XHPROF_FLAGS_MEMORY_MU | TIDEWAYS_XHPROF_FLAGS_MEMORY_PMU | TIDEWAYS_XHPROF_FLAGS_CPU);
+            }
             Events::on(Db::class, Db::EVENT_QUERY, function (DbEvent $event) {
                 $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
                 $service = $model = $controller = '';
@@ -66,10 +72,6 @@ class DebuggerMiddleware implements MiddlewareInterface
             return $next();
         }
 
-        if ($this->xhprofEnabled) {
-            xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
-        }
-
         $response = $next();
 
         $meta = [
@@ -89,8 +91,10 @@ class DebuggerMiddleware implements MiddlewareInterface
         ];
 
         $profile = [];
-        if ($this->xhprofEnabled) {
+        if ($this->profileExtension == 'xhprof') {
             $profile = xhprof_disable();
+        } elseif ($this->profileExtension == 'tideways_xhprof') {
+            $profile = tideways_xhprof_disable();
         }
 
         $data = [
