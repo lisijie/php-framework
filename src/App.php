@@ -91,6 +91,7 @@ class App extends Events
     public static function bootstrap(BootstrapInterface $bootstrap = null)
     {
         $config = new Config(CONFIG_PATH, Environment::getEnvironment());
+        self::$debug = $config->get('app', 'debug', false);
         self::$container = new Container();
         self::$container->addServiceProvider(new ServiceProvider(self::$container, $config->get('component')));
         self::set('config', $config);
@@ -106,8 +107,6 @@ class App extends Events
         } else {
             (new \Core\Exception\ErrorHandler(self::logger()))->register();
         }
-        // 是否开启debug模式
-        self::$debug = $config->get('app', 'debug', false);
         if ($bootstrap) {
             $bootstrap->startup();
         }
@@ -118,7 +117,7 @@ class App extends Events
      *
      * @param MiddlewareInterface $middleware
      */
-    public static function add(MiddlewareInterface $middleware)
+    public static function addMiddleware(MiddlewareInterface $middleware)
     {
         self::$middlewares[] = $middleware;
     }
