@@ -148,7 +148,7 @@ class App extends Events
             $controller->execute($action, $router->getParams());
         } else {
             if (self::$debug) {
-                self::add(new \Core\Web\Debug\Middleware\DebuggerMiddleware());
+                self::addMiddleware(new \Core\Web\Debug\Middleware\DebuggerMiddleware());
             }
             $response = self::handleRequest(Request::createFromGlobals(), new Response());
             self::respond($response);
@@ -165,7 +165,7 @@ class App extends Events
         if (!headers_sent()) {
             header(sprintf("HTTP/%s %s %s", $response->getProtocolVersion(), $response->getStatusCode(), $response->getReasonPhrase()));
             if (!$response->hasHeader('Content-Type')) {
-                header('Content-Type: text/html; charset=utf-8');
+                header('Content-Type: text/html; charset=' . CHARSET);
             }
             foreach ($response->getHeaders() as $name => $values) {
                 if (strtolower($name) == 'set-cookie') {
@@ -239,7 +239,6 @@ class App extends Events
             }
             return $handler();
         } catch (BadMethodCallException $e) {
-            self::logger()->debug($e);
             throw new HttpNotFoundException();
         }
     }
