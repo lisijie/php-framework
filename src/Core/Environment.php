@@ -152,6 +152,9 @@ class Environment
             } else { // 默认环境
                 self::setEnvironment(self::getDefaultEnvironment());
             }
+            if (!empty(self::$envFile) && !is_file(self::$envFile)) {
+                file_put_contents(self::$envFile, self::$environment);
+            }
         }
         return self::$environment;
     }
