@@ -27,9 +27,9 @@
     ],
     'channel2' => [
         [
-            'class' => \Core\Logger\Handler\FileHandler::class,
+            'class' => \Core\Logger\Handler\DbHandler::class,
             'config' => [
-                'level' => \Core\Logger\Logger::DEBUG,
+                'level' => \Core\Logger\Logger::ERROR,
                 'dsn' => 'mysql:host=localhost;port=3306;dbname=test;charset=utf8',
                 'username' => 'root',
                 'password' => '',
