@@ -2,52 +2,54 @@
 
 ## 配置
 
-示例
+日志在 `app.php` 配置文件中配置，如 
 
 ```php
-//日志设置
+...
 'logger' => [
-    //默认日志配置
     'default' => [
-        // 写到文件日志
         [
-            'level' => \Core\Logger\Logger::WARN, //日志级别
-            'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
-            'formatter' => \Core\Logger\Formatter\JsonFormatter::class,
+            'class' => \Core\Logger\Handler\ConsoleHandler::class,
             'config' => [
-                'savepath' => DATA_PATH . '/logs/', //日志保存目录
-                'filesize' => 0, //文件分割大小
+                'level' => \Core\Logger\Logger::DEBUG,
+            ],
+        ],
+        [
+            'class' => \Core\Logger\Handler\FileHandler::class,
+            'config' => [
+                'level' => \Core\Logger\Logger::WARN,
+                'formatter' => \Core\Logger\Formatter\JsonFormatter::class,
+                'savepath' => DATA_PATH . '/logs/',
+                'filesize' => 0,
                 'filename' => '{level}-{Y}{m}{d}.log',
             ],
         ]
     ],
-    // 控制台日志配置
-    'console' => [
-        // 输出到控制台
+    'channel2' => [
         [
-            'level' => \Core\Logger\Logger::DEBUG, //日志级别
-            'handler' => \Core\Logger\Handler\ConsoleHandler::class, //日志处理器
-            'formatter' => \Core\Logger\Formatter\ConsoleFormatter::class,
-            'config' => [],
-        ],
-        // 写到日志文件
-        [
-            'level' => \Core\Logger\Logger::WARN, //日志级别
-            'handler' => \Core\Logger\Handler\FileHandler::class, //日志处理器
-            'formatter' => \Core\Logger\Formatter\JsonFormatter::class,
+            'class' => \Core\Logger\Handler\FileHandler::class,
             'config' => [
-                'savepath' => DATA_PATH . '/logs/', //日志保存目录
-                'filesize' => 0, //文件分割大小
-                'filename' => '{level}-{Y}{m}{d}.log',
+                'level' => \Core\Logger\Logger::DEBUG,
+                'dsn' => 'mysql:host=localhost;port=3306;dbname=test;charset=utf8',
+                'username' => 'root',
+                'password' => '',
+                'table' => 'sys_log',
             ],
         ]
     ],
 ],
+...
 ```
+
+上面的日志配置了 `default`、`channel2` 两个通道，`default` 通道配置了2个日志处理器，分别是 ConsoleHandler 和 FileHandler，ConsoleHandler 用于在控制台输出日志内容，而 FileHandler 则是将日志写到磁盘文件中。每个日志处理器的 `config` 数组内容将会传给对应 handler 的构造方法，不同的 handler 所需的配置项会有一些差异，但有几个配置项是固定的：
+
+* level：日志的级别
+* formatter：格式化器，用于格式化日志内容的格式，如JSON格式的JsonFormatter。
+* date_format：日志的日期格式
 
 ## 使用
 
-使用 App::logger() 获取对象。
+使用 App::logger() 获取对象，默认是返回 default 通道的日志对象，可以使用 App::logger('channel2') 获取 channel2 通道的日志对象。
 
 ```php
 App::logger()->debug('debug log...');

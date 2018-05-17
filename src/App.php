@@ -487,7 +487,7 @@ class App extends Events
             }
             if (isset($config[$channel])) {
                 foreach ($config[$channel] as $conf) {
-                    $handlerClass = $conf['handler'];
+                    $handlerClass = $conf['class'];
                     if (!class_exists($handlerClass)) {
                         throw new \InvalidArgumentException('找不到日志处理类: ' . $handlerClass);
                     }
