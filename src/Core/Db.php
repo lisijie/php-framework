@@ -353,27 +353,31 @@ class Db extends Component
      * 开始事务(主库)
      *
      * @see PDO::beginTransaction()
+     * @return bool
      */
     public function beginTransaction()
     {
         if ($this->transCount == 0) {
-            $this->getConnect('write')->beginTransaction();
+            return $this->getConnect('write')->beginTransaction();
         }
         $this->transCount++;
+        return false;
     }
 
     /**
      * 提交事务(主库)
      *
      * @see PDO::commit()
+     * @return bool
      */
     public function commit()
     {
-        if ($this->transCount == 0) return;
+        if ($this->transCount == 0) return false;
         $this->transCount--;
         if ($this->transCount == 0) {
-            $this->getConnect('write')->commit();
+            return $this->getConnect('write')->commit();
         }
+        return false;
     }
 
     /**

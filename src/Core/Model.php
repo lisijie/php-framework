@@ -278,6 +278,26 @@ abstract class Model extends Component
         return $this->db->table($this->table);
     }
 
+    /**
+     * 开启事务
+     *
+     * @return bool
+     */
+    public final function beginTransaction()
+    {
+        return $this->db->beginTransaction();
+    }
+
+    /**
+     * 提交事务
+     *
+     * @return bool
+     */
+    public final function commitTransaction()
+    {
+        return $this->db->commit();
+    }
+
     public final function __toString()
     {
         return $this->table;
