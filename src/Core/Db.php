@@ -358,10 +358,10 @@ class Db extends Component
     public function beginTransaction()
     {
         if ($this->transCount == 0) {
-            return $this->getConnect('write')->beginTransaction();
+            $this->getConnect('write')->beginTransaction();
         }
         $this->transCount++;
-        return false;
+        return true;
     }
 
     /**
