@@ -25,28 +25,13 @@ class FileMutex extends MutexAbstract
         }
     }
 
-    protected function doLock($name, $timeout)
-    {
-        $lockFile = $this->getLockFile($name);
-        $fp = fopen($lockFile, 'w+');
-        $waitTime = 0;
-        while (!flock($fp, LOCK_EX | LOCK_NB)) {
-            if ($timeout && ++$waitTime > $timeout) {
-                fclose($fp);
-                throw new GetLockTimeoutException($name, $timeout);
-            }
-            sleep(1);
-        }
-        $this->files[$name] = $fp;
-        return true;
-    }
-
     protected function doUnlock($name)
     {
         if (!isset($this->files[$name]) || !flock($this->files[$name], LOCK_UN)) {
             return false;
         }
         fclose($this->files[$name]);
+        unlink($this->getLockFile($name));
         unset($this->files[$name]);
         return true;
     }
@@ -54,5 +39,17 @@ class FileMutex extends MutexAbstract
     private function getLockFile($name)
     {
         return $this->path . '/'. md5($name) . '.lock';
+    }
+
+    public function tryLock($name)
+    {
+        $lockFile = $this->getLockFile($name);
+        $fp = fopen($lockFile, 'w+');
+        if (flock($fp, LOCK_EX | LOCK_NB)) {
+            $this->files[$name] = $fp;
+            return true;
+        }
+        fclose($fp);
+        return false;
     }
 }

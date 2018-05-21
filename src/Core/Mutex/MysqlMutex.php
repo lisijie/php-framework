@@ -25,12 +25,9 @@ class MysqlMutex extends MutexAbstract
         $this->db = $db;
     }
 
-    protected function doLock($name, $timeout)
+    public function tryLock($name)
     {
-        if (!$this->db->getOne("SELECT GET_LOCK(?, ?)", [$name, $timeout], 0, true)) {
-            throw new GetLockTimeoutException($name, $timeout);
-        }
-        return true;
+        return $this->db->getOne("SELECT GET_LOCK(?, ?)", [$name, 0], 0, true);
     }
 
     protected function doUnlock($name)

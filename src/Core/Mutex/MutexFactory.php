@@ -1,7 +1,6 @@
 <?php
 namespace Core\Mutex;
 
-use App;
 use Core\Cache\CacheInterface;
 use Core\Db;
 
@@ -30,14 +29,14 @@ class MutexFactory
      *
      * @param CacheInterface $cacheObject cache对象
      * @param bool|true $autoUnlock 是否自动释放锁
+     * @param int $lockTime 锁定时间上限
      * @return MemMutex
      */
-    public static function createMemMutex(CacheInterface $cacheObject = null, $autoUnlock = true)
+    public static function createMemMutex(CacheInterface $cacheObject, $autoUnlock = true, $lockTime = 0)
     {
         $mu = new MemMutex($autoUnlock);
-        if (null !== $cacheObject) {
-            $mu->setCache($cacheObject);
-        }
+        $mu->lockTime = $lockTime;
+        $mu->setCache($cacheObject);
         return $mu;
     }
 
@@ -51,9 +50,7 @@ class MutexFactory
     public static function createMysqlMutex(Db $db, $autoUnlock = true)
     {
         $mu = new MysqlMutex($autoUnlock);
-        if (null !== $db) {
-            $mu->setDb($db);
-        }
+        $mu->setDb($db);
         return $mu;
     }
 }

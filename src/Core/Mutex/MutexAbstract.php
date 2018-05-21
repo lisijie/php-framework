@@ -47,11 +47,15 @@ abstract class MutexAbstract implements MutexInterface
      */
     public function lock($name, $timeout = 0)
     {
-        if ($this->doLock($name, $timeout)) {
-            $this->locks[$name] = true;
-            return true;
+        $waitTime = 0;
+        while (!$this->tryLock($name)) {
+            if ($timeout && ++$waitTime > $timeout) {
+                throw new GetLockTimeoutException($name, $timeout);
+            }
+            sleep(1);
         }
-        return false;
+        $this->locks[$name] = true;
+        return true;
     }
 
     /**
@@ -69,7 +73,7 @@ abstract class MutexAbstract implements MutexInterface
         return false;
     }
 
-    abstract protected function doLock($name, $timeout);
+    abstract public function tryLock($name);
 
     abstract protected function doUnlock($name);
 

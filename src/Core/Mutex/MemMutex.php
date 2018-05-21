@@ -19,21 +19,13 @@ class MemMutex extends MutexAbstract
         $this->cache = $cache;
     }
 
-    protected function doLock($name, $timeout)
-    {
-        $waitTime = 0;
-        while (!$this->cache->add($this->prefix . $name, time(), $this->lockTime)) {
-            if ($timeout && ++$waitTime > $timeout) {
-                throw new GetLockTimeoutException($name, $timeout);
-            }
-            sleep(1);
-        }
-        return true;
-    }
-
     protected function doUnlock($name)
     {
-        return $this->cache->rm($this->prefix . $name);
+        return $this->cache->delete($this->prefix . $name);
     }
 
+    public function tryLock($name)
+    {
+        return $this->cache->add($this->prefix . $name, time(), $this->lockTime);
+    }
 }
