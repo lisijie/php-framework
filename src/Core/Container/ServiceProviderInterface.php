@@ -8,7 +8,7 @@ namespace Core\Container;
  */
 interface ServiceProviderInterface
 {
-    public function get($name, $args = []);
+    public function get($name);
 
     public function has($name);
 }

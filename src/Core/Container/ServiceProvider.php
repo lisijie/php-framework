@@ -12,12 +12,12 @@ class ServiceProvider implements ServiceProviderInterface
         $this->config = $config;
     }
 
-    public function get($name, $args = [])
+    public function get($name)
     {
         if (isset($this->config[$name])) {
             $this->container->set($name, $this->config[$name], true);
         }
-        return $this->container->get($name, $args);
+        return $this->container->get($name);
     }
 
     public function has($name)
