@@ -273,7 +273,7 @@ abstract class AbstractCache extends Component implements CacheInterface
             $ttl = (int)\DateTime::createFromFormat('U', 0)->add($ttl)->format('U');
         }
         if (is_int($ttl)) {
-            return $ttl > 0 ? $ttl : false;
+            return $ttl >= 0 ? $ttl : false;
         }
         throw new InvalidArgumentException('ttl 参数类型必须是整数, DateInterval 或 null.');
     }
