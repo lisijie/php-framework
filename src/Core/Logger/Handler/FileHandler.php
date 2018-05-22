@@ -50,7 +50,7 @@ class FileHandler extends AbstractHandler
     {
         $config = $this->config;
         if (empty($config['save_path'])) {
-            $config['save_path'] = DATE_PATH . '/logs';
+            $config['save_path'] = DATA_PATH . '/logs';
         }
         $this->savePath = rtrim($config['save_path'], DIRECTORY_SEPARATOR);
         if (!is_dir($this->savePath) && !@mkdir($this->savePath, 0755, true)) {
