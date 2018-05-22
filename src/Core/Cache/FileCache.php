@@ -6,6 +6,8 @@ use Core\Lib\FileHelper;
 /**
  * 文件缓存
  *
+ * 文件缓存并不能保证add操作的原子性，慎用！！！
+ *
  * 适用于单机环境。
  * 配置:
  * $options = array(
@@ -37,8 +39,27 @@ class FileCache extends AbstractCache
 
     protected function doAdd($key, $value, $ttl = 0)
     {
-        if (!$this->doHas($key)) {
-            return $this->doSet($key, $value, $ttl);
+        $filename = $this->filename($key);
+        if (!is_dir(dirname($filename))) {
+            @mkdir(dirname($filename), 0755, true);
+        }
+        @touch($filename);
+        $fp = @fopen($filename, 'r+');
+        if (!$fp) {
+            return false;
+        }
+        if (flock($fp, LOCK_EX | LOCK_NB)) {
+            $content = fread($fp, 18);
+            $result = $this->decode($content);
+            if (isset($result['expired']) && !$result['expired']) {
+                fclose($fp);
+                return false;
+            }
+            $content = $this->encode($value, $ttl);
+            fwrite($fp, $content);
+            fflush($fp);
+            fclose($fp);
+            return true;
         }
         return false;
     }
@@ -47,7 +68,7 @@ class FileCache extends AbstractCache
     {
         $file = $this->filename($key);
         if (!is_dir(dirname($file))) {
-            mkdir(dirname($file), 0755, true);
+            @mkdir(dirname($file), 0755, true);
         }
         $content = $this->encode($value, $ttl);
         file_put_contents($file, $content, LOCK_EX);
@@ -94,9 +115,7 @@ class FileCache extends AbstractCache
     {
         foreach ($keys as $key) {
             $file = $this->filename($key);
-            if (is_file($file)) {
-                unlink($file);
-            }
+            @unlink($file);
         }
         return true;
     }
@@ -108,9 +127,9 @@ class FileCache extends AbstractCache
         }
         $filename = $this->filename($key);
         if (!is_dir(dirname($filename))) {
-            mkdir(dirname($filename), 0755, true);
+            @mkdir(dirname($filename), 0755, true);
         }
-        touch($filename);
+        @touch($filename);
         $file = new \SplFileObject($filename, 'r+');
         if ($file->flock(LOCK_EX)) {
             if ($file->getSize() == 0) {
@@ -142,9 +161,9 @@ class FileCache extends AbstractCache
         }
         $filename = $this->filename($key);
         if (!is_dir(dirname($filename))) {
-            mkdir(dirname($filename), 0755, true);
+            @mkdir(dirname($filename), 0755, true);
         }
-        touch($filename);
+        @touch($filename);
         $file = new \SplFileObject($filename, 'r+');
         if ($file->flock(LOCK_EX)) {
             if ($file->getSize() == 0) {
@@ -188,8 +207,10 @@ class FileCache extends AbstractCache
             $data = false;
         } else {
             $data = substr($content, 18);
-            if ($compress) $data = gzuncompress($data);
-            $data = unserialize($data);
+            if ($data) {
+                if ($compress) $data = gzuncompress($data);
+                $data = @unserialize($data);
+            }
         }
         return ['expired' => $isExpired, 'data' => $data];
     }

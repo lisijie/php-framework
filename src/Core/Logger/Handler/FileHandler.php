@@ -8,8 +8,8 @@ use Core\Logger\Formatter\LineFormatter;
  * 文件日志处理器
  *
  * 配置选项:
- *  - savepath 日志存放目录
- *  - filesize 日志文件切割大小，单位M，0为不限制
+ *  - save_path 日志存放目录
+ *  - file_size 日志文件切割大小，单位M，0为不限制
  *  - filename 日志文件名格式，默认{Y}{m}{d}.log
  *
  * @author lisijie <lsj86@qq.com>
@@ -25,7 +25,7 @@ class FileHandler extends AbstractHandler
     private $savePath;
 
     /**
-     * 单个日志文件大小/MB，默认:10M
+     * 单个日志文件大小/MB，默认不限制
      * @var int
      */
     private $fileSize = 0;
@@ -49,15 +49,15 @@ class FileHandler extends AbstractHandler
     public function init()
     {
         $config = $this->config;
-        if (empty($config['savepath'])) {
-            throw new \RuntimeException('Lib\Logger\Handler\FileHandler 缺少配置项: savepath');
+        if (empty($config['save_path'])) {
+            $config['save_path'] = DATE_PATH . '/logs';
         }
-        $this->savePath = rtrim($config['savepath'], DIRECTORY_SEPARATOR);
+        $this->savePath = rtrim($config['save_path'], DIRECTORY_SEPARATOR);
         if (!is_dir($this->savePath) && !@mkdir($this->savePath, 0755, true)) {
             throw new \RuntimeException('Lib\Logger\Handler\FileHandler 日志目录创建失败: ' . $this->savePath);
         }
-        if (isset($config['filesize']) && is_numeric($config['filesize'])) {
-            $this->fileSize = max(1, intval($config['filesize'])) * 1024 * 1024;
+        if (isset($config['file_size']) && is_numeric($config['file_size'])) {
+            $this->fileSize = max(1, intval($config['file_size'])) * 1024 * 1024;
         }
         if (isset($config['filename']) && $config['filename']) {
             $this->fileName = $config['filename'];
