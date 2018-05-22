@@ -7,14 +7,13 @@ namespace Core\Cache;
  * 这里对值强制使用序列化，造成的副作用是不能 set 一个值后使用 increment、decrement，会返回false。
  *
  * 配置：
- * $config = array(
- *      'prefix' => 键名前缀,
+ * $config = [
  *      'host' => 主机地址,
  *      'port' => 端口,
  *      'auth' => 密码,
  *      'timeout' => 超时时间,
  *      'options' => [], // redis设置选项
- * )
+ * ]
  *
  * @author lisijie <lsj86@qq.com>
  * @package Core\Cache

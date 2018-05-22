@@ -5,13 +5,12 @@ namespace Core\Cache;
  * memcached 支持
  *
  * 配置：
- * $config = array(
- *        'prefix' => 键名前缀
- *        'servers' => [
- *            ['192.168.1.1', 11211], //memcached服务器1
- *            ['192.168.1.2', 11211], //memcached服务器2
- *        ],
- * )
+ * $config = [
+ *     'servers' => [
+ *        ['192.168.1.1', 11211], //memcached服务器1
+ *        ['192.168.1.2', 11211], //memcached服务器2
+ *    ],
+ * ]
  *
  * @author lisijie <lsj86@qq.com>
  * @package Core\Cache

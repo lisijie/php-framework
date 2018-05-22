@@ -19,8 +19,8 @@
             'config' => [
                 'level' => \Core\Logger\Logger::WARN,
                 'formatter' => \Core\Logger\Formatter\JsonFormatter::class,
-                'savepath' => DATA_PATH . '/logs/',
-                'filesize' => 0,
+                'save_path' => DATA_PATH . '/logs/',
+                'file_size' => 0,
                 'filename' => '{level}-{Y}{m}{d}.log',
             ],
         ]

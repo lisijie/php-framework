@@ -10,10 +10,9 @@ use Core\Lib\FileHelper;
  *
  * 适用于单机环境。
  * 配置:
- * $options = array(
- *        'prefix' => 'test_', // KEY前缀，用于目录hash
+ * $options = [
  *        'save_path' => '/tmp/cache', // 缓存文件存放目录
- * )
+ * ]
  *
  * @author lisijie <lsj86@qq.com>
  * @package Core\Cache
