@@ -82,7 +82,7 @@ class FileHandler extends AbstractHandler
 
         if ($this->fileSize > 0 && is_file($fileName) && filesize($fileName) > $this->fileSize) {
             $info = pathinfo($fileName);
-            $newName = $info['dirname'] . DIRECTORY_SEPARATOR . $info['filename'] . '_' . date('YmdH:i:s') . '.' . $info['extension'];
+            $newName = $info['dirname'] . DIRECTORY_SEPARATOR . $info['filename'] . '_' . date('Ymd_His') . '.' . $info['extension'];
             rename($fileName, $newName);
         }
 
