@@ -42,8 +42,8 @@ abstract class Command
             echo $message . "\n";
         } else {
             echo Console::ansiFormat("错误提示：", Console::FG_RED) . $message . "\n";
+            exit(1);
         }
-        exit;
     }
 
 
