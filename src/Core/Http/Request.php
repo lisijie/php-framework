@@ -97,6 +97,11 @@ class Request extends Message implements ServerRequestInterface
         $this->serverParams = $serverParams;
     }
 
+    /**
+     * 根据环境变量创建Request对象
+     *
+     * @return static
+     */
     public static function createFromGlobals()
     {
         $method = isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] : 'GET';
