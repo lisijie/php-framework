@@ -349,7 +349,8 @@ abstract class Model extends Component
                             $val = [$val];
                         }
                         foreach ($val as $k => $v) {
-                            $where[] = "`{$field}` LIKE " . $this->db->quote("%{$v}%");
+                            $v = $this->escapeLike($v);
+                            $where[] = "`{$field}` LIKE '%{$v}%'";
                         }
                         break;
                     case 'notlike': //NOT LIKE ‘%%’, 支持多个
@@ -357,14 +358,17 @@ abstract class Model extends Component
                             $val = [$val];
                         }
                         foreach ($val as $k => $v) {
-                            $where[] = "`{$field}` NOT LIKE " . $this->db->quote("%{$v}%");
+                            $v = $this->escapeLike($v);
+                            $where[] = "`{$field}` NOT LIKE '%{$v}%'";
                         }
                         break;
                     case 'startswith': //LIKE 'xxx%'
-                        $where[] = "`{$field}` LIKE " . $this->db->quote("{$val}%");
+                        $val = $this->escapeLike($val);
+                        $where[] = "`{$field}` LIKE '{$val}%'";
                         break;
                     case 'endswith': //LIKE '%xxx'
-                        $where[] = "`{$field}` LIKE " . $this->db->quote("%{$val}");
+                        $val = $this->escapeLike($val);
+                        $where[] = "`{$field}` LIKE '%{$val}'";
                         break;
                     case 'between': //between 'a' AND 'b'
                         $where[] = "(`{$field}` BETWEEN " . $this->db->quote($val[0]) . " AND " . $this->db->quote($val[1]) . ")";
@@ -401,6 +405,21 @@ abstract class Model extends Component
             }
         }
         return implode(' AND ', $where);
+    }
+
+    /**
+     * like转义
+     *
+     * @param $string
+     * @return string
+     */
+    private function escapeLike($string)
+    {
+        if (empty($string)) {
+            return $string;
+        }
+        $string = strtr($string, ['\\' => '\\\\']);
+        return strtr(substr($this->db->quote($string), 1, -1), ['%' => '\%', '_' => '\_']);
     }
 
     /**
