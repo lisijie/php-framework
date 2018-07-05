@@ -44,18 +44,9 @@ abstract class AbstractService extends Component
     {
         $cls = get_called_class();
         if (!array_key_exists($cls, static::$instances)) {
-            static::$instances[$cls] = self::create();
+            static::$instances[$cls] = new static();
         }
         return static::$instances[$cls];
-    }
-
-    /**
-     * 创建实例
-     * @return static
-     */
-    public final static function create()
-    {
-        return new static();
     }
 
     /**
