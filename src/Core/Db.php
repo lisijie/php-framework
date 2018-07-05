@@ -406,4 +406,14 @@ class Db extends Component
         return $this->getConnect()->quote($string, $type);
     }
 
+    /**
+     * 关闭数据连接
+     */
+    public function close()
+    {
+        foreach ($this->connections as $key => $conn) {
+            $this->connections[$key] = null;
+            unset($this->connections[$key]);
+        }
+    }
 }
