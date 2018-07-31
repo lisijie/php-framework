@@ -128,6 +128,9 @@ class Controller extends Component
      */
     protected function getQuery($name = null, $default = null, $applyFilter = true)
     {
+        if (null === $name) {
+            return $this->request->getQueryParams($applyFilter);
+        }
         return $this->request->getQueryParam($name, $default, $applyFilter);
     }
 
@@ -141,6 +144,9 @@ class Controller extends Component
      */
     protected function getPost($name = null, $default = null, $applyFilter = true)
     {
+        if (null === $name) {
+            return $this->request->getParsedBody($applyFilter);
+        }
         return $this->request->getPostParam($name, $default, $applyFilter);
     }
 

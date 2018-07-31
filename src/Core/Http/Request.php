@@ -41,9 +41,9 @@ class Request extends Message implements ServerRequestInterface
     protected $serverParams = [];
 
     /**
-     * @var array
+     * @var null|array
      */
-    protected $queryParams = [];
+    protected $queryParams = null;
 
     /**
      * @var array
@@ -337,21 +337,23 @@ class Request extends Message implements ServerRequestInterface
      *
      * 通常是PHP的 $_SERVER 环境变量。
      *
+     * @param bool $applyFilter
      * @return array
      */
-    public function getServerParams()
+    public function getServerParams($applyFilter = true)
     {
-        return $this->serverParams;
+        return $applyFilter ? $this->applyFilter($this->serverParams) : $this->serverParams;
     }
 
     /**
      * 返回请求的Cookie信息
      *
+     * @param bool $applyFilter
      * @return array
      */
-    public function getCookieParams()
+    public function getCookieParams($applyFilter = true)
     {
-        return $this->cookies;
+        return $applyFilter ? $this->applyFilter($this->cookies) : $this->cookies;
     }
 
     /**
@@ -370,18 +372,19 @@ class Request extends Message implements ServerRequestInterface
     /**
      * 返回解码后的URL查询参数信息
      *
+     * @param bool $applyFilter
      * @return array
      */
-    public function getQueryParams()
+    public function getQueryParams($applyFilter = true)
     {
         if (is_array($this->queryParams)) {
-            return $this->queryParams;
+            return $applyFilter ? $this->applyFilter($this->queryParams) : $this->queryParams;
         }
         if ($this->uri === null) {
             return [];
         }
         parse_str($this->uri->getQuery(), $this->queryParams);
-        return $this->queryParams;
+        return $applyFilter ? $this->applyFilter($this->queryParams) : $this->queryParams;
     }
 
     /**
@@ -424,11 +427,12 @@ class Request extends Message implements ServerRequestInterface
     /**
      * 返回请求体
      *
-     * @return null|array|object
+     * @param bool $applyFilter
+     * @return array|null|object
      */
-    public function getParsedBody()
+    public function getParsedBody($applyFilter = true)
     {
-        return $this->parsedBody;
+        return $applyFilter ? $this->applyFilter($this->parsedBody) : $this->parsedBody;
     }
 
     /**
@@ -448,11 +452,12 @@ class Request extends Message implements ServerRequestInterface
     /**
      * 返回从请求中解析出的属性信息
      *
+     * @param bool $applyFilter
      * @return array
      */
-    public function getAttributes()
+    public function getAttributes($applyFilter = true)
     {
-        return $this->attributes;
+        return $applyFilter ? $this->applyFilter($this->attributes) : $this->attributes;
     }
 
     /**
@@ -461,14 +466,15 @@ class Request extends Message implements ServerRequestInterface
      * @see getAttributes()
      * @param string $name 属性名
      * @param mixed $default 默认值
+     * @param bool $applyFilter
      * @return mixed
      */
-    public function getAttribute($name, $default = null)
+    public function getAttribute($name, $default = null, $applyFilter = true)
     {
         if (false === array_key_exists($name, $this->attributes)) {
             return $default;
         }
-        return $this->attributes[$name];
+        return $applyFilter ? $this->applyFilter($this->attributes[$name]) : $this->attributes[$name];
     }
 
     /**
@@ -644,7 +650,7 @@ class Request extends Message implements ServerRequestInterface
      */
     public function getQueryParam($name, $default = null, $applyFilter = true)
     {
-        $getParams = $this->getQueryParams();
+        $getParams = $this->getQueryParams(false);
         if (isset($getParams[$name])) {
             return $applyFilter ? $this->applyFilter($getParams[$name]) : $getParams[$name];
         }
@@ -661,7 +667,7 @@ class Request extends Message implements ServerRequestInterface
      */
     public function getPostParam($name, $default = null, $applyFilter = true)
     {
-        $postParams = $this->getParsedBody();
+        $postParams = $this->getParsedBody(false);
         if (isset($postParams[$name])) {
             return $applyFilter ? $this->applyFilter($postParams[$name]) : $postParams[$name];
         }
