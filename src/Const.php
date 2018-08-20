@@ -1,8 +1,8 @@
 <?php
 //版本号
-define('VERSION', '2.2.0');
+define('VERSION', '2.2.1');
 //发布时间
-define('RELEASE', '20180514');
+define('RELEASE', '20180820');
 //用于访问检查
 define('IN_APP', TRUE);
 //目录分隔符
@@ -24,7 +24,7 @@ defined('LANG_PATH') or define('LANG_PATH', APP_PATH . DS . 'Lang');
 //视图模板目录
 defined('VIEW_PATH') or define('VIEW_PATH', APP_PATH . DS . 'View');
 //发布目录
-defined('PUBLIC_PATH') or define('PUBLIC_PATH', (isset($_SERVER['SCRIPT_FILENAME']) ? dirname($_SERVER['SCRIPT_FILENAME']) : getcwd()));
+defined('PUBLIC_PATH') or define('PUBLIC_PATH', realpath(dirname($_SERVER['SCRIPT_FILENAME'])));
 
 /************* 字符集 ****************/
 defined('CHARSET') or define('CHARSET', 'utf-8');
