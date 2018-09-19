@@ -6,7 +6,7 @@ use ClassLoader;
 use Core\Command;
 use Core\Exception\AppException;
 use Core\Lib\Console;
-use Core\Lib\FileHelper;
+use Core\Lib\Files;
 
 /**
  * 显示帮助
@@ -276,7 +276,7 @@ class HelpCommand extends Command
         foreach ($paths as $ns => $nsPaths) {
             foreach ($nsPaths as $pathInfo) {
                 list($path, $suffix) = $pathInfo;
-                $files = FileHelper::scanDir($path);
+                $files = Files::scanDir($path);
                 $fileSuffix = $suffix . '.php';
                 foreach ($files as $file) {
                     if (substr_compare($file, $fileSuffix, 0 - strlen($fileSuffix), strlen($fileSuffix)) !== 0) {

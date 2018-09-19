@@ -6,7 +6,7 @@ namespace Core\Lib;
  *
  * @package Core\Lib
  */
-class FileHelper
+class Files
 {
 
     static $mimeTypes = [];

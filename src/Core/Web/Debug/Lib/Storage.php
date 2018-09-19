@@ -1,7 +1,7 @@
 <?php
 namespace Core\Web\Debug\Lib;
 
-use Core\Lib\FileHelper;
+use Core\Lib\Files;
 
 class Storage
 {
@@ -71,6 +71,6 @@ class Storage
 
     public function clear()
     {
-        FileHelper::removeDir($this->savePath);
+        Files::removeDir($this->savePath);
     }
 }

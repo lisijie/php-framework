@@ -2,7 +2,7 @@
 
 namespace Core\Mutex;
 
-use Core\Lib\FileHelper;
+use Core\Lib\Files;
 
 /**
  * 文件锁
@@ -21,7 +21,7 @@ class FileMutex extends MutexAbstract
     {
         $this->path = DATA_PATH . '/mutex';
         if (!is_dir($this->path)) {
-            FileHelper::makeDir($this->path);
+            Files::makeDir($this->path);
         }
     }
 

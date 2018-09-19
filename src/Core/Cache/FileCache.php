@@ -1,7 +1,7 @@
 <?php
 namespace Core\Cache;
 
-use Core\Lib\FileHelper;
+use Core\Lib\Files;
 
 /**
  * 文件缓存
@@ -228,7 +228,7 @@ class FileCache extends AbstractCache
 
     protected function doClear()
     {
-        return FileHelper::removeDir($this->savePath);
+        return Files::removeDir($this->savePath);
     }
 
     protected function doHas($key)
