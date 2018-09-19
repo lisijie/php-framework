@@ -131,16 +131,16 @@ class Strings
      *
      * 与addslashes不同之处在于本函数支持数组
      *
-     * @param string|array $string
+     * @param string|array $input
      * @return string|array 返回处理后的变量
      */
-    public static function addSlashes($string)
+    public static function addSlashes($input)
     {
-        if (!is_array($string)) return addslashes($string);
-        foreach ($string as $key => $val) {
-            $string[$key] = static::addSlashes($val);
+        if (!is_array($input)) return addslashes($input);
+        foreach ($input as $key => $val) {
+            $input[$key] = static::addSlashes($val);
         }
-        return $string;
+        return $input;
     }
 
     /**
@@ -148,25 +148,59 @@ class Strings
      *
      * 与stripslashes不同之处在于本函数支持数组
      *
-     * @param string|array $string
+     * @param string|array $input
      * @return string|array 返回处理后的变量
      */
-    public static function delSlashes($string)
+    public static function delSlashes($input)
     {
-        if (!is_array($string)) return stripslashes($string);
-        foreach ($string as $key => $val) {
-            $string[$key] = static::delSlashes($val);
+        if (!is_array($input)) return stripslashes($input);
+        foreach ($input as $key => $val) {
+            $input[$key] = static::delSlashes($val);
         }
-        return $string;
+        return $input;
     }
 
     /**
      * 计算字符串长度，一个汉字为1
+     *
      * @param string $string
      * @return int
      */
     public static function len($string)
     {
         return mb_strlen($string, CHARSET);
+    }
+
+    /**
+     * base64编码为可用于URL参数形式
+     *
+     * @param string $string
+     * @return string
+     */
+    public static function base64EncodeURL($string)
+    {
+        return str_replace(['+', '/'], ['-', '_'], rtrim(base64_encode($string), '='));
+    }
+
+    /**
+     * 解码URL形式base64
+     *
+     * @param string $string
+     * @return string
+     */
+    public static function base64DecodeURL($string)
+    {
+        return base64_decode(str_replace(['-','_'], ['+', '/'], $string));
+    }
+
+    /**
+     * 检查字符串编码是否是UTF8
+     *
+     * @param string $value
+     * @return bool
+     */
+    public static function isUTF8($value)
+    {
+        return $value === '' || preg_match('/^./su', $value) === 1;
     }
 }
