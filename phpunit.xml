@@ -15,7 +15,7 @@
         </testsuite>
     </testsuites>
     <php>
-        <const name="APP_PATH" value="./example/app/"/>
+        <const name="APP_PATH" value="./tests"/>
         <const name="DATA_PATH" value="/tmp"/>
     </php>
 </phpunit>
