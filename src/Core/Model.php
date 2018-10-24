@@ -33,6 +33,30 @@ abstract class Model extends Component
      */
     protected $table = '';
 
+    /**
+     * 主键字段名
+     * @var string
+     */
+    protected $pk = 'id';
+
+    /**
+     * 自动生成创建时间戳的字段名
+     *
+     * 可以让您在调用 insert 方法插入到数据库时自动将对应的字段设置为当前时间戳，为空表示不启用。
+     *
+     * @var string
+     */
+    protected $autoCreated = '';
+
+    /**
+     * 自动生成更新时间戳的字段名
+     *
+     * 可以让您在调用 update 方法更新到数据库时自动将对应的字段设置为当前时间戳，为空表示不启用。
+     *
+     * @var string
+     */
+    protected $autoUpdated = '';
+
     private final function __construct()
     {
         $this->db = App::db($this->dbNode);
@@ -61,6 +85,17 @@ abstract class Model extends Component
     protected function init()
     {
 
+    }
+
+    /**
+     * 根据主键ID查询
+     *
+     * @param $id
+     * @return array
+     */
+    public final function get($id)
+    {
+        return $this->getRow([$this->pk => $id]);
     }
 
     /**
@@ -142,6 +177,27 @@ abstract class Model extends Component
     {
         if (empty($data)) return false;
         $table = $this->getTable();
+        if ($this->autoCreated || $this->autoUpdated) {
+            $now = $this->now();
+            if ($multi) {
+                foreach ($data as &$item) {
+                    if ($this->autoCreated && !isset($item[$this->autoCreated])) {
+                        $item[$this->autoCreated] = $now;
+                    }
+                    if ($this->autoUpdated && !isset($item[$this->autoUpdated])) {
+                        $item[$this->autoUpdated] = $now;
+                    }
+                }
+                unset($item);
+            } else {
+                if ($this->autoCreated && !isset($data[$this->autoCreated])) {
+                    $data[$this->autoCreated] = $now;
+                }
+                if ($this->autoUpdated && !isset($data[$this->autoUpdated])) {
+                    $data[$this->autoUpdated] = $now;
+                }
+            }
+        }
         if ($multi) { // 批量查询使用事务提高插入性能
             $this->db->beginTransaction();
             $result = $this->db->insert($table, $data, $replace, $multi, $ignore);
@@ -169,6 +225,18 @@ abstract class Model extends Component
     {
         if (empty($data)) return 0;
         if (!$multi) $data = [$data];
+        if ($this->autoCreated || $this->autoUpdated) {
+            $now = $this->now();
+            foreach ($data as &$item) {
+                if ($this->autoCreated && !isset($item[$this->autoCreated])) {
+                    $item[$this->autoCreated] = $now;
+                }
+                if ($this->autoUpdated && !isset($item[$this->autoUpdated])) {
+                    $item[$this->autoUpdated] = $now;
+                }
+            }
+            unset($item);
+        }
         $table = $this->getTable();
         $fields = '`' . implode('`,`', array_keys($data[0])) . '`'; //字段
         // 插入值列表
@@ -179,6 +247,9 @@ abstract class Model extends Component
         $values = '(' . implode('),(', $values) . ')';
         // 更新列表
         foreach (array_keys($data[0]) as $field) {
+            if ($this->autoCreated && $field == $this->autoCreated) {
+                continue;
+            }
             $updates[] = "`{$field}`=VALUES(`{$field}`)";
         }
         $updates = implode(',', $updates);
@@ -214,6 +285,12 @@ abstract class Model extends Component
      */
     public final function update(array $data, array $filter)
     {
+        if (empty($data)) {
+            return false;
+        }
+        if ($this->autoUpdated && !isset($data[$this->autoUpdated])) {
+            $data[$this->autoUpdated] = $this->now();
+        }
         $table = $this->getTable();
         $sql = "UPDATE {$table} SET ";
         $split = '';
@@ -255,10 +332,16 @@ abstract class Model extends Component
      */
     public final function increment(array $data, array $filter)
     {
+        if (empty($data)) {
+            return false;
+        }
         $table = $this->getTable();
         $sql = "UPDATE {$table} SET ";
         foreach ($data as $key => $val) {
             $sql .= " `{$key}` = `{$key}` + " . intval($val) . ",";
+        }
+        if ($this->autoUpdated && !isset($data[$this->autoUpdated])) {
+            $sql .= " `{$this->autoUpdated}` = " . $this->now() . ",";
         }
         $where = $this->parseFilter($filter);
         $sql = rtrim($sql, ',');
@@ -442,5 +525,17 @@ abstract class Model extends Component
             }
         }
         return implode(', ', $result);
+    }
+
+    /**
+     * 返回当前时间
+     *
+     * 用于 autoCreated、autoUpdated 的时间函数，如果字段类型不是 int，而是 datetime 之类的，可以覆盖本函数以返回对应的值。
+     *
+     * @return int
+     */
+    protected function now()
+    {
+        return time();
     }
 }
