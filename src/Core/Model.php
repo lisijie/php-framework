@@ -341,7 +341,7 @@ abstract class Model extends Component
             $sql .= " `{$key}` = `{$key}` + " . intval($val) . ",";
         }
         if ($this->autoUpdated && !isset($data[$this->autoUpdated])) {
-            $sql .= " `{$this->autoUpdated}` = " . $this->now() . ",";
+            $sql .= " `{$this->autoUpdated}` = '" . $this->now() . "',";
         }
         $where = $this->parseFilter($filter);
         $sql = rtrim($sql, ',');
